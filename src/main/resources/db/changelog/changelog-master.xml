@@ -1,0 +1,14 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-4.1.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+    <include file="db/changelog/v1.0.0_2021-08-18_01_init_notebook_db.sql"/>
+    <include file="db/changelog/v1.0.0_2021-08-18_02_add_new_column_and_unique_index.sql"/>
+    <include file="db/changelog/v1.0.0_2021-08-20_01_change_unique_index_for_connection_name.sql"/>
+    <include file="db/changelog/v1.0.0_2021-08-31_01_node_def_and_param_def.sql"/>
+    <include file="db/changelog/v1.0.0_2021-09-08_01_add_model_info.sql"/>
+    <include file="db/changelog/v1.0.0_2021-09-14_01_add_param_def_for_hdfs_csv.sql"/>
+    <include file="db/changelog/v1.0.0_2021-09-15_01_update_RandomForest_param_maxBins.sql"/>
+    <include file="db/changelog/v1.0.0_2021-09-17_01_add_column_uploaded_files_in_tb_user_action.sql"/>
+    <include file="db/changelog/v1.0.0_2021-10-15_01_alter_job_progress_to_longtext.sql"/>
+    <include file="db/changelog/v1.0.0_2021-11-04_01_add_register_et.sql"/>
+</databaseChangeLog>

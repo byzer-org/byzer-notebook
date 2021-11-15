@@ -1,0 +1,1 @@
+org.springframework.boot.env.EnvironmentPostProcessor=io.kyligence.notebook.console.support.EnvironmentPropertyProcessor

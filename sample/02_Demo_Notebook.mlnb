@@ -1,0 +1,90 @@
+{
+  "id" : "171",
+  "name" : "02_Demo_Notebook",
+  "user" : "admin",
+  "cell_list" : [ {
+    "id" : "4107",
+    "content" : "-- Markdown# Demo1: Heart Attack Analysis and Prediction\n在这个Demo中，我们将使用 Kaggle 的公开数据集 - Heart Attack Analysis & Prediction Dataset，为大家演示如何用MLSQL语言进行数据工程处理和机器学习。",
+    "job_id" : null
+  }, {
+    "id" : "5033",
+    "content" : "-- Markdown### STEP1:先Load数据文件，并将其命名为heartdisease_data",
+    "job_id" : null
+  }, {
+    "id" : "3901",
+    "content" : "load csv.`/tmp/upload/heart.csv`where header=\"true\" as heartdisease_data;",
+    "job_id" : null
+  }, {
+    "id" : "3856",
+    "content" : "--用宏命令查看一下数据类型\n!desc heartdisease_data;",
+    "job_id" : null
+  }, {
+    "id" : "3810",
+    "content" : "-- Markdown### STEP2:将特征列和lable列处理成算法适用的格式",
+    "job_id" : null
+  }, {
+    "id" : "3784",
+    "content" : "select array(cast(age as double)) as age, array(cast(sex as double)) as sex,array(cast(cp as double)) as cp,array(cast(trtbps as double)) as trtbps,array(cast(chol as double)) as chol,array(cast(fbs as double)) as fbs,array(cast(restecg as double)) as restecg,array(cast(thalachh as double)) as thalachh,array(cast(exng as double)) as exng ,array(cast(oldpeak as double)) as oldpeak,array(cast(slp as double)) as slp,array(cast(caa as double)) as caa,array(cast(thall as double)) as thall,output from heartdisease_data\nas demo_data;",
+    "job_id" : null
+  }, {
+    "id" : "3785",
+    "content" : "-- 将数据合并为特征列和标签列\nselect vec_concat(array( vec_dense(age),vec_dense(sex),vec_dense(cp),vec_dense(trtbps),vec_dense(chol),vec_dense(fbs),vec_dense(restecg),vec_dense(thalachh),vec_dense(exng),vec_dense(oldpeak),\nvec_dense(slp),vec_dense(caa),vec_dense(thall) )) as features, cast(output as int) as label from demo_data as demo_data2;",
+    "job_id" : null
+  }, {
+    "id" : "3811",
+    "content" : "-- Markdown### STEP3:将数据按照8:2的比例拆分训练数据集和测试数据集",
+    "job_id" : null
+  }, {
+    "id" : "3793",
+    "content" : "-- 使用 RateSampler 这个ET组件\nrun demo_data2 as RateSampler.`` where sampleRate=\"0.8,0.2\" \nand labelCol=\"label\" as marked_dataset;",
+    "job_id" : null
+  }, {
+    "id" : "3794",
+    "content" : "-- 将组别为0的定义为训练集，将组别为1的定义为测试集\nselect * from marked_dataset where __split__=0 as train_data;\nselect * from marked_dataset where __split__=1 as test_data;",
+    "job_id" : null
+  }, {
+    "id" : "3813",
+    "content" : "-- Markdown### STEP4: 用 RandomForest 算法训练数据集",
+    "job_id" : null
+  }, {
+    "id" : "3782",
+    "content" : "train train_data as RandomForest.`/tmp/models/rf_model` where\n-- 每次模型不要覆盖，保持版本\nkeepVersion = \"true\"\nand `fitParam.0.labelCol`= \"label\"  --y标签\nand `fitParam.0.featuresCol`= \"features\"  -- x特征\nand `fitParam.0.maxDepth`= \"4\"\n\n--设置了两组参数同时运行可对比结果优劣\nand `fitParam.1.labelCol`= \"label\"  --y标签\nand `fitParam.1.featuresCol`= \"features\"  -- x特征\nand `fitParam.1.maxDepth`= \"10\";",
+    "job_id" : null
+  }, {
+    "id" : "3814",
+    "content" : "-- Markdown### STEP5: 用 f1 Score 最高的那组模型 预测测试集",
+    "job_id" : null
+  }, {
+    "id" : "3790",
+    "content" : "predict test_data as RandomForest.`/tmp/models/rf_model` \nwhere autoSelectByMetric = \"f1\" \nas predicted_table;",
+    "job_id" : null
+  }, {
+    "id" : "3797",
+    "content" : "--检查一下被正确预测的数量\nselect count(*) from predicted_table where label = 0 and prediction = 0 as newtable;",
+    "job_id" : null
+  }, {
+    "id" : "3800",
+    "content" : "--检查一下被错误预测的数量\nselect count(*) from predicted_table where label = 0 and prediction = 1 as newtable2;",
+    "job_id" : null
+  }, {
+    "id" : "3780",
+    "content" : "-- Markdown### STEP6: 换一种算法 NaiveBayes再试一次",
+    "job_id" : null
+  }, {
+    "id" : "3818",
+    "content" : "train train_data as NaiveBayes.`/tmp/models/NB_model` \nwhere  keepVersion=\"true\"\nand fitParam.0.featuresCol=\"features\"\nand fitParam.0.predictionCol = \"prediction\"\nand fitParam.0.labelcol = \"label\";",
+    "job_id" : null
+  }, {
+    "id" : "3816",
+    "content" : "predict test_data as NaiveBayes.`/tmp/models/NB_model` \nas NB_table;",
+    "job_id" : null
+  }, {
+    "id" : "3817",
+    "content" : "--同样检查一下被正确预测的数量\nselect count(*) from NB_table where label = 0 and prediction = 0 as NBtable1;",
+    "job_id" : null
+  }, {
+    "id" : "3819",
+    "content" : "--同样检查一下被错误预测的数量，发现正确率不如 RandomForest\nselect count(*) from NB_table where label = 0 and prediction = 1 as NB_table2;",
+    "job_id" : null
+  } ]
+}

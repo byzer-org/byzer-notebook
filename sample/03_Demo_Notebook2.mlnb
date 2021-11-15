@@ -1,0 +1,78 @@
+{
+  "id" : "49",
+  "name" : "03_Demo_Notebook2",
+  "user" : "lindsay",
+  "cell_list" : [ {
+    "id" : "388",
+    "content" : "-- Markdown# Demo2: Cancer Prediction\n在这个Demo中，我们将使用 Kaggle 的公开数据集 - Breast Cancer Wisconsin (Diagnostic) Data Set，为大家演示如何用MLSQL语言进行数据工程处理和机器学习。",
+    "job_id" : null
+  }, {
+    "id" : "389",
+    "content" : "-- Markdown### STEP1:先Load数据文件，并将其命名为 data",
+    "job_id" : null
+  }, {
+    "id" : "390",
+    "content" : "set dataPath='/tmp/upload/Cancerdata.csv';\nload csv.`${dataPath}` where header='true' as data;",
+    "job_id" : null
+  }, {
+    "id" : "391",
+    "content" : "-- Markdown### STEP2: Feature Engineering Part",
+    "job_id" : null
+  }, {
+    "id" : "392",
+    "content" : "select SUM( case when `id` is null or `id`='' then 1 else 0 end ) as id,\nSUM( case when `diagnosis` is null or `diagnosis`='' then 1 else 0 end ) as diagnosis,\nSUM( case when `radius_mean` is null or `radius_mean`='' then 1 else 0 end ) as radius_mean,\nSUM( case when `texture_mean` is null or `texture_mean`='' then 1 else 0 end ) as texture_mean,\nSUM( case when `perimeter_mean` is null or `perimeter_mean`='' then 1 else 0 end ) as perimeter_mean,\nSUM( case when `area_mean` is null or `area_mean`='' then 1 else 0 end ) as area_mean,\nSUM( case when `smoothness_mean` is null or `smoothness_mean`='' then 1 else 0 end ) as smoothness_mean,\nSUM( case when `compactness_mean` is null or `compactness_mean`='' then 1 else 0 end ) as compactness_mean,\nSUM( case when `concavity_mean` is null or `concavity_mean`='' then 1 else 0 end ) as concavity_mean,\nSUM( case when `concave points_mean` is null or `concave points_mean`='' then 1 else 0 end ) as concave_points_mean,\nSUM( case when `symmetry_mean` is null or `symmetry_mean`='' then 1 else 0 end ) as symmetry_mean,\nSUM( case when `fractal_dimension_mean` is null or `fractal_dimension_mean`='' then 1 else 0 end ) as fractal_dimension_mean,\nSUM( case when `radius_se` is null or `radius_se`='' then 1 else 0 end ) as radius_se,\nSUM( case when `texture_se` is null or `texture_se`='' then 1 else 0 end ) as texture_se,\nSUM( case when `perimeter_se` is null or `perimeter_se`='' then 1 else 0 end ) as perimeter_se,\nSUM( case when `area_se` is null or `area_se`='' then 1 else 0 end ) as area_se,\nSUM( case when `smoothness_se` is null or `smoothness_se`='' then 1 else 0 end ) as smoothness_se,\nSUM( case when `compactness_se` is null or `compactness_se`='' then 1 else 0 end ) as compactness_se,\nSUM( case when `concavity_se` is null or `concavity_se`='' then 1 else 0 end ) as concavity_se,\nSUM( case when `concave points_se` is null or `concave points_se`='' then 1 else 0 end ) as concave_points_se,\nSUM( case when `symmetry_se` is null or `symmetry_se`='' then 1 else 0 end ) as symmetry_se,\nSUM( case when `fractal_dimension_se` is null or `fractal_dimension_se`='' then 1 else 0 end ) as fractal_dimension_se,\nSUM( case when `radius_worst` is null or `radius_worst`='' then 1 else 0 end ) as radius_worst,\nSUM( case when `texture_worst` is null or `texture_worst`='' then 1 else 0 end ) as texture_worst,\nSUM( case when `perimeter_worst` is null or `perimeter_worst`='' then 1 else 0 end ) as perimeter_worst,\nSUM( case when `area_worst` is null or `area_worst`='' then 1 else 0 end ) as area_worst,\nSUM( case when `smoothness_worst` is null or `smoothness_worst`='' then 1 else 0 end ) as smoothness_worst,\nSUM( case when `compactness_worst` is null or `compactness_worst`='' then 1 else 0 end ) as compactness_worst,\nSUM( case when `concavity_worst` is null or `concavity_worst`='' then 1 else 0 end ) as concavity_worst,\nSUM( case when `concave points_worst` is null or `concave points_worst`='' then 1 else 0 end ) as concave_points_worst,\nSUM( case when `symmetry_worst` is null or `symmetry_worst`='' then 1 else 0 end ) as symmetry_worst,\nSUM( case when `fractal_dimension_worst` is null or `fractal_dimension_worst`='' then 1 else 0 end ) as fractal_dimension_worst,\nSUM( case when `_c32` is null or `_c32`='' then 1 else 0 end ) as _c32\nfrom data as data_id;",
+    "job_id" : null
+  }, {
+    "id" : "393",
+    "content" : "select int(`id`), (case when `diagnosis` = 'M' then 1 else 0 end) as `diagnosis`,float(`radius_mean`),float(`texture_mean`),\nfloat(`perimeter_mean`),float(`area_mean`),float(`smoothness_mean`),\nfloat(`compactness_mean`),float(`concavity_mean`),float(`concave points_mean`),\nfloat(`symmetry_mean`),float(`fractal_dimension_mean`),float(`radius_se`),float(`texture_se`),\nfloat(`perimeter_se`),float(`area_se`),float(`smoothness_se`),float(`compactness_se`),float(`concavity_se`),\nfloat(`concave points_se`),float(`symmetry_se`),float(`fractal_dimension_se`),float(`radius_worst`),float(`texture_worst`),\nfloat(`perimeter_worst`),float(`area_worst`),float(`smoothness_worst`),float(`compactness_worst`),float(`concavity_worst`),\nfloat(`concave points_worst`),float(`symmetry_worst`),float(`fractal_dimension_worst`)\nfrom data as data1;",
+    "job_id" : null
+  }, {
+    "id" : "394",
+    "content" : "select `id` as id, `radius_mean`+`texture_mean`+`perimeter_mean`+`area_mean`+\n`smoothness_mean`+`compactness_mean`+`concavity_mean`+`concave points_mean`+\n`symmetry_mean`+`fractal_dimension_mean`+`radius_se`+`texture_se`+\n`perimeter_se`+`area_se`+`smoothness_se`+`compactness_se`+`concavity_se`+\n`concave points_se`+`fractal_dimension_se`+`symmetry_se`+`radius_worst`+\n`texture_worst`+`perimeter_worst`+`area_worst`+`smoothness_worst`+\n`compactness_worst`+`concavity_worst`+`concave points_worst`+`symmetry_worst`+\n`fractal_dimension_worst` as Agg_of_all, `diagnosis` as diagnosis from data1 as data2;",
+    "job_id" : null
+  }, {
+    "id" : "395",
+    "content" : "select Min(`Agg_of_all`) as min_Agg_of_all, Max(`Agg_of_all`) as max_Agg_of_all from data2 as data3;",
+    "job_id" : null
+  }, {
+    "id" : "396",
+    "content" : "select (`Agg_of_all`-data3.`min_Agg_of_all`)/(data3.`max_Agg_of_all`-data3.`min_Agg_of_all`) as nor_Agg_of_all, `diagnosis` as label, `id` as u_id from data2, data3 as data4;",
+    "job_id" : null
+  }, {
+    "id" : "397",
+    "content" : "select * from data4 join data1 on data4.`u_id`=data1.`id` as data5;\nselect array(`radius_mean`,`perimeter_mean`,`area_mean`,`smoothness_mean`,`compactness_mean`,`concavity_mean`,\n`concave points_mean`,`symmetry_mean`,`fractal_dimension_mean`,`radius_se`,`texture_se`,`perimeter_se`,\n`area_se`,`smoothness_se`,`compactness_se`,`concavity_se`,`concave points_se`,`symmetry_se`,`fractal_dimension_se`,\n`radius_worst`,`texture_worst`,`perimeter_worst`,`area_worst`,`smoothness_worst`,`compactness_worst`,`concavity_worst`,\n`concave points_worst`,`symmetry_worst`,`fractal_dimension_worst`) as features, `label` as label\nfrom data5 as data6;",
+    "job_id" : null
+  }, {
+    "id" : "398",
+    "content" : "-- Markdown### STEP3 : 拆分训练集和测试集",
+    "job_id" : null
+  }, {
+    "id" : "399",
+    "content" : "train data6 as RateSampler.`` \nwhere labelCol=\"label\"\nand sampleRate=\"0.7,0.3\" as marked_dataset;",
+    "job_id" : null
+  }, {
+    "id" : "400",
+    "content" : "select * from marked_dataset where __split__=1\nas testingTable;\n\nselect * from marked_dataset where __split__=0\nas trainingTable;\n",
+    "job_id" : null
+  }, {
+    "id" : "401",
+    "content" : "--可以用宏命令查看一下数据类型\n!desc trainingTable;",
+    "job_id" : null
+  }, {
+    "id" : "402",
+    "content" : "select vec_dense(features) as features ,label as label from trainingTable as trainData;\nselect vec_dense(features) as features ,label as label from testingTable as testData;",
+    "job_id" : null
+  }, {
+    "id" : "403",
+    "content" : "-- Markdown### STEP4 : 使用MLSQL Lab内置的 AutoML 来训练得到最佳模型",
+    "job_id" : null
+  }, {
+    "id" : "404",
+    "content" : "--Install\n--!plugin app remove \"mlsql-mllib-3.0\";\n!plugin app add -\"mlsql-mllib-3.0\";",
+    "job_id" : null
+  }, {
+    "id" : "405",
+    "content" : "train trainData as AutoML.`/tmp/kaggle`\nwhere keepVersion=\"true\" \nand algos = \"GBTs,LinearRegression,LogisticRegression,NaiveBayes,RandomForest\"\nand evaluateTable=\"trainData\";",
+    "job_id" : null
+  } ]
+}

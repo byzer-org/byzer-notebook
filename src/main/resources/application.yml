@@ -1,0 +1,95 @@
+notebook:
+  database:
+    useSSL: false
+    ip: localhost
+    port: 3306
+    name: notebook
+    username: root
+    password: root
+
+spring:
+  application:
+    name: Kyligence Notebook
+  jackson:
+    serialization:
+      indent_output: true
+    date-format: yyyy-MM-dd HH:mm:ss
+    default-property-inclusion: non_null
+    mapper:
+      PROPAGATE_TRANSIENT_MARKER: true
+  datasource:
+    druid:
+      url: jdbc:mysql://${notebook.database.ip}:${notebook.database.port}/${notebook.database.name}?useUnicode=true&characterEncoding=UTF8&autoReconnect=true&failOverReadOnly=false&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull&useSSL=${notebook.database.useSSL}&useTimezone=true&serverTimezone=UTC
+      username: ${notebook.database.username}
+      password: ${notebook.database.password}
+      initial-size: 2
+      max-active: 20
+      min-idle: 5
+      max-wait: 60000
+      test-on-borrow: true
+      test-on-return: false
+      test-while-idle: true
+      validation-query: select 'x'
+      validationQueryTimeout: 2
+      time-between-eviction-runs-millis: 60000
+      filter:
+        slf4j:
+          enabled: false
+        wall:
+          enabled: true
+        stat:
+          slow-sql-millis: 1000
+          log-slow-sql: true
+          enabled: true
+      web-stat-filter:
+        enabled: false
+      stat-view-servlet:
+        enabled: false
+      pool-prepared-statements: false
+      max-pool-prepared-statement-per-connection-size: 20
+      min-evictable-idle-time-millis: 300000
+      connection-init-sqls: 'set names utf8;'
+      keep-alive: false
+      time-between-log-stats-millis: -1
+      remove-abandoned: true
+    initialization-mode: always
+  jpa:
+    database: MySQL
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/changelog-master.xml
+  mvc:
+    async:
+      request-timeout: 600000
+
+server:
+  port: ${notebook.port:9002}
+  address: 0.0.0.0
+  tomcat:
+    accept-count: 500
+    uri-encoding: UTF-8
+    max-connections: 10000
+    max-http-post-size: 104857600
+    max-threads: 200
+    min-spare-threads: 10
+    max-http-header-size: 1048576
+    accesslog:
+      enabled: true
+      directory: ${NOTEBOOK_HOME}/logs
+      pattern: '%h %l %u %t "%r" %s %b %D'
+      prefix: notebook_access
+    basedir: ${NOTEBOOK_HOME}
+  connection-timeout: -1
+  servlet:
+    session:
+      timeout: ${notebook.session.timeout:12h}
+  error:
+    include-stacktrace: always
+
+management:
+  endpoint:
+    shutdown:
+      enabled: false
