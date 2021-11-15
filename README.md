@@ -40,4 +40,4 @@ Now you can start Byzer-Notebook.
 cp -r disk/* src/main/resources/static/
 ```
 
-Try to visit http://127.0.0.1:9006
+Try to visit http://127.0.0.1:9002
