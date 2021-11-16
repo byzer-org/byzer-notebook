@@ -11,7 +11,7 @@ import java.util.*;
 
 public class SQLParser {
     public static Map<String, List<String>> parseSQLSelectTable(String sql) {
-        String[] sqlList = sql.split("\\s*;");
+        String[] sqlList = sql.trim().split("\\s*;");
         if (sqlList.length > 1) {
             throw new ByzerException(ErrorCodeEnum.MULTIPLE_SQL_INPUT);
         }

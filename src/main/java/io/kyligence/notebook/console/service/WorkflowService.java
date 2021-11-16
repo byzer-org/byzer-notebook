@@ -307,7 +307,7 @@ public class WorkflowService implements FileInterface {
         try {
             engineService.runAnalyze(
                     new EngineService.RunScriptParams()
-                            .withSql(sql)
+                            .withSql(sql.trim())
                             .with("skipAuth", "true")
                             .withAsync("false")
             );
