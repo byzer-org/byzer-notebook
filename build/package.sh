@@ -8,6 +8,18 @@ cd ${root_dir}
 
 echo ${root_dir}
 
+# build front
+git clone https://github.com/byzer-org/byzer-notebook-vue.git
+
+cd ${root_dir}/byzer-notebook-vue && bash ./build/build.sh
+
+console_static_resources_dir=${root_dir}/src/main/resources/static
+echo ${console_static_resources_dir}
+[[ ! -d ${console_static_resources_dir} ]] && mkdir -p ${console_static_resources_dir} || rm -rf ${console_static_resources_dir}/*
+tar -zxvf ${root_dir}/byzer-notebook-vue/build/*.tar.gz -C ${console_static_resources_dir}
+
+cd ${root_dir}
+
 ## build console fat jar
 mvn_version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
 if [[ -z "${version}" ]]; then
