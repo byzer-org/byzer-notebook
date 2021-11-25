@@ -43,7 +43,7 @@ public class UploadFileService {
     }
 
     public List<Map> getFileInfoFromHdfs(String fileName) {
-        String sql = "!hdfs -ls -F /tmp/upload/'''" + fileName + "''';";
+        String sql = "!hdfs -ls -F '''/tmp/upload/" + fileName + "''';";
         String result = engineService.runScript(
                 new EngineService.RunScriptParams()
                         .withSql(sql)
@@ -52,7 +52,7 @@ public class UploadFileService {
     }
 
     public void deleteHdfsFile(String fileName) {
-        String sql = "!hdfs -rm -r /tmp/upload/'''" + fileName + "''';";
+        String sql = "!hdfs -rm -r '''/tmp/upload/" + fileName + "''';";
         engineService.runScript(
                 new EngineService.RunScriptParams()
                         .withSql(sql)
