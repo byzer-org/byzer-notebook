@@ -2,14 +2,18 @@ package io.kyligence.notebook.console;
 
 import io.kyligence.notebook.console.exception.ByzerException;
 import io.kyligence.notebook.console.exception.ErrorCodeEnum;
+import io.kyligence.notebook.console.scheduler.SchedulerConfig;
 import io.kyligence.notebook.console.util.NetworkUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -196,4 +200,37 @@ public class  NotebookConfig {
 
     public String getSecretKey(){return getOptional("notebook.security.key", "6173646661736466e4bda0e8bf983161");}
 
+    public String getScheduleCallbackUser(){return getOptional("notebook.scheduler.callback-user", "ByzerRobot");}
+
+    public String getScheduleCallbackToken(){return getOptional("notebook.scheduler.callback-token", "6173646661736466e4bda0e8bf983161");}
+
+
+    public Boolean schedulerEnabled(){
+        for (Object key: properties.keySet()){
+            if (key.toString().matches("notebook\\.scheduler.+?scheduler-name")){
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public List<SchedulerConfig> getSchedulerConfig() {
+
+        SchedulerConfig config = new SchedulerConfig();
+        config.setSchedulerName(getOptional("notebook.scheduler.scheduler-name", ""));
+        config.setSchedulerUrl(getOptional("notebook.scheduler.scheduler-url", ""));
+        config.setAuthToken(getOptional("notebook.scheduler.auth-token", ""));
+        config.setCallbackUrl(getNotebookUrl() + "/api/schedule/execution");
+        config.setCallbackToken(getScheduleCallbackToken());
+        config.setDefaultProjectName(getOptional("notebook.scheduler.project-name", "ByzerScheduler"));
+        config.setDefaultWarningType(getOptional("notebook.scheduler.warning-type", "ALL"));
+        config.setDefaultWarningGroupId(Integer.valueOf(getOptional("notebook.scheduler.warning-group-id", "1")));
+        config.setDefaultFailureStrategy(getOptional("notebook.scheduler.failure-strategy", "END"));
+        config.setDefaultProcessInstancePriority(getOptional("notebook.scheduler.instance-priority", "MEDIUM"));
+        config.setDefaultWorker(getOptional("notebook.scheduler.worker", "default"));
+        List<SchedulerConfig> r = Lists.newArrayList();
+        r.add(config);
+        return r;
+    }
 }

@@ -5,6 +5,7 @@ import io.kyligence.notebook.console.bean.dto.*;
 import io.kyligence.notebook.console.bean.entity.*;
 import io.kyligence.notebook.console.dao.ModelInfoRepository;
 import io.kyligence.notebook.console.exception.EngineAccessException;
+import io.kyligence.notebook.console.scalalib.hint.HintManager;
 import io.kyligence.notebook.console.support.ETEnum;
 import io.kyligence.notebook.console.util.*;
 import io.kyligence.notebook.console.dao.NodeInfoRepository;
@@ -22,6 +23,7 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class WorkflowService implements FileInterface {
@@ -109,7 +111,7 @@ public class WorkflowService implements FileInterface {
 
         long currentTimeStamp = System.currentTimeMillis();
 
-        if (nodeType.equalsIgnoreCase(NodeUtils.NodeType.ET)){
+        if (nodeType.equalsIgnoreCase(NodeUtils.NodeType.ET)) {
             modifyETPreHandler(nodeContent);
         }
 
@@ -144,7 +146,7 @@ public class WorkflowService implements FileInterface {
 
         if (nodeType.equalsIgnoreCase(NodeUtils.NodeType.TRAIN)) {
             modifyTrainNodePostHandler(workflowId, nodeInfo.getId(), user, nodeContent);
-        } else if (nodeType.equalsIgnoreCase(NodeUtils.NodeType.ET)){
+        } else if (nodeType.equalsIgnoreCase(NodeUtils.NodeType.ET)) {
             modifyAlgorithmETPostHandler(workflowId, nodeInfo.getId(), user, nodeContent);
         }
 
@@ -163,7 +165,7 @@ public class WorkflowService implements FileInterface {
             throw new ByzerException(ErrorCodeEnum.CAN_NOT_CHANGE_NODE_TYPE);
         }
 
-        if (nodeType.equalsIgnoreCase(NodeUtils.NodeType.ET)){
+        if (nodeType.equalsIgnoreCase(NodeUtils.NodeType.ET)) {
             modifyETPreHandler(nodeContent);
         }
 
@@ -203,7 +205,7 @@ public class WorkflowService implements FileInterface {
         if (nodeType.equalsIgnoreCase(NodeUtils.NodeType.TRAIN)) {
             modelInfoRepository.deleteByNodeId(nodeId);
             modifyTrainNodePostHandler(workflowId, nodeInfo.getId(), user, nodeContent);
-        } else if (nodeType.equalsIgnoreCase(NodeUtils.NodeType.ET)){
+        } else if (nodeType.equalsIgnoreCase(NodeUtils.NodeType.ET)) {
             modelInfoRepository.deleteByNodeId(nodeId);
             modifyAlgorithmETPostHandler(workflowId, nodeInfo.getId(), user, nodeContent);
         }
@@ -328,7 +330,7 @@ public class WorkflowService implements FileInterface {
         List<NodeInfo> nodeInfoList = nodeInfoRepository.findByWorkflow(workflowId);
         for (NodeInfo node : nodeInfoList) {
             if (node.getType().equalsIgnoreCase(NodeUtils.NodeType.TRAIN)) continue;
-            else if (node.getType().equalsIgnoreCase(NodeUtils.NodeType.ET)){
+            else if (node.getType().equalsIgnoreCase(NodeUtils.NodeType.ET)) {
                 NodeInfoDTO.NodeContent content = JacksonUtils.readJson(node.getContent(), NodeInfoDTO.NodeContent.class);
                 if (Objects.nonNull(content.getEtId()) && etOutputIsModel(content.getEtId())) continue;
             }
@@ -339,7 +341,7 @@ public class WorkflowService implements FileInterface {
     }
 
     public Set<String> getExistOutputNames(Integer workflowId, String nodeType, NodeInfoDTO.NodeContent content) {
-        if (outputIsModel(nodeType, content)){
+        if (outputIsModel(nodeType, content)) {
             return listAllModels();
         } else {
             return listOutput(workflowId);
@@ -355,7 +357,7 @@ public class WorkflowService implements FileInterface {
         if (execFileInfo == null) {
             throw new ByzerException(ErrorCodeEnum.WORKFLOW_NOT_EXIST);
         }
-        if (!user.equalsIgnoreCase(execFileInfo.getUser())) {
+        if (!user.equalsIgnoreCase(execFileInfo.getUser()) && !user.equalsIgnoreCase("admin")) {
             throw new ByzerException(ErrorCodeEnum.WORKFLOW_NOT_AVAILABLE);
         }
     }
@@ -440,7 +442,7 @@ public class WorkflowService implements FileInterface {
 
             if (nodeInfo.getType().equalsIgnoreCase(NodeUtils.NodeType.TRAIN)) {
                 modifyTrainNodePostHandler(workflowId, nodeInfo.getId(), user, nodeInfoDTO.getContent());
-            } else if (nodeInfo.getType().equalsIgnoreCase(NodeUtils.NodeType.ET)){
+            } else if (nodeInfo.getType().equalsIgnoreCase(NodeUtils.NodeType.ET)) {
                 modifyAlgorithmETPostHandler(workflowId, nodeInfo.getId(), user, nodeInfoDTO.getContent());
             }
 
@@ -495,7 +497,7 @@ public class WorkflowService implements FileInterface {
     }
 
     private void modifyAlgorithmETPostHandler(Integer workflowId, Integer nodeId,
-                                              String user, NodeInfoDTO.NodeContent nodeContent){
+                                              String user, NodeInfoDTO.NodeContent nodeContent) {
         if (!etOutputIsModel(nodeContent.getEtId())) return;
         ETNodeDTO etNodeDTO = etService.getETById(nodeContent.getEtId());
         ModelInfo modelInfo = new ModelInfo();
@@ -509,14 +511,31 @@ public class WorkflowService implements FileInterface {
 
     }
 
+    public WorkflowContentDTO getWorkflowContent(String user, Integer workflowId) {
+        WorkflowInfo workflowInfo = findById(workflowId);
+        checkExecFileAvailable(user, workflowInfo);
+        List<NodeInfo> nodeInfoList = findNodeByWorkflow(workflowId);
+        Map<Integer, ConnectionInfo> connectionInfoMap = getUserConnectionMap(workflowInfo.getUser());
+        Map<String, List<ParamDefDTO>> algoParams = getAlgoParamSettings();
+        return WorkflowContentDTO.valueOf(workflowInfo, nodeInfoList, connectionInfoMap, algoParams);
+    }
+
+    public String getWorkflowScripts(String user, Integer workflowId, Map<String, String> options) {
+        WorkflowContentDTO content = getWorkflowContent(user, workflowId);
+        List<String> scripts = content.getCellList().stream().map(WorkflowContentDTO.WorkflowCellContent::getContent)
+                .filter(Objects::nonNull).map(sql -> HintManager.applyHintRewrite(sql, options))
+                .collect(Collectors.toList());
+        return String.join("\n", scripts);
+    }
+
     public void checkResourceLimit(String user, Integer newResourceNum) {
         Integer limit = config.getUserWorkflowNumLimit();
-        if ( limit > 0 && workflowRepository.getUserWorkflowCount(user) + newResourceNum > limit) {
+        if (limit > 0 && workflowRepository.getUserWorkflowCount(user) + newResourceNum > limit) {
             if (config.getIsTrial()) {
                 throw new ByzerException(ErrorCodeEnum.WORKFLOW_NUM_REACH_LIMIT,
                         String.format(
                                 ("The online trial version supports up to %1$s workflows. " +
-                                "Please contact us if you need more help."),
+                                        "Please contact us if you need more help."),
                                 limit
                         )
                 );
@@ -535,11 +554,14 @@ public class WorkflowService implements FileInterface {
         return outputList;
     }
 
-    private Boolean outputIsModel(String nodeType, NodeInfoDTO.NodeContent content){
-        switch (nodeType.toLowerCase()){
-            case NodeUtils.NodeType.TRAIN: return true;
-            case NodeUtils.NodeType.ET: return etOutputIsModel(content.getEtId());
-            default: return false;
+    private Boolean outputIsModel(String nodeType, NodeInfoDTO.NodeContent content) {
+        switch (nodeType.toLowerCase()) {
+            case NodeUtils.NodeType.TRAIN:
+                return true;
+            case NodeUtils.NodeType.ET:
+                return etOutputIsModel(content.getEtId());
+            default:
+                return false;
         }
     }
 
@@ -548,7 +570,7 @@ public class WorkflowService implements FileInterface {
         return NodeUtils.etUsageCheck(etService.getETById(etId).getEtUsage(), ETEnum.UsageTemplate.TRAIN.getName());
     }
 
-    private void modifyETPreHandler(NodeInfoDTO.NodeContent nodeContent){
+    private void modifyETPreHandler(NodeInfoDTO.NodeContent nodeContent) {
         nodeContent.setEtUsage(etService.getETUsage(nodeContent.getEtId()));
         ETNodeDTO etNodeDTO = etService.getETById(nodeContent.getEtId());
         nodeContent.setEtName(etNodeDTO.getName());

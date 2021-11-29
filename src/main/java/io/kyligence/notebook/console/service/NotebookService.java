@@ -1,6 +1,7 @@
 package io.kyligence.notebook.console.service;
 
 import io.kyligence.notebook.console.NotebookConfig;
+import io.kyligence.notebook.console.bean.dto.CellInfoDTO;
 import io.kyligence.notebook.console.bean.dto.CodeSuggestDTO;
 import io.kyligence.notebook.console.bean.dto.ExecFileDTO;
 import io.kyligence.notebook.console.bean.dto.NotebookDTO;
@@ -15,6 +16,7 @@ import io.kyligence.notebook.console.exception.ByzerException;
 import io.kyligence.notebook.console.exception.ByzerIgnoreException;
 import io.kyligence.notebook.console.exception.EngineAccessException;
 import io.kyligence.notebook.console.exception.ErrorCodeEnum;
+import io.kyligence.notebook.console.scalalib.hint.HintManager;
 import io.kyligence.notebook.console.support.CriteriaQueryBuilder;
 import io.kyligence.notebook.console.util.EntityUtils;
 import io.kyligence.notebook.console.util.JacksonUtils;
@@ -29,6 +31,8 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class NotebookService implements FileInterface {
@@ -44,6 +48,9 @@ public class NotebookService implements FileInterface {
 
     @Autowired
     private NotebookHelper notebookHelper;
+
+    @Autowired
+    private SchedulerService schedulerService;
 
     @Autowired
     private EngineService engineService;
@@ -76,9 +83,6 @@ public class NotebookService implements FileInterface {
         notebookInfo.setCellList("[ " + cellInfo.getId() + " ]");
         return notebookRepository.save(notebookInfo);
     }
-
-
-
 
 
     public void deleteCell(CellInfo cellInfo) {
@@ -147,6 +151,9 @@ public class NotebookService implements FileInterface {
 
     @Transactional
     public void delete(Integer id) {
+        if (schedulerService.entityUsedInSchedule("notebook", id)) {
+            throw new ByzerException("Notebook used in schedule");
+        }
         // 1. delete notebook info
         notebookRepository.deleteById(id);
 
@@ -167,7 +174,7 @@ public class NotebookService implements FileInterface {
         if (execFileInfo == null) {
             throw new ByzerException(ErrorCodeEnum.NOTEBOOK_NOT_EXIST);
         }
-        if (!user.equalsIgnoreCase(execFileInfo.getUser())) {
+        if (!user.equalsIgnoreCase(execFileInfo.getUser()) && !user.equalsIgnoreCase("admin")) {
             throw new ByzerException(ErrorCodeEnum.NOTEBOOK_NOT_AVAILABLE);
         }
     }
@@ -209,9 +216,9 @@ public class NotebookService implements FileInterface {
         return NotebookDTO.valueOf(notebookInfo, cellIds, cellInfos);
     }
 
-    public void checkResourceLimit(String user,  Integer newResourceNum){
+    public void checkResourceLimit(String user, Integer newResourceNum) {
         Integer limit = config.getUserNoteBookNumLimit();
-        if ( limit > 0 && notebookRepository.getUserNotebookCount(user) + newResourceNum > limit) {
+        if (limit > 0 && notebookRepository.getUserNotebookCount(user) + newResourceNum > limit) {
             if (config.getIsTrial()) {
                 throw new ByzerException(ErrorCodeEnum.NOTEBOOK_NUM_REACH_LIMIT,
                         String.format(
@@ -243,5 +250,13 @@ public class NotebookService implements FileInterface {
         }
         List<CodeSuggestDTO> codeSuggests = JacksonUtils.readJsonArray(result, CodeSuggestDTO.class);
         return codeSuggests;
+    }
+
+    public String getNotebookScripts(String user, Integer notebookId, Map<String, String> options) {
+        NotebookDTO notebook = getNotebook(notebookId, user);
+        List<String> scripts = notebook.getCellList().stream().map(CellInfoDTO::getContent)
+                .filter(sql -> Objects.nonNull(sql) && !sql.startsWith("-- Markdown")).map(sql -> HintManager.applyHintRewrite(sql, options))
+                .collect(Collectors.toList());
+        return String.join("\n", scripts);
     }
 }

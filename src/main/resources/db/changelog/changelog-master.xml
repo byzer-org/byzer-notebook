@@ -12,4 +12,5 @@
     <include file="db/changelog/v1.0.0_2021-10-15_01_alter_job_progress_to_longtext.sql"/>
     <include file="db/changelog/v1.0.0_2021-11-04_01_add_register_et.sql"/>
     <include file="db/changelog/v1.0.0_2021-11-12_01_add_et_param_coverage.sql"/>
+    <include file="db/changelog/v1.0.0_2021-11-19_01_add_schedule_account.sql"/>
 </databaseChangeLog>

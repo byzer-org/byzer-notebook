@@ -100,11 +100,8 @@ public class WorkflowController {
     @Permission
     public Response<WorkflowContentDTO> getWorkflowContent(@PathVariable("id") @NotNull Integer id) {
         String user = WebUtils.getCurrentLoginUser();
-        WorkflowInfo workflowInfo = workflowService.findById(id);
-        List<NodeInfo> nodeInfoList = workflowService.findNodeByWorkflow(id);
-        Map<Integer, ConnectionInfo> connectionInfoMap = workflowService.getUserConnectionMap(user);
-        Map<String, List<ParamDefDTO>> algoParams = workflowService.getAlgoParamSettings();
-        return new Response<WorkflowContentDTO>().data(WorkflowContentDTO.valueOf(workflowInfo, nodeInfoList, connectionInfoMap, algoParams));
+        WorkflowContentDTO content = workflowService.getWorkflowContent(user, id);
+        return new Response<WorkflowContentDTO>().data(content);
     }
 
     @ApiOperation("Workflow to Notebook")
