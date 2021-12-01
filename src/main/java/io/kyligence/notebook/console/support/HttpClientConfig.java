@@ -35,7 +35,6 @@ public class HttpClientConfig {
     @Bean
     public ClientHttpRequestFactory simpleClientHttpRequestFactory() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setReadTimeout(6000);
         factory.setConnectTimeout(6000);
         return factory;
     }
