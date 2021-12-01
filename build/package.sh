@@ -56,6 +56,8 @@ echo "${changelog}" > ./CHANGELOG.md
 
 ## 2. make commit_sha file
 echo `git rev-parse HEAD` | tee commit_SHA1
+cd ${root_dir}/byzer-notebook-vue && echo `git rev-parse HEAD` | tee ${root_dir}/dist/${package_name}/commit_SHA1.frontend
+cd ${root_dir}/dist/${package_name}
 
 ## 3. make version file
 echo "${version}" > VERSION

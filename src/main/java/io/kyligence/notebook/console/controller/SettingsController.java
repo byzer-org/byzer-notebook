@@ -45,6 +45,12 @@ public class SettingsController {
 
     private static final NotebookConfig config = NotebookConfig.getInstance();
 
+    @ApiOperation("Version Info")
+    @GetMapping("/version")
+    public Response<VersionInfo> getVersion() {
+        return new Response<VersionInfo>().data(systemService.getVersionInfo());
+    }
+
     @ApiOperation("Engine List")
     @GetMapping("/settings/engines")
     @Permission
@@ -86,7 +92,7 @@ public class SettingsController {
     @ApiOperation("Get Cipher Key")
     @GetMapping("/settings/key")
     @Permission
-    public Response<String> getCipherKey(){
+    public Response<String> getCipherKey() {
         String keyBytes = systemService.getCipherKey();
         return new Response<String>().data(keyBytes);
     }

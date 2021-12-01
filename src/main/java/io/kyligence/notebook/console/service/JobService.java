@@ -65,6 +65,7 @@ public class JobService {
                     .withOwner(user)
                     .withSql(String.format("load _mlsql_.`log/%d` where filePath=\"engine_log\" as output;", offset))
                     .withAsync("false")
+                    .with("sessionPerRequest", "true")
             );
         } catch (Exception e) {
             log.error(ExceptionUtils.getRootCause(e));
