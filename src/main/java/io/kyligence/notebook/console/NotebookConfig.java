@@ -12,7 +12,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
@@ -192,6 +191,18 @@ public class  NotebookConfig {
 
     public Integer getUserWorkflowNumLimit(){
         return Integer.parseInt(getOptional("notebook.user.resource.workflow-num-limit", "0"));
+    }
+
+    public String getVersionPath(){
+        return getNotebookHome() + File.separator + "VERSION";
+    }
+
+    public String getCommitSHAPath(){
+        return getNotebookHome() + File.separator + "commit_SHA1";
+    }
+
+    public String getFrontendCommitSHAPath(){
+        return getNotebookHome() + File.separator + "commit_SHA1.frontend";
     }
 
     public Boolean getIsTrial(){
