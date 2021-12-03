@@ -19,7 +19,7 @@ spring:
       PROPAGATE_TRANSIENT_MARKER: true
   datasource:
     druid:
-      url: jdbc:mysql://${notebook.database.ip}:${notebook.database.port}/${notebook.database.name}?useUnicode=true&characterEncoding=UTF8&autoReconnect=true&failOverReadOnly=false&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull&useSSL=${notebook.database.useSSL}&useTimezone=true&serverTimezone=UTC
+      url: jdbc:mysql://${notebook.database.ip}:${notebook.database.port}/${notebook.database.name}?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF8&autoReconnect=true&failOverReadOnly=false&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull&useSSL=${notebook.database.useSSL}&useTimezone=true&serverTimezone=UTC
       username: ${notebook.database.username}
       password: ${notebook.database.password}
       initial-size: 2
