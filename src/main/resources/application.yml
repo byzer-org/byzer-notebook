@@ -48,7 +48,7 @@ spring:
       pool-prepared-statements: false
       max-pool-prepared-statement-per-connection-size: 20
       min-evictable-idle-time-millis: 300000
-      connection-init-sqls: 'set names utf8;'
+      connection-init-sqls: 'set names utf8mb4;'
       keep-alive: false
       time-between-log-stats-millis: -1
       remove-abandoned: true
