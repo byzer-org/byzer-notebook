@@ -12,7 +12,7 @@
 ```shell
 export BYZER_NOTEBOOK_VUE_HOME=/path/of/byzer-notebook-vue
 ```
-Otherwise, use ${project.dir}/../byzer-notebook-vue as default.
+Otherwise, use `${project.dir}/../byzer-notebook-vue` as default.
 
 * If you want to update `byzer-notebook-vue` to the latest version, just set `UPDATE_NOTEBOOK_VUE` to `true`
 ```shell
