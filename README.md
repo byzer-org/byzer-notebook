@@ -7,6 +7,23 @@
 2. scala （recommand 2.11.8）
 3. maven
 
+## Build
+* If you already downloaded project `byzer-notebook-vue`, specify the directory of project using:
+```shell
+export BYZER_NOTEBOOK_VUE_HOME=/path/of/byzer-notebook-vue
+```
+Otherwise, use ${project.dir}/../byzer-notebook-vue as default.
+
+* If you want to update `byzer-notebook-vue` to the latest version, just set `UPDATE_NOTEBOOK_VUE` to `true`
+```shell
+export UPDATE_NOTEBOOK_VUE=true
+```
+
+* Execute the script
+```shell
+./build/build.sh
+```
+
 ## VM Options
 
 ```
