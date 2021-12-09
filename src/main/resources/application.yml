@@ -31,6 +31,7 @@ spring:
       test-while-idle: true
       validation-query: select 'x'
       validationQueryTimeout: 2
+      remove-abandoned-timeout: 3600000
       time-between-eviction-runs-millis: 60000
       filter:
         slf4j:
