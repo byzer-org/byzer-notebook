@@ -13,6 +13,7 @@ develop-eggs/
 dist/
 downloads/
 eggs/
+
 .eggs/
 lib/
 lib64/
@@ -114,3 +115,4 @@ streamingpro/
 src/main/resources/static/
 /tmp
 /conf/notebook.properties
+byzer-notebook-vue
