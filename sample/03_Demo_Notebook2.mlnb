@@ -4,7 +4,7 @@
   "user" : "lindsay",
   "cell_list" : [ {
     "id" : "388",
-    "content" : "-- Markdown# Demo2: Cancer Prediction\n在这个Demo中，我们将使用 Kaggle 的公开数据集 - Breast Cancer Wisconsin (Diagnostic) Data Set，为大家演示如何用MLSQL语言进行数据工程处理和机器学习。",
+    "content" : "-- Markdown# Demo2: Cancer Prediction\n在这个Demo中，我们将使用 Kaggle 的公开数据集 - Breast Cancer Wisconsin (Diagnostic) Data Set，为大家演示如何用 Byzer 语言进行数据工程处理和机器学习。",
     "job_id" : null
   }, {
     "id" : "389",
@@ -64,7 +64,7 @@
     "job_id" : null
   }, {
     "id" : "403",
-    "content" : "-- Markdown### STEP4 : 使用MLSQL Lab内置的 AutoML 来训练得到最佳模型",
+    "content" : "-- Markdown### STEP4 : 使用 Byzer Notebook 内置的 AutoML 来训练得到最佳模型",
     "job_id" : null
   }, {
     "id" : "404",
