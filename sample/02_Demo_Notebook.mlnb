@@ -4,7 +4,7 @@
   "user" : "admin",
   "cell_list" : [ {
     "id" : "4107",
-    "content" : "-- Markdown# Demo1: Heart Attack Analysis and Prediction\n在这个Demo中，我们将使用 Kaggle 的公开数据集 - Heart Attack Analysis & Prediction Dataset，为大家演示如何用MLSQL语言进行数据工程处理和机器学习。",
+    "content" : "-- Markdown# Demo1: Heart Attack Analysis and Prediction\n在这个Demo中，我们将使用 Kaggle 的公开数据集 - Heart Attack Analysis & Prediction Dataset，为大家演示如何用 Byzer 语言进行数据工程处理和机器学习。",
     "job_id" : null
   }, {
     "id" : "5033",

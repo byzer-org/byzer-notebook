@@ -4,27 +4,27 @@
   "user" : "admin",
   "cell_list" : [ {
     "id" : "5115",
-    "content" : "-- Markdown# MLSQL Lab 快速上手\n本文档将向您介绍如何快速上手体验 MLSQL Lab。您可预留 5 分钟完成一次全流程体验。",
+    "content" : "-- Markdown# Byzer Notebook 快速上手\n本文档将向您介绍如何快速上手体验 Byzer Notebook。您可预留 5 分钟完成一次全流程体验。",
     "job_id" : null
   }, {
     "id" : "5116",
-    "content" : "-- Markdown## 1.0 登录 MLSQL Lab 并进入 Workspace 工作区\n#### 1.1 创建文件\n您可在工作区列表查看所有项目文件。您可通过点击 Workspace 右侧的➕  创建 Notebook 文件、Workflow 文件和文件夹。也可通过 Import 导入本地的 Notebook 文件（.mlnb) 和 Workflow 文件（.mlwf)。\n提示：除内置文件外，在线体验环境最高支持用户创建 5个 Notebook 和 5个 Workflow 文件。\n#### 1.2 操作文件\n点击项目文件右侧浮标，可以对文件进行复制 Duplicate，移动 Move，重命名 Rename，删除 Delete 等操作。\n#### 1.3 导出文件\n点击项目文件右侧浮标中的 Export，可以把项目文件导出保存到本地。（重要文件内容建议及时保存）\n",
+    "content" : "-- Markdown## 1.0 登录 Byzer Notebook 并进入 Workspace 工作区\n#### 1.1 创建文件\n您可在工作区列表查看所有项目文件。您可通过点击 Workspace 右侧的➕  创建 Notebook 文件、Workflow 文件和文件夹。也可通过 Import 导入本地的 Notebook 文件（.mlnb) 和 Workflow 文件（.mlwf)。\n提示：除内置文件外，在线体验环境最高支持用户创建 5个 Notebook 和 5个 Workflow 文件。\n#### 1.2 操作文件\n点击项目文件右侧浮标，可以对文件进行复制 Duplicate，移动 Move，重命名 Rename，删除 Delete 等操作。\n#### 1.3 导出文件\n点击项目文件右侧浮标中的 Export，可以把项目文件导出保存到本地。（重要文件内容建议及时保存）\n",
     "job_id" : null
   }, {
     "id" : "5117",
-    "content" : "-- Markdown## 2.0 Data Catalog\nMLSQL支持多种数据源类型的一站式接入。\n线上试用的环境目前仅支持 Detalake 和 HDFS 数据源的导入和存储。\n提示：Detalake 线上环境为 Public 环境，请勿保存重要文件。",
+    "content" : "-- Markdown## 2.0 Data Catalog\nByzer Notebook支持多种数据源类型的一站式接入。\n线上试用的环境目前仅支持 Detalake 和 HDFS 数据源的导入和存储。\n提示：Detalake 线上环境为 Public 环境，请勿保存重要文件。",
     "job_id" : null
   }, {
     "id" : "5121",
-    "content" : "-- Markdown## 3.0 MLSQL Notebook \n#### 3.1 编辑 Notebook\n在 Workspace 中，点击对应 Notebook 可进入该项目文件的专属工作区。\n您可通过 Notebook 工作区上方工具栏中的按钮，对cell 执行运行、删除、清除result等操作。\n\n#### 3.2 运行 Notebook\ncell右上角和上方工具栏中都提供了运行按钮，工具栏同时提供了全局运行按钮。\n\n#### 3.3 Code 模式 VS Markdown模式\n对于cell可以切换 code编码模式和 Markdown文本编辑模式。\n\n#### 3.3 快捷键辅助及文档手册辅助\n点击导航导航栏右上角的 ？按钮，可查看 Shortcut 快捷键辅助和 MLSQL 用户手册。\n",
+    "content" : "-- Markdown## 3.0 Notebook \n#### 3.1 编辑 Notebook\n在 Workspace 中，点击对应 Notebook 可进入该项目文件的专属工作区。\n您可通过 Notebook 工作区上方工具栏中的按钮，对cell 执行运行、删除、清除result等操作。\n\n#### 3.2 运行 Notebook\ncell右上角和上方工具栏中都提供了运行按钮，工具栏同时提供了全局运行按钮。\n\n#### 3.3 Code 模式 VS Markdown模式\n对于cell可以切换 code编码模式和 Markdown文本编辑模式。\n\n#### 3.3 快捷键辅助及文档手册辅助\n点击导航导航栏右上角的 ？按钮，可查看 Shortcut 快捷键辅助和 Byzer Notebook 用户手册。\n",
     "job_id" : null
   }, {
     "id" : "5122",
-    "content" : "-- Markdown## 4.0 MLSQL Workflow\nMLSQL Lab 提供了可视化 Workflow 功能。您可以通过拖拽实现对数据集的导入、筛选、训练、预测和存储。\n同时 MLSQL Lab 还提供了一键转码的功能。编辑好的 Workflow 可以通过右上角的开关一键转换为 Notebook，方便您的二次开发。",
+    "content" : "-- Markdown## 4.0 Workflow\nByzer Notebook 提供了可视化 Workflow 功能。您可以通过拖拽实现对数据集的导入、筛选、训练、预测和存储。\n同时 Byzer Notebook 还提供了一键转码的功能。编辑好的 Workflow 可以通过右上角的开关一键转换为 Notebook，方便您的二次开发。",
     "job_id" : null
   }, {
     "id" : "5123",
-    "content" : "-- Markdown以上为对 MLSQL Lab 在线体验环境的快速上手教程，若您在使用中遇到了困难或有任何建议和意见，欢迎到 MLSQL 社区提 issue 或通过微信助手/邮件的方式联系我们。",
+    "content" : "-- Markdown以上为对 Byzer Notebook 在线体验环境的快速上手教程，若您在使用中遇到了困难或有任何建议和意见，欢迎到 Byzer 社区提 issue 或通过微信助手/邮件的方式联系我们。",
     "job_id" : null
   } ]
 }
