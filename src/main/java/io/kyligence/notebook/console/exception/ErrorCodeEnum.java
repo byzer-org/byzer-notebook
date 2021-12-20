@@ -83,7 +83,7 @@ public enum ErrorCodeEnum {
      **/
     FILE_ALREADY_EXIST("KN-1013001", "File Already Exist", ""),
 
-    UNSUPPORTED_EXT_NAME("KN-1013002", "Unsupported Extension Name", "Unsupported extension name, only support .mlnb and .mlwf"),
+    UNSUPPORTED_EXT_NAME("KN-1013002", "Unsupported Extension Name", "Unsupported extension name, only support .mlnb/.bznb and .mlwf/.bzwf"),
 
     EMPTY_FILE("KN-1013003", "Empty File", ""),
 
