@@ -104,11 +104,11 @@ public class NotebookHelper {
         for (File demo : demoFiles) {
             try (FileInputStream in = new FileInputStream(demo)) {
                 log.info("Import File: " + demo.getName());
-                if (demo.getName().endsWith(".mlnb")) {
+                if (demo.getName().endsWith(".mlnb") || demo.getName().endsWith(".bznb")) {
                     NotebookDTO notebookDTO = JacksonUtils.readJson(in, NotebookDTO.class);
                     NotebookInfo nb= importNotebook(notebookDTO, null, "default");
                     if (result == null) result = nb;
-                } else if (demo.getName().endsWith(".mlwf")){
+                } else if (demo.getName().endsWith(".mlwf") || demo.getName().endsWith(".bzwf")){
                     WorkflowDTO workflowDTO = JacksonUtils.readJson(in, WorkflowDTO.class);
                     workflowService.importWorkflow(workflowDTO, null, "default");
                 }

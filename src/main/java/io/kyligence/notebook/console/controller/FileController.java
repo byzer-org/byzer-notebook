@@ -301,9 +301,9 @@ public class FileController {
 
     private String getExecFileType(String filename) {
         String type;
-        if (filename.endsWith("mlnb")) {
+        if (filename.endsWith("mlnb") || filename.endsWith("bznb")) {
             type = "notebook";
-        } else if (filename.endsWith("mlwf")) {
+        } else if (filename.endsWith("mlwf") || filename.endsWith("bzwf")) {
             type = "workflow";
         } else {
             throw new ByzerException(ErrorCodeEnum.UNSUPPORTED_EXT_NAME);
@@ -313,9 +313,9 @@ public class FileController {
 
     private String getExtension(String type) {
         if (type.equals("notebook")) {
-            return "mlnb";
+            return "bznb";
         } else if (type.equals("workflow")) {
-            return "mlwf";
+            return "bzwf";
         } else {
             throw new ByzerException(ErrorCodeEnum.NO_SUCH_TYPE);
         }
