@@ -8,12 +8,14 @@ if [[ -n "${BYZER_NOTEBOOK_HOME}" ]]; then
    root_dir=${BYZER_NOTEBOOK_HOME}
 fi
 
+echo "frontend branch set to [${FRONTEND_BRANCH:-"main"}]"
+
 cd ${root_dir} && echo ${root_dir}
 
 if [[ ! -d byzer-notebook-vue/.git ]]; then
     echo "cloning byzer-notebook-vue repo..."
     # build front
-    git clone https://github.com/byzer-org/byzer-notebook-vue.git
+    git clone -b "${FRONTEND_BRANCH:-"main"}" https://github.com/byzer-org/byzer-notebook-vue.git
 else
     echo "update byzer-notebook-vue to latest..."
     ( cd byzer-notebook-vue && git checkout main && git pull -r origin main )
