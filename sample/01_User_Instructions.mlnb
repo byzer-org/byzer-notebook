@@ -12,7 +12,7 @@
     "job_id" : null
   }, {
     "id" : "5117",
-    "content" : "-- Markdown## 2.0 Data Catalog\nByzer Notebook支持多种数据源类型的一站式接入。\n线上试用的环境目前仅支持 Detalake 和 HDFS 数据源的导入和存储。\n提示：Detalake 线上环境为 Public 环境，请勿保存重要文件。",
+    "content" : "-- Markdown## 2.0 Data Catalog\nByzer Notebook支持多种数据源类型的一站式接入。\n线上试用的环境目前仅支持 Deltalake 和 HDFS 数据源的导入和存储。\n提示：Deltalake 线上环境为 Public 环境，请勿保存重要文件。",
     "job_id" : null
   }, {
     "id" : "5121",
