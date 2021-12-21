@@ -7,6 +7,12 @@
 2. scala （recommand 2.11.8）
 3. maven
 
+## Build
+* Execute the script
+```shell
+./build/build.sh
+```
+
 ## VM Options
 
 ```
