@@ -4,14 +4,17 @@
 ## Requirements
 
 1. jdk8
-2. scala （recommand 2.11.8）
-3. maven
+2. maven
+3. scala (recommend 2.11.8)
+4. npm (recommend 14.x.x)
+5. Byzer-lang (startup first)
 
-## Build
+## Build with Byzer-Notebook-Vue
 * Execute the script
 ```shell
-./build/build.sh
+./build/package.sh
 ```
+The packaged file will be placed in `./dist/Byzer-Notebook-0.0.1-SNAPSHOT.tar.gz`
 
 ## VM Options
 
@@ -24,7 +27,7 @@
 
 ## Database Configuration
 
-1. Rename notebook.example.properties to notebook.properties.
+1. Rename notebook.example.properties to notebook.properties. (IDE startup)
 2. Create Database called `notebook`
 
 
@@ -36,7 +39,7 @@ io.kyligence.notebook.console.NotebookLauncher
 
 Now you can start Byzer-Notebook.
 
-## Web Console Support
+## Web Console Support (IDE startup)
 
 1. Clone https://github.com/byzer-org/byzer-notebook-vue.git
 2. npm install && npm run build  (npm version v14.18.1 is tested)
