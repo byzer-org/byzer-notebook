@@ -20,6 +20,9 @@ public class UserInfo {
     @Column(name = "password", nullable = false)
     private String password;
 
+    @Column(name = "email", nullable = false)
+    private String email;
+
     @Column(name = "create_time", nullable = false)
     private Timestamp createTime;
 

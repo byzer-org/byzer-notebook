@@ -46,9 +46,9 @@ public class UserController {
                                    HttpServletRequest request) {
         String[] userAndPwd = Base64Utils.getUserAndPwd(basicAuth);
 
-        Integer userId = userService.auth(userAndPwd[0], userAndPwd[1]);
-        request.getSession().setAttribute("username", userAndPwd[0]);
-        return new Response<Integer>().data(userId);
+        UserInfo user = userService.auth(userAndPwd[0], userAndPwd[1]);
+        request.getSession().setAttribute("username", user.getName());
+        return new Response<Integer>().data(user.getId());
     }
 
     @ApiOperation("User Sign Up")
@@ -135,9 +135,11 @@ public class UserController {
         String header = request.getHeader("registration");
         UserRegisterAndResetDTO registerDTO = JacksonUtils.readJson(EncryptUtils.decrypt(header), UserRegisterAndResetDTO.class);
         String user = registerDTO.getName();
+        String email = registerDTO.getEmail();
 
         UserInfo userInfo = new UserInfo();
         userInfo.setName(user);
+        userInfo.setEmail(email);
         userInfo.setPassword(registerDTO.getPassword());
         userInfo.setCreateTime(new Timestamp(System.currentTimeMillis()));
 
@@ -148,6 +150,8 @@ public class UserController {
 
         return userInfo.getId();
     }
+
+
 
 
 }

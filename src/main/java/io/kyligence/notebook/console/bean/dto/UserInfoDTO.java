@@ -13,10 +13,13 @@ public class UserInfoDTO {
 
     private String username;
 
+    private String email;
+
     public static UserInfoDTO valueOf(UserInfo userInfo) {
         UserInfoDTO userInfoDTO = new UserInfoDTO();
         userInfoDTO.setId(EntityUtils.toStr(userInfo.getId()));
         userInfoDTO.setUsername(userInfo.getName());
+        userInfoDTO.setEmail(userInfoDTO.getEmail());
         return userInfoDTO;
     }
 }

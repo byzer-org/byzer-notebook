@@ -11,6 +11,9 @@ public class UserRegisterAndResetDTO {
     @JsonProperty("name")
     private String name;
 
+    @JsonProperty("email")
+    private String email;
+
     @JsonProperty("password")
     private String password;
 

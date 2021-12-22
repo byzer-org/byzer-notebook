@@ -10,4 +10,7 @@ public interface UserInfoRepository extends JpaRepository<UserInfo, Integer> {
 
     @Query(value = "select * from user_info where name = ?1", nativeQuery = true)
     List<UserInfo> findByName(String name);
+
+    @Query(value = "select * from user_info where email = ?1", nativeQuery = true)
+    List<UserInfo> findByEmail(String name);
 }

@@ -28,8 +28,8 @@ public class UserService {
 
     private static NotebookConfig config = NotebookConfig.getInstance();
 
-    public Integer auth(String user, String pwd) {
-        UserInfo userInfo = findUserByName(user);
+    public UserInfo auth(String user, String pwd) {
+        UserInfo userInfo = findUser(user);
 
         if (userInfo == null) {
             throw new ByzerException(ErrorCodeEnum.AUTH_FAILED);
@@ -41,12 +41,31 @@ public class UserService {
             throw new ByzerException(ErrorCodeEnum.AUTH_FAILED);
         }
 
-        return userInfo.getId();
+        return userInfo;
     }
 
     public UserInfo findUserByName(String name) {
         List<UserInfo> userInfoList = userInfoRepository.findByName(name);
-        return userInfoList == null || userInfoList.size() == 0 ? null : userInfoList.get(0);
+        if (userInfoList == null || userInfoList.size() == 0) {
+            return null;
+        }
+        return userInfoList.get(0);
+    }
+
+    public UserInfo findUserByEmail(String email) {
+        List<UserInfo> userInfoList = userInfoRepository.findByEmail(email);
+        if (userInfoList == null || userInfoList.size() == 0) {
+            return null;
+        }
+        return userInfoList.get(0);
+    }
+
+    public UserInfo findUser(String nameOrEmail){
+        UserInfo userInfo = findUserByName(nameOrEmail);
+        if (userInfo == null) {
+            userInfo = findUserByEmail(nameOrEmail);
+        }
+        return userInfo;
     }
 
     public UserInfo createUser(UserInfo userInfo) {
