@@ -21,10 +21,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -100,7 +98,7 @@ public class NotebookHelper {
 
         String NOTEBOOK_HOME = System.getProperty("NOTEBOOK_HOME");
         File demoDir = new File(NOTEBOOK_HOME + "/sample");
-        File[] demoFiles = demoDir.listFiles();
+        List<File> demoFiles = Arrays.stream(demoDir.listFiles()).sorted().collect(Collectors.toList());
         for (File demo : demoFiles) {
             try (FileInputStream in = new FileInputStream(demo)) {
                 log.info("Import File: " + demo.getName());
