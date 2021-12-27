@@ -37,7 +37,11 @@ if [[ -z "${version}" ]]; then
     export version=${mvn_version}
 fi
 
-mvn clean install -DskipTests -Ptest
+[[ -z "${mvn_profile}" ]] && profile='test' || profile=${mvn_profile}
+
+echo "Maven Package Profile : ${profile}"
+
+mvn clean install -DskipTests -P${profile}
 
 # collect release package resource
 cd ${root_dir}

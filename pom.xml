@@ -203,6 +203,19 @@
                 <version>${liquibase.version}</version>
             </dependency>
 
+            <!--redis-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-redis</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <!--session-->
+            <dependency>
+                <groupId>org.springframework.session</groupId>
+                <artifactId>spring-session-data-redis</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+
         </dependencies>
 
     </dependencyManagement>
@@ -409,6 +422,34 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <dependencies>
+                <!-- Springfox swagger2-->
+                <dependency>
+                    <groupId>io.springfox</groupId>
+                    <artifactId>springfox-swagger2</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>io.springfox</groupId>
+                    <artifactId>springfox-swagger-ui</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>redis</id>
+            <properties>
+                <envs>dev</envs>
+                <root_log_mode>stdout</root_log_mode>
+            </properties>
+            <dependencies>
+                <!--redis-->
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-data-redis</artifactId>
+                </dependency>
+                <!--session-->
+                <dependency>
+                    <groupId>org.springframework.session</groupId>
+                    <artifactId>spring-session-data-redis</artifactId>
+                </dependency>
                 <!-- Springfox swagger2-->
                 <dependency>
                     <groupId>io.springfox</groupId>
