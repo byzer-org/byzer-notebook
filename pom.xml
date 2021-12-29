@@ -318,6 +318,17 @@
             <artifactId>liquibase-core</artifactId>
         </dependency>
 
+        <!--redis-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <!--session-->
+        <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-redis</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -417,6 +428,9 @@
             <properties>
                 <envs>dev</envs>
                 <root_log_mode>stdout</root_log_mode>
+                <exclude_class>
+                    org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+                </exclude_class>
             </properties>
             <activation>
                 <activeByDefault>true</activeByDefault>
@@ -436,20 +450,11 @@
         <profile>
             <id>redis</id>
             <properties>
-                <envs>dev</envs>
+                <envs>redis</envs>
                 <root_log_mode>stdout</root_log_mode>
+                <exclude_class></exclude_class>
             </properties>
             <dependencies>
-                <!--redis-->
-                <dependency>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-data-redis</artifactId>
-                </dependency>
-                <!--session-->
-                <dependency>
-                    <groupId>org.springframework.session</groupId>
-                    <artifactId>spring-session-data-redis</artifactId>
-                </dependency>
                 <!-- Springfox swagger2-->
                 <dependency>
                     <groupId>io.springfox</groupId>
@@ -466,6 +471,9 @@
             <properties>
                 <envs>test</envs>
                 <root_log_mode>notebook</root_log_mode>
+                <exclude_class>
+                    org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+                </exclude_class>
             </properties>
             <dependencies>
                 <!-- Springfox swagger2-->
@@ -484,6 +492,9 @@
             <properties>
                 <envs>prod</envs>
                 <root_log_mode>notebook</root_log_mode>
+                <exclude_class>
+                    org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+                </exclude_class>
             </properties>
         </profile>
     </profiles>

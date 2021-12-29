@@ -8,6 +8,8 @@ notebook:
     password: root
 
 spring:
+  profiles:
+    active: @envs@
   application:
     name: Kyligence Notebook
   jackson:
@@ -79,6 +81,8 @@ spring:
         min-idle: 5
     session:
       store-type: redis
+  autoconfigure:
+    exclude: @exclude_class@
 
 server:
   port: ${notebook.port:9002}
