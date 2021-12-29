@@ -65,6 +65,20 @@ spring:
   mvc:
     async:
       request-timeout: 600000
+  redis:
+    database: 0
+    host: ${notebook.redis.host}
+    port: ${notebook.redis.port}
+    password: ${notebook.redis.password}
+    timeout: 20000ms
+    jedis:
+      pool:
+        max-active: 1000
+        max-wait: -1ms
+        max-idle: 10
+        min-idle: 5
+    session:
+      store-type: redis
 
 server:
   port: ${notebook.port:9002}
