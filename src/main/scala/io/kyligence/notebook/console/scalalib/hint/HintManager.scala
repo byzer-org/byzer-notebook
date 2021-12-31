@@ -4,17 +4,32 @@ import collection.JavaConverters._
 
 object HintManager {
 
-  private val hintList: List[BaseHint] = initHinters
+  private val noEffectHintList: List[BaseHint] =
+    List(new KylinHint, new PythonHint, new JDBCHint)
 
-  private def initHinters(): List[BaseHint] = {
-    List(new KylinHint, new PythonHint, new DeployScriptHint,
-      new DeployModelHint,new DeployPythonModelHint, new JDBCHint)
+  private val effectHintList: List[BaseHint] =
+    List(new DeployScriptHint, new DeployModelHint,new DeployPythonModelHint)
+
+  def applyAllHintRewrite(sql: String, options: java.util.Map[String, String]): String = {
+    applyNoEffectRewrite(sql, options)
+    applyEffectRewrite(sql, options)
   }
 
-  def applyHintRewrite(sql: String, options: java.util.Map[String, String]): String = {
+  def applyNoEffectRewrite(sql: String, options: java.util.Map[String, String]): String = {
     val newOptions = options.asScala
     var tempSQL = sql
-    hintList.foreach(hinter => {
+    noEffectHintList.foreach(hinter => {
+      if (tempSQL == sql) {
+        tempSQL = hinter.rewrite(tempSQL, newOptions)
+      }
+    })
+    tempSQL
+  }
+
+  def applyEffectRewrite(sql: String, options: java.util.Map[String, String]): String = {
+    val newOptions = options.asScala
+    var tempSQL = sql
+    effectHintList.foreach(hinter => {
       if (tempSQL == sql) {
         tempSQL = hinter.rewrite(tempSQL, newOptions)
       }

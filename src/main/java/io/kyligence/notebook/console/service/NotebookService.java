@@ -255,7 +255,8 @@ public class NotebookService implements FileInterface {
     public String getNotebookScripts(String user, Integer notebookId, Map<String, String> options) {
         NotebookDTO notebook = getNotebook(notebookId, user);
         List<String> scripts = notebook.getCellList().stream().map(CellInfoDTO::getContent)
-                .filter(sql -> Objects.nonNull(sql) && !sql.startsWith("-- Markdown")).map(sql -> HintManager.applyHintRewrite(sql, options))
+                .filter(sql -> Objects.nonNull(sql) && !sql.startsWith("-- Markdown"))
+                .map(sql -> HintManager.applyAllHintRewrite(sql, options))
                 .collect(Collectors.toList());
         return String.join("\n", scripts);
     }
