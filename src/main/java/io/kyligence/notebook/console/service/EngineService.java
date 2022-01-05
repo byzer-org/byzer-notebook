@@ -70,7 +70,7 @@ public class EngineService {
         return execute(params, url, new SqlHint() {
             @Override
             public void apply() {
-                String newSql = HintManager.applyAllHintRewrite(params.params.get("sql"), params.params);
+                String newSql = HintManager.applyNoEffectRewrite(params.params.get("sql"), params.params);
                 params.withSql(newSql);
             }
         });
