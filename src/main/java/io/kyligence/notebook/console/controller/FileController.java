@@ -84,7 +84,7 @@ public class FileController {
 
         // delete duplicate notebook in target folder
         ExecFileInfo origin = execFileService.find(user, execFileInfo.getName(), folderId);
-        if (origin != null) {
+        if (origin != null && !Objects.equals(origin.getId(), execFileInfo.getId())) {
             UserAction userAction = userService.getUserAction(user);
             List<OpenedExecFileDTO> openedNotebooks = JacksonUtils.readJsonArray(userAction.getOpenedNotebooks(), OpenedExecFileDTO.class);
             if (openedNotebooks != null && openedNotebooks.size() > 0) {
