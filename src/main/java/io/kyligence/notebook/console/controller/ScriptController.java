@@ -128,7 +128,7 @@ public class ScriptController {
         if (notebookInfo == null) {
             return "can not find notebook.";
         }
-        List<CellInfo> cellInfoList = notebookService.getCellInfos(notebookInfo.getId());
+        List<CellInfo> cellInfoList = notebookService.getCellInfos(notebookInfo.getCellList());
         if (includePath.getCellId() != null) {
             if (cellInfoList == null || cellInfoList.size() < includePath.getCellId()) {
                 return "can not find cell id.";

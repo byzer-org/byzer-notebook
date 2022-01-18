@@ -20,6 +20,7 @@ import io.kyligence.notebook.console.scalalib.hint.HintManager;
 import io.kyligence.notebook.console.support.CriteriaQueryBuilder;
 import io.kyligence.notebook.console.util.EntityUtils;
 import io.kyligence.notebook.console.util.JacksonUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,12 +29,10 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.persistence.Query;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class NotebookService implements FileInterface {
 
@@ -100,6 +99,20 @@ public class NotebookService implements FileInterface {
 
     public List<CellInfo> getCellInfos(Integer notebookId) {
         return cellInfoRepository.findByNotebook(notebookId);
+    }
+
+    public List<CellInfo> getCellInfos(String cellIds) {
+        List<Integer> idList = Arrays.stream(cellIds.replace("[", "").replace("]", "").split(","))
+                .map(String::trim).map(Integer::valueOf).collect(Collectors.toList());
+        List<CellInfo> cellList = new ArrayList<>();
+        for (Integer id : idList) {
+            Optional<CellInfo> cellInfo = cellInfoRepository.findById(id);
+            if (!cellInfo.isPresent()) {
+                log.error("get cell(id:${}) info error, not found!", id);
+            }
+            cellList.add(cellInfo.get());
+        }
+        return cellList;
     }
 
     public CellInfo getCellInfo(Integer cellId) {
@@ -255,7 +268,7 @@ public class NotebookService implements FileInterface {
     public String getNotebookScripts(String user, Integer notebookId, Map<String, String> options) {
         NotebookDTO notebook = getNotebook(notebookId, user);
         List<String> scripts = notebook.getCellList().stream().map(CellInfoDTO::getContent)
-                .filter(sql -> Objects.nonNull(sql) && !sql.startsWith("-- Markdown"))
+                .filter(sql -> Objects.nonNull(sql) && !sql.startsWith("--%markdown"))
                 .map(sql -> HintManager.applyAllHintRewrite(sql, options))
                 .collect(Collectors.toList());
         return String.join("\n", scripts);
