@@ -22,4 +22,7 @@ public class CloneExecFileReq {
     @NotBlank
     @JsonProperty("type")
     private String type;
+
+    @JsonProperty("commit_id")
+    private String commitId;
 }

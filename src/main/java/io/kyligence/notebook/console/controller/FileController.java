@@ -80,7 +80,7 @@ public class FileController {
         execFileService = getService(type);
 
         ExecFileInfo execFileInfo = execFileService.findById(execFileId);
-        execFileService.checkExecFileAvailable(user, execFileInfo);
+        execFileService.checkExecFileAvailable(user, execFileInfo, null);
 
         // delete duplicate notebook in target folder
         ExecFileInfo origin = execFileService.find(user, execFileInfo.getName(), folderId);
@@ -122,7 +122,7 @@ public class FileController {
 
         execFileService = getService(type);
         ExecFileInfo execFileInfo = execFileService.findById(execFileId);
-        execFileService.checkExecFileAvailable(user, execFileInfo);
+        execFileService.checkExecFileAvailable(user, execFileInfo, null);
 
         String name = execFileInfo.getName();
         String rename = renameExecFileReq.getName();
@@ -144,17 +144,18 @@ public class FileController {
         Integer id = Integer.valueOf(cloneExecFileReq.getId());
         String type = cloneExecFileReq.getType();
         String user = WebUtils.getCurrentLoginUser();
+        String commitId = cloneExecFileReq.getCommitId();
 
         execFileService = getService(type);
         execFileService.checkResourceLimit(user, 1);
         ExecFileInfo execFileInfo = execFileService.findById(id);
-        execFileService.checkExecFileAvailable(user, execFileInfo);
+        execFileService.checkExecFileAvailable(user, execFileInfo, commitId);
 
         if (execFileService.isExecFileExist(user, cloneExecFileReq.getName(), execFileInfo.getFolderId())) {
             throw new ByzerException(ErrorCodeEnum.FILE_ALREADY_EXIST);
         }
 
-        ExecFileDTO execFile = getExecFile(id, user, type);
+        ExecFileDTO execFile = getExecFile(id, user, type, commitId);
         execFile.setName(cloneExecFileReq.getName());
         ExecFileInfo newExecFile = execFileService.importExecFile(execFile, execFileInfo.getFolderId());
 
@@ -168,7 +169,7 @@ public class FileController {
         execFileService = getService(type);
         String user = WebUtils.getCurrentLoginUser();
         ExecFileInfo execFileInfo = execFileService.findById(id);
-        execFileService.checkExecFileAvailable(user, execFileInfo);
+        execFileService.checkExecFileAvailable(user, execFileInfo, null);
 
         execFileService.delete(id);
         return new Response<IdDTO>().data(IdDTO.valueOf(id));
@@ -242,10 +243,12 @@ public class FileController {
     @GetMapping("/file/export/{id}")
     @Permission
     @SneakyThrows
-    public void exportNotebook(@PathVariable("id") Integer execFileId, @RequestParam("type") String type, HttpServletResponse response) {
+    public void exportNotebook(@PathVariable("id") Integer execFileId, @RequestParam("type") String type,
+                               @RequestParam(value = "commit_id", required = false) String commitId,
+                               HttpServletResponse response) {
         String extName = getExtension(type);
         String user = WebUtils.getCurrentLoginUser();
-        ExecFileDTO execFileDTO = getExecFile(execFileId, user, type);
+        ExecFileDTO execFileDTO = getExecFile(execFileId, user, type, commitId);
 
         String fileName = String.format(Locale.ROOT, "%s_%s", execFileDTO.getName(),
                 new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault(Locale.Category.FORMAT)).format(new Date()));
@@ -321,11 +324,11 @@ public class FileController {
         }
     }
 
-    private ExecFileDTO getExecFile(Integer execFileId, String user, String type) {
+    private ExecFileDTO getExecFile(Integer execFileId, String user, String type, String commitId) {
         if (type.equals("notebook")) {
-            return notebookService.getNotebook(execFileId, user);
+            return notebookService.getNotebook(execFileId, user, commitId);
         } else if (type.equals("workflow")) {
-            return workflowService.getWorkflow(execFileId, user);
+            return workflowService.getWorkflow(execFileId, user, commitId);
         } else {
             throw new ByzerException(ErrorCodeEnum.NO_SUCH_TYPE);
         }

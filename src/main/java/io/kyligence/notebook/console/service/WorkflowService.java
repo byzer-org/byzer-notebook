@@ -3,13 +3,11 @@ package io.kyligence.notebook.console.service;
 import io.kyligence.notebook.console.NotebookConfig;
 import io.kyligence.notebook.console.bean.dto.*;
 import io.kyligence.notebook.console.bean.entity.*;
-import io.kyligence.notebook.console.dao.ModelInfoRepository;
+import io.kyligence.notebook.console.dao.*;
 import io.kyligence.notebook.console.exception.EngineAccessException;
 import io.kyligence.notebook.console.scalalib.hint.HintManager;
 import io.kyligence.notebook.console.support.ETEnum;
 import io.kyligence.notebook.console.util.*;
-import io.kyligence.notebook.console.dao.NodeInfoRepository;
-import io.kyligence.notebook.console.dao.WorkflowRepository;
 import io.kyligence.notebook.console.exception.ByzerException;
 import io.kyligence.notebook.console.exception.ErrorCodeEnum;
 import io.kyligence.notebook.console.support.CriteriaQueryBuilder;
@@ -31,6 +29,9 @@ public class WorkflowService implements FileInterface {
     private WorkflowRepository workflowRepository;
 
     @Autowired
+    private WorkflowCommitRepository workflowCommitRepository;
+
+    @Autowired
     private NotebookService notebookService;
 
     @Autowired
@@ -40,7 +41,13 @@ public class WorkflowService implements FileInterface {
     private NodeInfoRepository nodeInfoRepository;
 
     @Autowired
+    private NodeCommitRepository nodeCommitRepository;
+
+    @Autowired
     private ModelInfoRepository modelInfoRepository;
+
+    @Autowired
+    private SharedFileRepository sharedFileRepository;
 
     @Autowired
     private ETService etService;
@@ -94,9 +101,46 @@ public class WorkflowService implements FileInterface {
     }
 
     @Transactional
+    public WorkflowCommit commit(String user, Integer workflowId) {
+        WorkflowInfo workflowInfo = findById(workflowId);
+        checkExecFileAvailable(user, workflowInfo, null);
+
+        String commitId = UUID.randomUUID().toString();
+        long timestamp = System.currentTimeMillis();
+
+        WorkflowCommit workflowCommit = new WorkflowCommit();
+
+        workflowCommit.setCommitId(commitId);
+        workflowCommit.setWorkflowId(workflowId);
+        workflowCommit.setName(workflowInfo.getName());
+        workflowCommit.setCreateTime(new Timestamp(timestamp));
+        workflowCommit = workflowCommitRepository.save(workflowCommit);
+
+        List<NodeInfo> nodes = findNodeByWorkflow(workflowId);
+
+        nodes.forEach(
+                nodeInfo -> {
+                    NodeCommit nodeCommit = new NodeCommit();
+                    nodeCommit.setCommitId(commitId);
+                    nodeCommit.setNodeId(nodeInfo.getId());
+                    nodeCommit.setContent(nodeInfo.getContent());
+                    nodeCommit.setWorkflowId(workflowId);
+                    nodeCommit.setInput(nodeInfo.getInput());
+                    nodeCommit.setOutput(nodeInfo.getOutput());
+                    nodeCommit.setUser(user);
+                    nodeCommit.setPosition(nodeInfo.getPosition());
+                    nodeCommit.setType(nodeInfo.getType());
+                    nodeCommit.setCreateTime(new Timestamp(timestamp));
+                    nodeCommitRepository.save(nodeCommit);
+                }
+        );
+        return workflowCommit;
+    }
+
+    @Transactional
     public WorkflowInfo rename(Integer workflowId, String user, String name) {
         WorkflowInfo workflowInfo = findById(workflowId);
-        checkExecFileAvailable(user, workflowInfo);
+        checkExecFileAvailable(user, workflowInfo, null);
         workflowRepository.rename(workflowId, name);
         workflowInfo.setName(name);
         return workflowInfo;
@@ -107,7 +151,7 @@ public class WorkflowService implements FileInterface {
                                NodeInfoDTO.NodeContent nodeContent,
                                NodeInfoDTO.NodePosition nodePosition) {
         WorkflowInfo workflowInfo = findById(workflowId);
-        checkExecFileAvailable(user, workflowInfo);
+        checkExecFileAvailable(user, workflowInfo, null);
 
         long currentTimeStamp = System.currentTimeMillis();
 
@@ -155,7 +199,7 @@ public class WorkflowService implements FileInterface {
 
     public NodeInfo updateNode(Integer workflowId, Integer nodeId, String user, String nodeType, NodeInfoDTO.NodeContent nodeContent) {
         WorkflowInfo workflowInfo = findById(workflowId);
-        checkExecFileAvailable(user, workflowInfo);
+        checkExecFileAvailable(user, workflowInfo, null);
         NodeInfo nodeInfo = findNodeById(nodeId);
 
         if (nodeInfo == null) {
@@ -216,7 +260,7 @@ public class WorkflowService implements FileInterface {
     @Transactional
     public void deleteNode(Integer workflowId, Integer nodeId, String user) {
         WorkflowInfo workflowInfo = findById(workflowId);
-        checkExecFileAvailable(user, workflowInfo);
+        checkExecFileAvailable(user, workflowInfo, null);
 
         nodeInfoRepository.delete(nodeId, workflowId);
         modelInfoRepository.deleteByNodeId(nodeId);
@@ -225,7 +269,7 @@ public class WorkflowService implements FileInterface {
 
     public NodeInfo updateNodePosition(Integer workflowId, Integer nodeId, String user, NodeInfoDTO.NodePosition position) {
         WorkflowInfo workflowInfo = findById(workflowId);
-        checkExecFileAvailable(user, workflowInfo);
+        checkExecFileAvailable(user, workflowInfo, null);
         NodeInfo nodeInfo = findNodeById(nodeId);
 
         if (nodeInfo == null) {
@@ -237,6 +281,9 @@ public class WorkflowService implements FileInterface {
         return nodeInfo;
     }
 
+    public List<NodeCommit> getCommittedNodeInfos(Integer workflowId, String commitId) {
+        return nodeCommitRepository.findByCommit(workflowId, commitId);
+    }
 
     public List<NodeInfo> findNodeByWorkflow(Integer workflowId) {
         return nodeInfoRepository.findByWorkflow(workflowId);
@@ -252,7 +299,7 @@ public class WorkflowService implements FileInterface {
     @Transactional
     public NotebookInfo workflowToNotebook(Integer workflowId, String user, String notebookName) {
         WorkflowInfo workflowInfo = findById(workflowId);
-        checkExecFileAvailable(user, workflowInfo);
+        checkExecFileAvailable(user, workflowInfo, null);
         notebookService.checkResourceLimit(user, 1);
 
         // 1. create notebook
@@ -353,10 +400,13 @@ public class WorkflowService implements FileInterface {
         return workflowInfo != null && workflowInfo.getName().equals(name);
     }
 
-    public void checkExecFileAvailable(String user, ExecFileInfo execFileInfo) {
+    public void checkExecFileAvailable(String user, ExecFileInfo execFileInfo, String commitId) {
         if (execFileInfo == null) {
             throw new ByzerException(ErrorCodeEnum.WORKFLOW_NOT_EXIST);
         }
+        // user can access demo commits
+        if (Objects.nonNull(commitId) && !commitId.isEmpty() && isDemo(execFileInfo.getId(), commitId)) return;
+
         if (!user.equalsIgnoreCase(execFileInfo.getUser()) && !user.equalsIgnoreCase("admin")) {
             throw new ByzerException(ErrorCodeEnum.WORKFLOW_NOT_AVAILABLE);
         }
@@ -365,8 +415,13 @@ public class WorkflowService implements FileInterface {
     @Override
     @Transactional
     public void delete(Integer workflowId) {
+        if (isDemo(workflowId)) {
+            throw new ByzerException("Workflow has been shared with other users");
+        }
         workflowRepository.deleteById(workflowId);
+        workflowCommitRepository.deleteByWorkflow(workflowId);
         nodeInfoRepository.deleteByWorkflow(workflowId);
+        nodeCommitRepository.deleteByWorkflow(workflowId);
         modelInfoRepository.deleteByWorkflowId(workflowId);
     }
 
@@ -459,14 +514,34 @@ public class WorkflowService implements FileInterface {
         return importWorkflow(workflowDTO, null, null);
     }
 
-    public ExecFileDTO getWorkflow(Integer execFileId, String user) {
+    public WorkflowDTO getWorkflow(Integer execFileId, String user) {
         WorkflowInfo workflowInfo = findById(execFileId);
-        checkExecFileAvailable(user, workflowInfo);
+        checkExecFileAvailable(user, workflowInfo, null);
 
         List<NodeInfo> nodeInfos = findNodeByWorkflow(execFileId);
         Map<Integer, ConnectionInfo> map = getUserConnectionMap(user);
 
-        return WorkflowDTO.valueOf(workflowInfo, nodeInfos, map);
+        WorkflowDTO dto = WorkflowDTO.valueOf(workflowInfo, nodeInfos, map);
+        if (isDemo(execFileId)) dto.setIsDemo(true);
+        return dto;
+    }
+
+    public WorkflowDTO getWorkflow(Integer execFileId, String user, String commitId) {
+        if (Objects.isNull(commitId) || commitId.isEmpty()) {
+            return getWorkflow(execFileId, user);
+        }
+
+        WorkflowInfo workflowInfo = findById(execFileId);
+        checkExecFileAvailable(user, workflowInfo, commitId);
+
+
+        workflowInfo = workflowFromCommit(execFileId, commitId, workflowInfo);
+        List<NodeInfo> nodeInfos = nodesFromCommit(execFileId, commitId);
+        Map<Integer, ConnectionInfo> map = getUserConnectionMap(user);
+
+        WorkflowDTO dto = WorkflowDTO.valueOf(workflowInfo, nodeInfos, map);
+        if (isDemo(execFileId, commitId)) dto.setIsDemo(true);
+        return dto;
     }
 
     public Map<String, List<ParamDefDTO>> getAlgoParamSettings() {
@@ -511,17 +586,24 @@ public class WorkflowService implements FileInterface {
 
     }
 
-    public WorkflowContentDTO getWorkflowContent(String user, Integer workflowId) {
+    public WorkflowContentDTO getWorkflowContent(String user, Integer workflowId, String commitId) {
         WorkflowInfo workflowInfo = findById(workflowId);
-        checkExecFileAvailable(user, workflowInfo);
+        checkExecFileAvailable(user, workflowInfo, commitId);
         List<NodeInfo> nodeInfoList = findNodeByWorkflow(workflowId);
+
+        if (Objects.nonNull(commitId) && !commitId.isEmpty()) {
+            workflowInfo = workflowFromCommit(workflowId, commitId, workflowInfo);
+            nodeInfoList = nodesFromCommit(workflowId, commitId);
+        }
+
+
         Map<Integer, ConnectionInfo> connectionInfoMap = getUserConnectionMap(workflowInfo.getUser());
         Map<String, List<ParamDefDTO>> algoParams = getAlgoParamSettings();
         return WorkflowContentDTO.valueOf(workflowInfo, nodeInfoList, connectionInfoMap, algoParams);
     }
 
-    public String getWorkflowScripts(String user, Integer workflowId, Map<String, String> options) {
-        WorkflowContentDTO content = getWorkflowContent(user, workflowId);
+    public String getWorkflowScripts(String user, Integer workflowId, String commitId, Map<String, String> options) {
+        WorkflowContentDTO content = getWorkflowContent(user, workflowId, commitId);
         List<String> scripts = content.getCellList().stream().map(WorkflowContentDTO.WorkflowCellContent::getContent)
                 .filter(Objects::nonNull).map(sql -> HintManager.applyHintRewrite(sql, options))
                 .collect(Collectors.toList());
@@ -581,5 +663,57 @@ public class WorkflowService implements FileInterface {
             nodeContent.setTarget(nodeContent.getOutputParam().get(1).getValue());
             nodeContent.setSavePath(nodeContent.getOutputParam().get(0).getValue());
         }
+    }
+
+    private boolean isDemo(Integer workflowId) {
+        return !sharedFileRepository.findByEntity("admin", workflowId, "workflow").isEmpty();
+    }
+
+    private boolean isDemo(Integer workflowId, String commitId) {
+        return !sharedFileRepository.findByCommit("admin", workflowId, "workflow", commitId).isEmpty();
+    }
+
+    public WorkflowCommit findCommit(Integer workflowId, String commitId) {
+        List<WorkflowCommit> workflowCommits = workflowCommitRepository.findByCommit(workflowId, commitId);
+
+        if (workflowCommits.isEmpty()) {
+            throw new ByzerException("Commit don't exist");
+        }
+
+        return workflowCommits.get(0);
+    }
+
+    private WorkflowInfo workflowFromCommit(Integer workflowId, String commitId, WorkflowInfo currentInfo){
+        WorkflowCommit workflowCommit = findCommit(workflowId, commitId);
+
+        WorkflowInfo workflowInfo = new WorkflowInfo();
+        workflowInfo.setId(workflowCommit.getWorkflowId());
+        workflowInfo.setName(workflowCommit.getName());
+        workflowInfo.setCreateTime(workflowCommit.getCreateTime());
+        workflowInfo.setUpdateTime(workflowCommit.getCreateTime());
+        workflowInfo.setFolderId(currentInfo.getFolderId());
+        workflowInfo.setUser(currentInfo.getUser());
+
+        return workflowInfo;
+    }
+
+    private List<NodeInfo> nodesFromCommit(Integer workflowId, String commitId){
+        List<NodeCommit> committedNodeInfos = getCommittedNodeInfos(workflowId, commitId);
+        return committedNodeInfos.stream().map(
+                nodeCommit -> {
+                    NodeInfo nodeInfo = new NodeInfo();
+                    nodeInfo.setId(nodeCommit.getNodeId());
+                    nodeInfo.setWorkflowId(nodeCommit.getWorkflowId());
+                    nodeInfo.setInput(nodeCommit.getInput());
+                    nodeInfo.setOutput(nodeCommit.getOutput());
+                    nodeInfo.setUser(nodeCommit.getUser());
+                    nodeInfo.setContent(nodeCommit.getContent());
+                    nodeInfo.setPosition(nodeCommit.getPosition());
+                    nodeInfo.setType(nodeCommit.getType());
+                    nodeInfo.setCreateTime(nodeCommit.getCreateTime());
+                    nodeInfo.setUpdateTime(nodeCommit.getCreateTime());
+                    return nodeInfo;
+                }
+        ).collect(Collectors.toList());
     }
 }

@@ -4,12 +4,14 @@ package io.kyligence.notebook.console.controller;
 import io.kyligence.notebook.console.NotebookConfig;
 import io.kyligence.notebook.console.bean.dto.*;
 import io.kyligence.notebook.console.bean.dto.req.CUConnectionReq;
+import io.kyligence.notebook.console.bean.dto.req.EntityInfoReq;
 import io.kyligence.notebook.console.bean.dto.req.SettingsUpdateReq;
 import io.kyligence.notebook.console.bean.entity.ConnectionInfo;
 import io.kyligence.notebook.console.bean.entity.NodeDefInfo;
 import io.kyligence.notebook.console.bean.entity.ParamDefInfo;
 import io.kyligence.notebook.console.bean.entity.SystemConfig;
 import io.kyligence.notebook.console.service.ConnectionService;
+import io.kyligence.notebook.console.service.FileShareService;
 import io.kyligence.notebook.console.service.NodeDefService;
 import io.kyligence.notebook.console.service.SystemService;
 import io.kyligence.notebook.console.support.DisableInTrial;
@@ -42,6 +44,9 @@ public class SettingsController {
 
     @Autowired
     private NodeDefService nodeDefService;
+
+    @Autowired
+    private FileShareService fileShareService;
 
     private static final NotebookConfig config = NotebookConfig.getInstance();
 
@@ -216,4 +221,23 @@ public class SettingsController {
         List<ParamDefInfo> allNodeParams = nodeDefService.getParamDefByNodeDefId(nodeDefInfo.getId());
         return new Response<ParamDefDTO>().data(ParamDefDTO.valueOf(paramDefInfo, allNodeParams));
     }
+
+    @ApiOperation("Set/Update Demo")
+    @PostMapping("/settings/demo")
+    @Permission
+    public Response<String> addDemo(@RequestBody @Validated EntityInfoReq entityInfo) {
+        String user = WebUtils.getCurrentLoginUser();
+        fileShareService.addDemo(user, entityInfo.getEntityId(), entityInfo.getEntityType());
+        return new Response<String>().data("success");
+    }
+
+    @ApiOperation("Delete Demo")
+    @PostMapping("/settings/demo/remove")
+    @Permission
+    public Response<String> deleteDemo(@RequestBody @Validated EntityInfoReq entityInfo) {
+        String user = WebUtils.getCurrentLoginUser();
+        fileShareService.deleteDemo(user, entityInfo.getEntityId(), entityInfo.getEntityType());
+        return new Response<String>().data("success");
+    }
+
 }
