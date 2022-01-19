@@ -1,7 +1,9 @@
 package io.kyligence.notebook.console.bean.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.kyligence.notebook.console.bean.entity.CellCommit;
 import io.kyligence.notebook.console.bean.entity.CellInfo;
+import io.kyligence.notebook.console.bean.entity.NotebookCommit;
 import io.kyligence.notebook.console.bean.entity.NotebookInfo;
 import io.kyligence.notebook.console.util.EntityUtils;
 import lombok.Data;
@@ -28,6 +30,8 @@ public class NotebookDTO extends ExecFileDTO{
     @JsonProperty("cell_list")
     private List<CellInfoDTO> cellList;
 
+    @JsonProperty("is_demo")
+    private Boolean isDemo;
 
     public static NotebookDTO valueOf(NotebookInfo notebookInfo, List<Integer> cellIds, List<CellInfo> cellInfos) {
         if (notebookInfo == null) {
@@ -56,4 +60,26 @@ public class NotebookDTO extends ExecFileDTO{
         return valueOf(notebookInfo, null, null);
     }
 
+    public static NotebookDTO valueOf(NotebookInfo notebookInfo, List<Integer> cellIds, NotebookCommit notebookCommit, List<CellCommit> cellInfos) {
+        if (notebookInfo == null) {
+            return null;
+        }
+
+        NotebookDTO notebookDTO = new NotebookDTO();
+        notebookDTO.setId(EntityUtils.toStr(notebookInfo.getId()));
+        notebookDTO.setName(notebookCommit.getName());
+        notebookDTO.setUser(notebookInfo.getUser());
+
+        if (cellIds != null && !cellIds.isEmpty() && cellInfos != null) {
+            Map<Integer, CellCommit> cellInfoMap = new HashMap<>();
+            cellInfos.forEach(committedCellInfo -> cellInfoMap.put(committedCellInfo.getCellId(), committedCellInfo));
+
+            List<CellInfoDTO> cellInfoDTOS = cellIds.stream().map(cellId -> {
+                CellCommit committedCellInfo = cellInfoMap.get(cellId);
+                return CellInfoDTO.valueOf(committedCellInfo);
+            }).collect(Collectors.toList());
+            notebookDTO.setCellList(cellInfoDTOS);
+        }
+        return notebookDTO;
+    }
 }

@@ -17,7 +17,7 @@ public interface FileInterface {
 
     ExecFileInfo findById(Integer id);
 
-    void checkExecFileAvailable(String user, ExecFileInfo execFileInfo);
+    void checkExecFileAvailable(String user, ExecFileInfo execFileInfo, String commitId);
 
     ExecFileInfo find(String user, String name, Integer id);
 

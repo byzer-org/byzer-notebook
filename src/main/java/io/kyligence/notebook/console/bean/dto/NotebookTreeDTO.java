@@ -2,7 +2,9 @@ package io.kyligence.notebook.console.bean.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.kyligence.notebook.console.bean.entity.ExecFileInfo;
+import io.kyligence.notebook.console.bean.entity.NotebookCommit;
 import io.kyligence.notebook.console.bean.entity.NotebookFolder;
+import io.kyligence.notebook.console.bean.entity.WorkflowCommit;
 import io.kyligence.notebook.console.util.EntityUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,8 +28,47 @@ public class NotebookTreeDTO {
     @JsonProperty("type")
     public String type;
 
+    @JsonProperty("commit_id")
+    public String commitId;
+
+    @JsonProperty("is_demo")
+    public Boolean isDemo;
+
     @JsonProperty("list")
     public List<NotebookTreeDTO> list;
+
+
+    public static NotebookTreeDTO valueOfDemoFiles(List<NotebookCommit> notebookDemos, List<WorkflowCommit> workflowDemos){
+        NotebookTreeDTO demoFolder = new NotebookTreeDTO();
+        demoFolder.setFolderId("0");
+        demoFolder.setName("OnlineDemos");
+        demoFolder.setIsDemo(true);
+        List<NotebookTreeDTO> demoList = notebookDemos.stream().map(
+                demoNb -> {
+                    NotebookTreeDTO entity = new NotebookTreeDTO();
+                    entity.setId(demoNb.getNotebookId().toString());
+                    entity.setCommitId(demoNb.getCommitId());
+                    entity.setIsDemo(true);
+                    entity.setName(demoNb.getName());
+                    entity.setType("notebook");
+                    return entity;
+                }
+        ).collect(Collectors.toList());
+
+        demoList.addAll(workflowDemos.stream().map(
+                demoWf -> {
+                    NotebookTreeDTO entity = new NotebookTreeDTO();
+                    entity.setId(demoWf.getWorkflowId().toString());
+                    entity.setCommitId(demoWf.getCommitId());
+                    entity.setIsDemo(true);
+                    entity.setName(demoWf.getName());
+                    entity.setType("workflow");
+                    return entity;
+                }
+        ).collect(Collectors.toList()));
+        demoFolder.setList(demoList);
+        return demoFolder;
+    }
 
     public static NotebookTreeDTO valueOf(List<ExecFileInfo> execFiles, List<NotebookFolder> folders) {
         NotebookTreeDTO notebookTree = buildFolderTree(folders);
@@ -178,6 +219,5 @@ public class NotebookTreeDTO {
         });
         return tree;
     }
-
 
 }
