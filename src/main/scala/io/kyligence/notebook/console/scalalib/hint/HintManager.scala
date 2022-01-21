@@ -11,8 +11,11 @@ object HintManager {
     List(new DeployScriptHint, new DeployModelHint,new DeployPythonModelHint)
 
   def applyAllHintRewrite(sql: String, options: java.util.Map[String, String]): String = {
-    applyNoEffectRewrite(sql, options)
-    applyEffectRewrite(sql, options)
+    var tempSQL = applyNoEffectRewrite(sql, options)
+    if (tempSQL == sql) {
+      tempSQL = applyEffectRewrite(sql, options)
+    }
+    tempSQL
   }
 
   def applyNoEffectRewrite(sql: String, options: java.util.Map[String, String]): String = {
