@@ -523,7 +523,7 @@ public class WorkflowService implements FileInterface {
     public String getWorkflowScripts(String user, Integer workflowId, Map<String, String> options) {
         WorkflowContentDTO content = getWorkflowContent(user, workflowId);
         List<String> scripts = content.getCellList().stream().map(WorkflowContentDTO.WorkflowCellContent::getContent)
-                .filter(Objects::nonNull).map(sql -> HintManager.applyHintRewrite(sql, options))
+                .filter(Objects::nonNull).map(sql -> HintManager.applyAllHintRewrite(sql, options))
                 .collect(Collectors.toList());
         return String.join("\n", scripts);
     }

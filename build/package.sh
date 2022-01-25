@@ -18,7 +18,7 @@ if [[ ! -d byzer-notebook-vue/.git ]]; then
     git clone -b "${FRONTEND_BRANCH:-"main"}" https://github.com/byzer-org/byzer-notebook-vue.git
 else
     echo "update byzer-notebook-vue to latest..."
-    ( cd byzer-notebook-vue && git checkout main && git pull -r origin main )
+    ( cd byzer-notebook-vue && git reset --hard && git checkout main && git pull -r origin main )
 fi
 
 cd ${root_dir}/byzer-notebook-vue && bash ./build/build.sh

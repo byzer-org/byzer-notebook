@@ -28,11 +28,11 @@ public class EngineService {
     @Autowired
     private RestTemplate restTemplate;
 
-    public String execute(RunScriptParams params, String url){
+    public String execute(RunScriptParams params, String url, SqlHint sqlHint){
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        applySqlHint(params);
+        sqlHint.apply();
 
         MultiValueMap<String, String> map= new LinkedMultiValueMap<>();
         params.getAll().forEach(map::add);
@@ -56,22 +56,35 @@ public class EngineService {
 
     public String runScript(RunScriptParams params) {
         String url = config.getExecutionEngineUrl() + "/run/script";
-        return execute(params, url);
+        return execute(params, url, new SqlHint() {
+            @Override
+            public void apply() {
+                String newSql = HintManager.applyAllHintRewrite(params.params.get("sql"), params.params);
+                params.withSql(newSql);
+            }
+        });
     }
 
     public String runAnalyze(RunScriptParams params) {
         String url = config.getExecutionEngineUrl() + "/run/script?executeMode=analyze";
-        return execute(params, url);
+        return execute(params, url, new SqlHint() {
+            @Override
+            public void apply() {
+                String newSql = HintManager.applyNoEffectRewrite(params.params.get("sql"), params.params);
+                params.withSql(newSql);
+            }
+        });
     }
 
     public String runAutoSuggest(RunScriptParams params) {
         String url = config.getExecutionEngineUrl() + "/run/script?executeMode=autoSuggest";
-        return execute(params, url);
-    }
-
-    private void applySqlHint(RunScriptParams runScriptParams) {
-        String newSql = HintManager.applyHintRewrite(runScriptParams.params.get("sql"), runScriptParams.params);
-        runScriptParams.withSql(newSql);
+        return execute(params, url, new SqlHint() {
+            @Override
+            public void apply() {
+                String newSql = HintManager.applyNoEffectRewrite(params.params.get("sql"), params.params);
+                params.withSql(newSql);
+            }
+        });
     }
 
     public static class  RunScriptParams {

@@ -6,7 +6,7 @@
 
     <groupId>io.kyligence</groupId>
     <artifactId>notebook-console</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.1</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -16,7 +16,7 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
         <spring-boot.version>2.0.8.RELEASE</spring-boot.version>
-        <tomcat.version>8.5.61</tomcat.version>
+        <tomcat.version>8.5.63</tomcat.version>
         <lombok.version>1.16.20</lombok.version>
 
         <slf4j.version>1.7.30</slf4j.version>
@@ -37,8 +37,8 @@
         <commons-lang3.version>3.7</commons-lang3.version>
         <httpclient.version>4.5.3</httpclient.version>
         <commons-collections.version>3.2.2</commons-collections.version>
-        <commons-io.version>2.4</commons-io.version>
-        <commons-compress.version>1.19</commons-compress.version>
+        <commons-io.version>2.7</commons-io.version>
+        <commons-compress.version>1.21</commons-compress.version>
 
         <scala.version>2.11.8</scala.version>
         <liquibase.version>4.2.2</liquibase.version>
