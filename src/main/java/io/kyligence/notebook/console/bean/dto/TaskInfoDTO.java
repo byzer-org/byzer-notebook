@@ -7,6 +7,7 @@ import io.kyligence.notebook.console.scheduler.dolphin.dto.ProcessInfo;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -25,6 +26,11 @@ public class TaskInfoDTO {
     private Map<String, String> extraSettings;
 
     private List<ProcessInfo.Connects> connects;
+    @JsonProperty("create_time")
+    private Date createTime;
+
+    @JsonProperty("update_time")
+    private Date updateTime;
 
     public static TaskInfoDTO valueOf(ProcessInfo processInfo, ScheduleSetting schedule, Map<String, String> mails) {
         TaskInfoDTO dto = new TaskInfoDTO();
@@ -41,6 +47,8 @@ public class TaskInfoDTO {
                         .collect(Collectors.toList())
         );
         dto.setConnects(processInfo.getConnections());
+        dto.setCreateTime(processInfo.getCreateTime());
+        dto.setUpdateTime(processInfo.getUpdateTime());
         return dto;
     }
 }

@@ -25,4 +25,7 @@ public class ScheduleCallbackReq {
     @NotBlank
     @JsonProperty("entity_id")
     private String entityId;
+
+    @JsonProperty("entity_commit_id")
+    private String commitId;
 }

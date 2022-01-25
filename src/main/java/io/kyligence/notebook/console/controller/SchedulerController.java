@@ -1,8 +1,6 @@
 package io.kyligence.notebook.console.controller;
 
-import io.kyligence.notebook.console.bean.dto.IdNameDTO;
-import io.kyligence.notebook.console.bean.dto.Response;
-import io.kyligence.notebook.console.bean.dto.TaskInfoDTO;
+import io.kyligence.notebook.console.bean.dto.*;
 import io.kyligence.notebook.console.bean.dto.req.CreateScheduleReq;
 import io.kyligence.notebook.console.bean.dto.req.ModifyScheduleReq;
 import io.kyligence.notebook.console.bean.dto.req.ScheduleCallbackReq;
@@ -38,7 +36,8 @@ public class SchedulerController {
                 scheduleCallbackReq.getToken(),
                 scheduleCallbackReq.getUser(),
                 scheduleCallbackReq.getEntityType(),
-                scheduleCallbackReq.getEntityId()
+                scheduleCallbackReq.getEntityId(),
+                scheduleCallbackReq.getCommitId()
         );
         return new Response<String>().msg("success");
     }
@@ -95,6 +94,9 @@ public class SchedulerController {
                 user,
                 createScheduleReq.getEntityType(),
                 createScheduleReq.getEntityId(),
+                createScheduleReq.getCommitId(),
+                createScheduleReq.getTaskName(),
+                createScheduleReq.getTaskDesc(),
                 createScheduleReq.getSchedule(),
                 createScheduleReq.getExtra()
         );
@@ -130,4 +132,58 @@ public class SchedulerController {
         return new Response<String>().msg("success");
     }
 
+    @ApiOperation("Get Task Instance")
+    @GetMapping("/schedule/task/instance")
+    @Permission
+    public Response<List<TaskInstanceDTO>> getTaskInstance(@RequestParam(value = "scheduler", required = false) Integer schedulerId,
+                                                           @RequestParam(value = "project_name", required = false) String projectName,
+                                                           @RequestParam(value = "task_id", required = false) Integer taskId) {
+        String user = WebUtils.getCurrentLoginUser();
+        List<TaskInstanceDTO> instances = schedulerService.getInstanceList(user, schedulerId, projectName, taskId);
+        return new Response<List<TaskInstanceDTO>>().data(instances);
+    }
+
+    @ApiOperation("Get Task Instance Node")
+    @GetMapping("/schedule/task/instance/{id}")
+    @Permission
+    public Response<List<TaskNodeInfoDTO>> getTaskInstance(@PathVariable("id") @NotNull Long id,
+                                                           @RequestParam(value = "scheduler", required = false) Integer schedulerId,
+                                                           @RequestParam(value = "project_name", required = false) String projectName) {
+        String user = WebUtils.getCurrentLoginUser();
+        List<TaskNodeInfoDTO> instances = schedulerService.getInstanceNodes(user, id, schedulerId, projectName);
+        return new Response<List<TaskNodeInfoDTO>>().data(instances);
+    }
+
+    @ApiOperation("Online Task")
+    @PostMapping("/schedule/task/{id}/online")
+    @Permission
+    public Response<String> online(@PathVariable("id") @NotNull Integer id,
+                                   @RequestParam(value = "scheduler", required = false) Integer schedulerId,
+                                   @RequestParam(value = "project_name", required = false) String projectName) {
+        String user = WebUtils.getCurrentLoginUser();
+        schedulerService.onlineTask(user, id, schedulerId, projectName);
+        return new Response<String>().data("success");
+    }
+
+    @ApiOperation("Offline Task")
+    @PostMapping("/schedule/task/{id}/offline")
+    @Permission
+    public Response<String> offline(@PathVariable("id") @NotNull Integer id,
+                                    @RequestParam(value = "scheduler", required = false) Integer schedulerId,
+                                    @RequestParam(value = "project_name", required = false) String projectName) {
+        String user = WebUtils.getCurrentLoginUser();
+        schedulerService.offlineTask(user, id, schedulerId, projectName);
+        return new Response<String>().data("success");
+    }
+
+    @ApiOperation("Run Task")
+    @PostMapping("/schedule/task/{id}/execution")
+    @Permission
+    public Response<String> run(@PathVariable("id") @NotNull Integer id,
+                                @RequestParam(value = "scheduler", required = false) Integer schedulerId,
+                                @RequestParam(value = "project_name", required = false) String projectName) {
+        String user = WebUtils.getCurrentLoginUser();
+        schedulerService.runTask(user, schedulerId, projectName, id);
+        return new Response<String>().data("success");
+    }
 }

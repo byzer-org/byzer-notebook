@@ -58,7 +58,8 @@ public class ProcessInfo {
         private int timeout;
 
         public static ProcessDefinition valueOf(String entityName,
-                                                String entityType, Integer entityId,
+                                                String entityType, Integer entityId, String commitId,
+                                                String taskName, String taskDesc,
                                                 String owner, String token, String callbackUrl,
                                                 Integer maxRetryTimes, Integer retryInterval,
                                                 Integer timeout, Integer tenantId) {
@@ -67,7 +68,10 @@ public class ProcessInfo {
             processDefinition.setTenantId(tenantId);
             processDefinition.setGlobalParams(Lists.newArrayList());
             List<Task> tasks = Lists.newArrayList();
-            tasks.add(Task.valueOf(entityName, entityType, entityId, owner, token, callbackUrl, maxRetryTimes, retryInterval));
+            tasks.add(Task.valueOf(
+                    entityName, entityType, entityId, commitId, taskName, taskDesc,
+                    owner, token, callbackUrl, maxRetryTimes, retryInterval
+            ));
             processDefinition.setTasks(tasks);
             return processDefinition;
         }
@@ -97,15 +101,70 @@ public class ProcessInfo {
             return entityType + "-" + entityId;
         }
 
+        public static String genTaskName(String entityType, String entityName) {
+            if (entityType.equalsIgnoreCase("notebook")) {
+                return entityName + ".bznb";
+            } else if (entityType.equalsIgnoreCase("workflow")){
+                return entityName + ".bzwf";
+            } else {
+                return entityName;
+            }
+        }
+
+        public static String genUserDefinedTaskName(String userDefinedName, String entityType, String entityName){
+            String taskName =  Objects.isNull(userDefinedName) || userDefinedName.isEmpty() ? entityName : userDefinedName;
+            return taskName + "#_#" + genTaskName(entityType, entityName);
+        }
+
+        public static String fetchEntityName(Task task){
+            String[] nameList = task.getName().split("#_#", 2);
+            String name = nameList[nameList.length - 1];
+            return name.endsWith(".bznb") ? name.replace(".bznb", "") : name.replace(".bzwf", "");
+        }
+
+        public static String fetchCommitId(Task task){
+            for (HttpParam param: task.getParams().httpParams){
+                if (param.getProp().equalsIgnoreCase("commit_id")){
+                    return param.getValue();
+                }
+            }
+            return null;
+        }
+
+        public static String fetchUserDefinedName(Task task){
+            return task.getName().split("#_#", 2)[0];
+        }
+
+        public void update(String entityName, String entityType, Integer entityId, String commitId,
+                           String taskName, String taskDesc,
+                           String owner, String token, String callbackUrl,
+                           Integer maxRetryTimes, Integer retryInterval){
+            this.setName(genUserDefinedTaskName(taskName, entityType, entityName));
+            this.setDescription( Objects.nonNull(taskDesc) ? taskDesc :
+                    MessageFormat.format(
+                            "Task created by {0} for {1} with id {2} name {3}",
+                            owner,
+                            entityType,
+                            entityId,
+                            entityName)
+            );
+            this.setParams(Params.valueOf(entityType, entityId, commitId, owner, token, callbackUrl));
+            this.setMaxRetryTimes(Objects.nonNull(maxRetryTimes) ? maxRetryTimes : 3);
+            this.setRetryInterval(Objects.nonNull(retryInterval) ? retryInterval.toString(): "1");
+
+        }
+
         public static Task valueOf(String entityName,
-                                   String entityType, Integer entityId,
+                                   String entityType, Integer entityId, String commitId,
+                                   String taskName, String taskDesc,
                                    String owner, String token, String callbackUrl,
                                    Integer maxRetryTimes, Integer retryInterval) {
             Task task = new Task();
-            task.setName(entityName);
+            task.setName(genUserDefinedTaskName(taskName, entityType, entityName));
             task.setId(genTaskId(entityType, entityId));
             task.setType("HTTP");
-            task.setDescription(MessageFormat.format(
+            task.setDescription( Objects.nonNull(taskDesc) ? taskDesc :
+                    MessageFormat.format(
                     "Task created by {0} for {1} with id {2} name {3}",
                     owner,
                     entityType,
@@ -120,7 +179,7 @@ public class ProcessInfo {
             task.setRetryInterval(Objects.nonNull(retryInterval) ? retryInterval.toString(): "1");
             task.setWorkerGroup("default");
             task.setPreTasks(Lists.newArrayList());
-            task.setParams(Params.valueOf(entityType, entityId, owner, token, callbackUrl));
+            task.setParams(Params.valueOf(entityType, entityId, commitId, owner, token, callbackUrl));
             return task;
 
         }
@@ -139,7 +198,7 @@ public class ProcessInfo {
         private int connectTimeout;
         private int socketTimeout;
 
-        public static Params valueOf(String entityType, Integer entityId,
+        public static Params valueOf(String entityType, Integer entityId, String commitId,
                                      String owner, String token, String callbackUrl) {
             Params params = new Params();
 
@@ -149,13 +208,15 @@ public class ProcessInfo {
             params.setHttpMethod("POST");
             params.setHttpCheckCondition("STATUS_CODE_DEFAULT");
             params.setCondition("");
-            params.setConnectTimeout(3600*1000);
-            params.setSocketTimeout(3600*1000);
+            params.setConnectTimeout(60*1000);
+            // DolphinScheduler max socketTimout for HTTP Task is 9999999
+            params.setSocketTimeout(9999*1000);
             List<HttpParam> paramList = Lists.newArrayList();
             paramList.add(HttpParam.valueOf("entity_type", entityType));
             paramList.add(HttpParam.valueOf("entity_id", entityId.toString()));
             paramList.add(HttpParam.valueOf("owner", owner));
             paramList.add(HttpParam.valueOf("token", token));
+            paramList.add(HttpParam.valueOf("commit_id", commitId));
             params.setHttpParams(paramList);
             return params;
 
@@ -354,7 +415,8 @@ public class ProcessInfo {
     }
 
     public static ProcessInfo valueOf(String processName, String description, String entityName,
-                                      String entityType, Integer entityId,
+                                      String entityType, Integer entityId, String commitId,
+                                      String taskName, String taskDesc,
                                       String owner, String token, String callbackUrl,
                                       Integer maxRetryTimes, Integer retryInterval,
                                       Integer timeout, Integer tenantId) {
@@ -362,7 +424,9 @@ public class ProcessInfo {
         processInfo.setName(processName);
         processInfo.setDescription(description);
         processInfo.setProcessDefinition(ProcessDefinition.valueOf(
-                entityName, entityType, entityId, owner, token,
+                entityName, entityType, entityId,
+                commitId, taskName, taskDesc,
+                owner, token,
                 callbackUrl, maxRetryTimes, retryInterval,
                 timeout, tenantId
         ));
@@ -373,7 +437,8 @@ public class ProcessInfo {
         return processInfo;
     }
 
-    public void modify(String entityName, String entityType, Integer entityId, String owner,
+    public void modify(String entityName, String entityType, Integer entityId, String commitId,
+                       String taskName, String taskDesc, String owner,
                        String token, String callbackUrl, Integer maxRetryTimes, Integer retryInterval,
                        List<EntityMap> attachTo) {
 
@@ -387,16 +452,25 @@ public class ProcessInfo {
 
         Task task;
         List<Task> tasks = processDefinition.getTasks();
+        Set<String> existTaskNames = tasks.stream().map(Task::fetchUserDefinedName).collect(Collectors.toSet());
         if (!locationMap.containsKey(taskId)) {
-            task = Task.valueOf(entityName, entityType, entityId, owner, token, callbackUrl, maxRetryTimes, retryInterval);
+            if (existTaskNames.contains(taskName)) {
+                throw new ByzerException("Node name:["+ taskName +"] already exist");
+            }
+            task = Task.valueOf(entityName, entityType, entityId, commitId, taskName, taskDesc, owner, token, callbackUrl, maxRetryTimes, retryInterval);
             tasks.add(task);
             processDefinition.setTasks(tasks);
         } else {
             task = tasks.stream().filter(t -> t.getId().equals(taskId)).collect(Collectors.toList()).get(0);
+            existTaskNames.remove(Task.fetchUserDefinedName(task));
+            if (existTaskNames.contains(taskName)) {
+                throw new ByzerException("Node name:["+ taskName +"] already exist");
+            }
+            task.update(entityName, entityType, entityId, commitId, taskName, taskDesc, owner, token, callbackUrl, maxRetryTimes, retryInterval);
         }
         task.setPreTasks(new ArrayList<>());
         mergeConnects(taskId, prev);
-        mergeLocations(taskId, entityName);
+        mergeLocations(taskId, task.getName());
     }
 
     public void remove(String entityType, Integer entityId) {
@@ -426,7 +500,10 @@ public class ProcessInfo {
         String[] l = task.getId().split("-");
         r.setEntityId(Integer.parseInt(l[1]));
         r.setEntityType(l[0]);
-        r.setEntityName(task.getName());
+        r.setCommitId(Task.fetchCommitId(task));
+        r.setEntityName(Task.fetchEntityName(task));
+        r.setDescription(task.getDescription());
+        r.setName(Task.fetchUserDefinedName(task));
         return r;
     }
 
