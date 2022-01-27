@@ -46,9 +46,7 @@ public class FileShareService {
             notebookService.find(ADMIN_ACCOUNT).stream()
                     .filter(nb -> nb.getType().equalsIgnoreCase("default"))
                     .forEach(nb -> addNotebookDemo(ADMIN_ACCOUNT, nb.getId()));
-            workflowService.find(ADMIN_ACCOUNT).stream()
-                    .filter(wf -> wf.getType().equalsIgnoreCase("default"))
-                    .forEach(wf -> addWorkflowDemo(ADMIN_ACCOUNT, wf.getId()));
+            workflowService.find(ADMIN_ACCOUNT).forEach(wf -> addWorkflowDemo(ADMIN_ACCOUNT, wf.getId()));
         }
     }
 
