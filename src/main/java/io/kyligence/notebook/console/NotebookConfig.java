@@ -211,6 +211,8 @@ public class  NotebookConfig {
 
     public String getSecretKey(){return getOptional("notebook.security.key", "6173646661736466e4bda0e8bf983161");}
 
+    public String getOutputSize(){return getOptional("notebook.job.output-size", "1000");}
+
     public String getScheduleCallbackUser(){return getOptional("notebook.scheduler.callback-user", "ByzerRobot");}
 
     public String getScheduleCallbackToken(){return getOptional("notebook.scheduler.callback-token", "6173646661736466e4bda0e8bf983161");}
