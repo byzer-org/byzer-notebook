@@ -146,6 +146,8 @@ public enum ErrorCodeEnum {
 
     JOB_NOT_EXIST("KN-1018001", "Job Not Exist", "Can not kill job {}, job not exist."),
 
+    Forbidden("403", "Authorization failed", "{}"),
+
     ;
 
     private final String code;
