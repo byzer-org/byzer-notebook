@@ -9,7 +9,6 @@ import io.kyligence.notebook.console.exception.ErrorCodeEnum;
 import io.kyligence.notebook.console.service.NotebookService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import liquibase.pro.packaged.S;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -114,6 +114,7 @@ public class EngineService {
             params.put("sessionPerUser", "true");
             params.put("defaultPathPrefix", "/mlsql");
             params.put("home", config.getUserHome());
+            params.put("outputSize", config.getOutputSize());
 
             String username = null;
             try {
