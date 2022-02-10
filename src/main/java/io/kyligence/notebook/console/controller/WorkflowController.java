@@ -74,15 +74,10 @@ public class WorkflowController {
     @ApiOperation("Get Workflow Content")
     @GetMapping("/workflow/{id}")
     @Permission
-    public Response<WorkflowDTO> getWorkflow(@PathVariable("id") @NotNull Integer id) {
+    public Response<WorkflowDTO> getWorkflow(@PathVariable("id") @NotNull Integer id,
+                                             @RequestParam(value = "commit_id", required = false) String commitId) {
         String user = WebUtils.getCurrentLoginUser();
-        WorkflowInfo workflowInfo = workflowService.findById(id);
-        if (workflowInfo == null) {
-            return new Response<WorkflowDTO>().data(null);
-        }
-        List<NodeInfo> nodeInfoList = workflowService.findNodeByWorkflow(id);
-        Map<Integer, ConnectionInfo> connectionInfoMap = workflowService.getUserConnectionMap(user);
-        return new Response<WorkflowDTO>().data(WorkflowDTO.valueOf(workflowInfo, nodeInfoList, connectionInfoMap));
+        return new Response<WorkflowDTO>().data(workflowService.getWorkflow(id, user, commitId));
     }
 
     @ApiOperation("Delete Node")
@@ -98,9 +93,10 @@ public class WorkflowController {
     @ApiOperation("Get Workflow Script Content")
     @GetMapping("/workflow/{id}/script")
     @Permission
-    public Response<WorkflowContentDTO> getWorkflowContent(@PathVariable("id") @NotNull Integer id) {
+    public Response<WorkflowContentDTO> getWorkflowContent(@PathVariable("id") @NotNull Integer id,
+                                                           @RequestParam(value = "commit_id", required = false) String commitId) {
         String user = WebUtils.getCurrentLoginUser();
-        WorkflowContentDTO content = workflowService.getWorkflowContent(user, id);
+        WorkflowContentDTO content = workflowService.getWorkflowContent(user, id, commitId);
         return new Response<WorkflowContentDTO>().data(content);
     }
 
@@ -200,7 +196,7 @@ public class WorkflowController {
     public Response<IdDTO> deleteWorkflow(@PathVariable("workflowId") @NotNull Integer workflowId) {
         String user = WebUtils.getCurrentLoginUser();
         WorkflowInfo workflowInfo = workflowService.findById(workflowId);
-        workflowService.checkExecFileAvailable(user, workflowInfo);
+        workflowService.checkExecFileAvailable(user, workflowInfo, null);
         workflowService.delete(workflowId);
         return new Response<IdDTO>().data(IdDTO.valueOf(workflowId));
     }

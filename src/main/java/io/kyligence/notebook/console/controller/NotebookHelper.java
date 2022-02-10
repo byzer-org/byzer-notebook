@@ -38,12 +38,12 @@ public class NotebookHelper {
     private UploadFileService uploadFileService;
 
     @Transactional
-    protected NotebookInfo importNotebook(NotebookDTO notebookDTO, Integer folderId, String type) {
+    protected NotebookInfo importNotebook(NotebookDTO notebookDTO, Integer folderId, String type, String user) {
         // create notebook
-        String user = WebUtils.getCurrentLoginUser();
+
         long timestamp = System.currentTimeMillis();
         NotebookInfo notebookInfo = new NotebookInfo();
-        notebookInfo.setUser(WebUtils.getCurrentLoginUser());
+        notebookInfo.setUser(user);
 
         if (notebookService.isNotebookExist(user, notebookDTO.getName(), folderId)) {
             String time = new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault(Locale.Category.FORMAT)).format(new Date());
@@ -82,6 +82,12 @@ public class NotebookHelper {
         return notebookService.save(notebookInfo);
     }
 
+    protected NotebookInfo importNotebook(NotebookDTO notebookDTO, Integer folderId, String type) {
+        // create notebook
+        String user = WebUtils.getCurrentLoginUser();
+        return importNotebook(notebookDTO, folderId, type, user);
+    }
+
     protected NotebookInfo importNotebook(NotebookDTO notebookDTO) {
         return importNotebook(notebookDTO, null, null);
     }
@@ -91,7 +97,7 @@ public class NotebookHelper {
     }
 
     @SneakyThrows
-    protected NotebookInfo createSampleDemo(String user) {
+    public NotebookInfo createSampleDemo(String user) {
         log.info("Creating Demo For User:" + user);
         String username = user.toLowerCase();
         NotebookInfo result = null;
@@ -104,11 +110,11 @@ public class NotebookHelper {
                 log.info("Import File: " + demo.getName());
                 if (demo.getName().endsWith(".mlnb") || demo.getName().endsWith(".bznb")) {
                     NotebookDTO notebookDTO = JacksonUtils.readJson(in, NotebookDTO.class);
-                    NotebookInfo nb= importNotebook(notebookDTO, null, "default");
+                    NotebookInfo nb= importNotebook(notebookDTO, null, "default", username);
                     if (result == null) result = nb;
                 } else if (demo.getName().endsWith(".mlwf") || demo.getName().endsWith(".bzwf")){
                     WorkflowDTO workflowDTO = JacksonUtils.readJson(in, WorkflowDTO.class);
-                    workflowService.importWorkflow(workflowDTO, null, "default");
+                    workflowService.importWorkflow(workflowDTO, null, "default", username);
                 }
 
             } catch (Exception e) {

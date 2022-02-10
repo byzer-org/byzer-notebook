@@ -6,12 +6,9 @@ import io.kyligence.notebook.console.bean.dto.CodeSuggestDTO;
 import io.kyligence.notebook.console.bean.dto.ExecFileDTO;
 import io.kyligence.notebook.console.bean.dto.NotebookDTO;
 import io.kyligence.notebook.console.bean.dto.req.CodeSuggestionReq;
-import io.kyligence.notebook.console.bean.entity.CellInfo;
-import io.kyligence.notebook.console.bean.entity.ExecFileInfo;
-import io.kyligence.notebook.console.bean.entity.NotebookInfo;
+import io.kyligence.notebook.console.bean.entity.*;
 import io.kyligence.notebook.console.controller.NotebookHelper;
-import io.kyligence.notebook.console.dao.CellInfoRepository;
-import io.kyligence.notebook.console.dao.NotebookRepository;
+import io.kyligence.notebook.console.dao.*;
 import io.kyligence.notebook.console.exception.ByzerException;
 import io.kyligence.notebook.console.exception.ByzerIgnoreException;
 import io.kyligence.notebook.console.exception.EngineAccessException;
@@ -40,7 +37,16 @@ public class NotebookService implements FileInterface {
     private NotebookRepository notebookRepository;
 
     @Autowired
+    private NotebookCommitRepository notebookCommitRepository;
+
+    @Autowired
     private CellInfoRepository cellInfoRepository;
+
+    @Autowired
+    private CellCommitRepository cellCommitRepository;
+
+    @Autowired
+    private SharedFileRepository sharedFileRepository;
 
     @Autowired
     private CriteriaQueryBuilder criteriaQueryBuilder;
@@ -84,6 +90,47 @@ public class NotebookService implements FileInterface {
     }
 
 
+    @Transactional
+    public NotebookCommit commit(String user, Integer notebookId) {
+        NotebookInfo notebookInfo = this.findById(notebookId);
+        checkExecFileAvailable(user, notebookInfo, null);
+
+        String commitId = UUID.randomUUID().toString();
+        long timestamp = System.currentTimeMillis();
+
+        NotebookCommit notebookCommit = new NotebookCommit();
+        notebookCommit.setCommitId(commitId);
+        notebookCommit.setNotebookId(notebookId);
+        notebookCommit.setName(notebookInfo.getName());
+        notebookCommit.setCellList(notebookInfo.getCellList());
+        notebookCommit.setCreateTime(new Timestamp(timestamp));
+
+        notebookCommit = notebookCommitRepository.save(notebookCommit);
+
+        List<CellInfo> cells = this.getCellInfos(notebookId);
+
+        cells.forEach(
+                cellInfo -> {
+                    CellCommit cellCommit = new CellCommit();
+                    cellCommit.setCommitId(commitId);
+                    cellCommit.setContent(cellInfo.getContent());
+                    cellCommit.setLastJobId(cellInfo.getLastJobId());
+                    cellCommit.setNotebookId(notebookId);
+                    cellCommit.setCellId(cellInfo.getId());
+                    cellCommit.setCreateTime(new Timestamp(timestamp));
+                    cellCommitRepository.save(cellCommit);
+                }
+        );
+
+        return notebookCommit;
+    }
+
+    public List<NotebookCommit> listCommits(String user, Integer notebookId){
+        NotebookInfo notebookInfo = this.findById(notebookId);
+        checkExecFileAvailable(user, notebookInfo, null);
+        return notebookCommitRepository.listCommit(notebookId);
+    }
+
     public void deleteCell(CellInfo cellInfo) {
         cellInfoRepository.delete(cellInfo.getId(), cellInfo.getNotebookId());
     }
@@ -91,6 +138,15 @@ public class NotebookService implements FileInterface {
     public NotebookInfo getDefault(String user) {
         List<NotebookInfo> defaultNotebooks = notebookRepository.findByType(user, "default");
         return defaultNotebooks.isEmpty() ? null : defaultNotebooks.get(0);
+    }
+
+    public NotebookCommit getDefaultDemo(){
+        List<SharedFileInfo> demos = sharedFileRepository.findByOwner("admin").stream().filter(
+                sharedFileInfo -> sharedFileInfo.getEntityType().equalsIgnoreCase("notebook")
+        ).collect(Collectors.toList());
+        if (demos.isEmpty()) return null;
+
+        return findCommit(demos.get(0).getEntityId(), demos.get(0).getCommitId());
     }
 
     public CellInfo save(CellInfo cellInfo) {
@@ -113,6 +169,10 @@ public class NotebookService implements FileInterface {
             cellList.add(cellInfo.get());
         }
         return cellList;
+    }
+
+    public List<CellCommit> getCommittedCellInfos(Integer notebookId, String commitId) {
+        return cellCommitRepository.findByCommit(notebookId, commitId);
     }
 
     public CellInfo getCellInfo(Integer cellId) {
@@ -167,11 +227,17 @@ public class NotebookService implements FileInterface {
         if (schedulerService.entityUsedInSchedule("notebook", id)) {
             throw new ByzerException("Notebook used in schedule");
         }
+
+        if (isDemo(id)) {
+            throw new ByzerException("Notebook has been shared with other users");
+        }
+
         // 1. delete notebook info
         notebookRepository.deleteById(id);
-
+        notebookCommitRepository.deleteByNotebook(id);
         // 2. delete notebook cells
         cellInfoRepository.deleteByNotebook(id);
+        cellCommitRepository.deleteByNotebook(id);
     }
 
     public List<NotebookInfo> find(String user) {
@@ -182,16 +248,26 @@ public class NotebookService implements FileInterface {
         return notebookRepository.findAll();
     }
 
+    private boolean isDemo(Integer notebookId) {
+        return !sharedFileRepository.findByEntity("admin", notebookId, "notebook").isEmpty();
+    }
+
+    private boolean isDemo(Integer notebookId, String commitId) {
+        return !sharedFileRepository.findByCommit("admin", notebookId, "notebook", commitId).isEmpty();
+    }
+
     @Override
-    public void checkExecFileAvailable(String user, ExecFileInfo execFileInfo) {
+    public void checkExecFileAvailable(String user, ExecFileInfo execFileInfo, String commitId) {
         if (execFileInfo == null) {
             throw new ByzerException(ErrorCodeEnum.NOTEBOOK_NOT_EXIST);
         }
+        // user can access demo commits
+        if (Objects.nonNull(commitId) && !commitId.isEmpty() && isDemo(execFileInfo.getId(), commitId)) return;
+
         if (!user.equalsIgnoreCase(execFileInfo.getUser()) && !user.equalsIgnoreCase("admin")) {
             throw new ByzerException(ErrorCodeEnum.NOTEBOOK_NOT_AVAILABLE);
         }
     }
-
 
     @Override
     public boolean isExecFileExist(String user, String name, Integer folderId) {
@@ -215,7 +291,7 @@ public class NotebookService implements FileInterface {
 
     public NotebookDTO getNotebook(Integer notebookId, String user) {
         NotebookInfo notebookInfo = this.findById(notebookId);
-        checkExecFileAvailable(user, notebookInfo);
+        checkExecFileAvailable(user, notebookInfo, null);
 
         List<Integer> cellIds = null;
         List<CellInfo> cellInfos = null;
@@ -225,8 +301,37 @@ public class NotebookService implements FileInterface {
             // get notebook cells
             cellInfos = this.getCellInfos(notebookId);
         }
+        NotebookDTO dto = NotebookDTO.valueOf(notebookInfo, cellIds, cellInfos);
 
-        return NotebookDTO.valueOf(notebookInfo, cellIds, cellInfos);
+        if (user.equalsIgnoreCase("admin") && isDemo(notebookId)) {
+            dto.setIsDemo(true);
+        }
+
+        return dto;
+    }
+
+    public NotebookDTO getNotebook(Integer notebookId, String user, String commitId) {
+        if (Objects.isNull(commitId) || commitId.isEmpty()) {
+            return getNotebook(notebookId, user);
+        }
+
+        NotebookInfo notebookInfo = this.findById(notebookId);
+        checkExecFileAvailable(user, notebookInfo, commitId);
+
+        NotebookCommit notebookCommit = findCommit(notebookId, commitId);
+
+        List<Integer> cellIds = null;
+        List<CellCommit> cellInfos = null;
+        String cellList = notebookCommit.getCellList();
+        if (cellList != null && !cellList.isEmpty() && !cellList.equals("[]")) {
+            cellIds = JacksonUtils.readJsonArray(cellList, Integer.class);
+            // get notebook cells
+            cellInfos = this.getCommittedCellInfos(notebookId, commitId);
+        }
+
+        NotebookDTO dto = NotebookDTO.valueOf(notebookInfo, cellIds, notebookCommit, cellInfos);
+        if (isDemo(notebookId, commitId)) dto.setIsDemo(true);
+        return dto;
     }
 
     public void checkResourceLimit(String user, Integer newResourceNum) {
@@ -265,12 +370,21 @@ public class NotebookService implements FileInterface {
         return codeSuggests;
     }
 
-    public String getNotebookScripts(String user, Integer notebookId, Map<String, String> options) {
-        NotebookDTO notebook = getNotebook(notebookId, user);
+    public String getNotebookScripts(String user, Integer notebookId, String commitId, Map<String, String> options) {
+        NotebookDTO notebook = getNotebook(notebookId, user, commitId);
         List<String> scripts = notebook.getCellList().stream().map(CellInfoDTO::getContent)
                 .filter(sql -> Objects.nonNull(sql) && !sql.startsWith("--%markdown"))
                 .map(sql -> HintManager.applyAllHintRewrite(sql, options))
                 .collect(Collectors.toList());
         return String.join("\n", scripts);
+    }
+
+    public NotebookCommit findCommit(Integer notebookId, String commitId) {
+        List<NotebookCommit> notebookCommits = notebookCommitRepository.findByCommit(notebookId, commitId);
+        if (notebookCommits.isEmpty()) {
+            throw new ByzerException("Commit don't exist");
+        }
+        return notebookCommits.get(0);
+
     }
 }
