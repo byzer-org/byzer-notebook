@@ -29,6 +29,8 @@ public class WorkflowDTO extends ExecFileDTO{
     @JsonProperty("node_list")
     private List<NodeInfoDTO> nodeList;
 
+    @JsonProperty("is_demo")
+    private Boolean isDemo;
 
     public static WorkflowDTO valueOf(WorkflowInfo workflow, List<NodeInfo> nodeInfos,
                                       Map<Integer, ConnectionInfo> connectionMap) {

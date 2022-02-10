@@ -27,6 +27,9 @@ public class FolderService {
     @Autowired
     private WorkflowService workflowService;
 
+    @Autowired
+    private FileShareService fileShareService;
+
     @Transactional
     public NotebookFolder createFolder(String user, String folderPath) {
         if (isFolderExist(user, folderPath)) {
@@ -91,7 +94,9 @@ public class FolderService {
         List<ExecFileInfo> execFiles = ExecFileInfo.createArrayFiles(notebooks, workflows);
 
         // if trans here, can not figure out type: notebook/workflow
-        return NotebookTreeDTO.valueOf(execFiles, folders);
+        NotebookTreeDTO userFiles = NotebookTreeDTO.valueOf(execFiles, folders);
+        userFiles.getList().add(0, fileShareService.getDemo());
+        return userFiles;
     }
 
 }

@@ -158,9 +158,9 @@ public class SchedulerService {
     private String getScript(String entityType, String entityId, Map<String, String> options) {
         switch (entityType.toLowerCase()) {
             case "notebook":
-                return notebookService.getNotebookScripts("admin", Integer.valueOf(entityId), options);
+                return notebookService.getNotebookScripts("admin", Integer.valueOf(entityId), null, options);
             case "workflow":
-                return workflowService.getWorkflowScripts("admin", Integer.valueOf(entityId), options);
+                return workflowService.getWorkflowScripts("admin", Integer.valueOf(entityId), null, options);
             default:
                 return "";
         }

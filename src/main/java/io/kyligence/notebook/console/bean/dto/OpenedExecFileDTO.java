@@ -14,6 +14,15 @@ public class OpenedExecFileDTO {
     @JsonProperty("name")
     private String name;
 
+    @JsonProperty("is_demo")
+    private Boolean isDemo;
+
+    @JsonProperty("uniq")
+    private String uniq;
+
+    @JsonProperty("commit_id")
+    private String commitId;
+
     @JsonProperty("active")
     private String active;
 

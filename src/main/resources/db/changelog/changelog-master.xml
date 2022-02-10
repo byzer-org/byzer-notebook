@@ -1,6 +1,9 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
 
-<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-4.1.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+                   xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-4.1.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
     <include file="db/changelog/v1.0.0_2021-08-18_01_init_notebook_db.sql"/>
     <include file="db/changelog/v1.0.0_2021-08-18_02_add_new_column_and_unique_index.sql"/>
     <include file="db/changelog/v1.0.0_2021-08-20_01_change_unique_index_for_connection_name.sql"/>
@@ -14,4 +17,5 @@
     <include file="db/changelog/v1.0.0_2021-11-12_01_add_et_param_coverage.sql"/>
     <include file="db/changelog/v1.0.0_2021-11-19_01_add_schedule_account.sql"/>
     <include file="db/changelog/v1.0.0_2021-12-08_01_update_admin_default_pw.sql"/>
+    <include file="db/changelog/v1.0.1_2022-01-13_01_support_for_version_control_and_demo_update.sql"/>
 </databaseChangeLog>
