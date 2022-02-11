@@ -41,7 +41,7 @@ public class NotebookTreeDTO {
     public static NotebookTreeDTO valueOfDemoFiles(List<NotebookCommit> notebookDemos, List<WorkflowCommit> workflowDemos){
         NotebookTreeDTO demoFolder = new NotebookTreeDTO();
         demoFolder.setFolderId("0");
-        demoFolder.setName("OnlineDemos");
+        demoFolder.setName("OnlineDemos_Latest");
         demoFolder.setIsDemo(true);
         List<NotebookTreeDTO> demoList = notebookDemos.stream().map(
                 demoNb -> {
