@@ -44,7 +44,7 @@ public class FileShareService {
         // create default demo for all user from admin default sample
         if (Objects.isNull(notebookService.getDefaultDemo())){
             notebookService.find(ADMIN_ACCOUNT).stream()
-                    .filter(nb -> nb.getType().equalsIgnoreCase("default"))
+                    .filter(nb -> Objects.nonNull(nb.getType()) && nb.getType().equalsIgnoreCase("default"))
                     .forEach(nb -> addNotebookDemo(ADMIN_ACCOUNT, nb.getId()));
             workflowService.find(ADMIN_ACCOUNT).forEach(wf -> addWorkflowDemo(ADMIN_ACCOUNT, wf.getId()));
         }
