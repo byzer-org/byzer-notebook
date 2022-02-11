@@ -90,8 +90,10 @@ public class UploadFileController {
         response.setContentType("application/octet-stream");
         response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + ".tar\"");
 
-        try (ArchiveOutputStream tarOutputStream = new TarArchiveOutputStream(response.getOutputStream())) {
+        try (TarArchiveOutputStream tarOutputStream = new TarArchiveOutputStream(response.getOutputStream())) {
             log.info("User: [" + username + "] Downloading File: " + fileName);
+            tarOutputStream.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
+            tarOutputStream.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
             ArchiveEntry entry = tarOutputStream.createArchiveEntry(file, fileName);
             tarOutputStream.putArchiveEntry(entry);
             IOUtils.copyLarge(new FileInputStream((file)), tarOutputStream);
