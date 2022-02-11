@@ -10,7 +10,7 @@ import javax.validation.constraints.Pattern;
 @NoArgsConstructor
 public class UserJoinReq {
 
-    @Pattern(regexp = "^[0-9a-zA-Z_]+$", message = "the username can only contains numbers, letters and underscores.")
+    @Pattern(regexp = "^[0-9a-zA-Z_@.-]+$", message = "the username can only contains numbers, letters and underscores.")
     @JsonProperty("username")
     private String username;
 
