@@ -36,18 +36,20 @@ public class FileShareService {
 
     @PostConstruct
     public void createDefaultDemo(){
+        if (!Objects.isNull(notebookService.getDefaultDemo())) return;
+
         // create default sample for admin
         if (Objects.isNull(notebookService.getDefault(ADMIN_ACCOUNT))) {
+            log.info("Creating Sample for user: " + ADMIN_ACCOUNT);
             notebookHelper.createSampleDemo(ADMIN_ACCOUNT);
         }
 
         // create default demo for all user from admin default sample
-        if (Objects.isNull(notebookService.getDefaultDemo())){
-            notebookService.find(ADMIN_ACCOUNT).stream()
-                    .filter(nb -> Objects.nonNull(nb.getType()) && nb.getType().equalsIgnoreCase("default"))
-                    .forEach(nb -> addNotebookDemo(ADMIN_ACCOUNT, nb.getId()));
-            workflowService.find(ADMIN_ACCOUNT).forEach(wf -> addWorkflowDemo(ADMIN_ACCOUNT, wf.getId()));
-        }
+        log.info("Creating Default Demo ...");
+        notebookService.find(ADMIN_ACCOUNT).stream()
+                .filter(nb -> Objects.nonNull(nb.getType()) && nb.getType().equalsIgnoreCase("default"))
+                .forEach(nb -> addNotebookDemo(ADMIN_ACCOUNT, nb.getId()));
+        workflowService.find(ADMIN_ACCOUNT).forEach(wf -> addWorkflowDemo(ADMIN_ACCOUNT, wf.getId()));
     }
 
     public void addDemo(String user, Integer entityId, String entityType) {
