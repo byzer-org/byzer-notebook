@@ -56,15 +56,18 @@ public class ETService {
                 new EngineService.RunScriptParams()
                         .withSql(sql)
                         .withAsync("false"));
+        log.info("Get ET info from Engine");
         List<RegisterETDTO> registerETDTOS = JacksonUtils.readJsonArray(responseBody, RegisterETDTO.class);
 
         Map<String, RegisterETDTO> registerMap;
         registerMap = registerETDTOS.stream().collect(Collectors.toMap(RegisterETDTO::getName, RegisterETDTO -> RegisterETDTO));
 
+        log.info("Getting Register ET Info from Metadata...");
         List<RegisterET> ETs = etRepository.findAll();
         // TODO define et covering behavior
         for (RegisterET et : ETs) {
             if (registerMap.containsKey(et.getName()) && et.getEnable()){
+                log.info("Loading ET:[" + et.getName() + "] ...");
                 RegisterETDTO registerETDTO = registerMap.get(et.getName());
 
                 ETNodeDTO etNodeDTO = ETNodeDTO.valueOf(et);
