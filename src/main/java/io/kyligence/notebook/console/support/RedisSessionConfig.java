@@ -30,7 +30,7 @@ public class RedisSessionConfig
             newRedisTemplate.setHashKeySerializer(new StringRedisSerializer());
             newRedisTemplate.setConnectionFactory(redisTemplate.getConnectionFactory());
             newRedisTemplate.afterPropertiesSet();
-            return new ZenRedisSessionRepository(newRedisTemplate, 3600l);
+            return new ZenRedisSessionRepository(newRedisTemplate, 3600L);
         }
     }
 }

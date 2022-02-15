@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 @Component
 public class PermissionChecker {
 
+    public static final String SESSION_USERNAME_ATTR_KEY = "username_attr";
     @Autowired
     private UserService userService;
 
@@ -44,7 +45,7 @@ public class PermissionChecker {
 
         // 2. check session
 
-        Object sessionUser = request.getSession().getAttribute("username_attr");
+        Object sessionUser = request.getSession().getAttribute(SESSION_USERNAME_ATTR_KEY);
         if (sessionUser != null && StringUtils.isNotEmpty(sessionUser.toString())) {
             WebUtils.setCurrentLoginUser(sessionUser.toString());
             return joinPoint.proceed();
