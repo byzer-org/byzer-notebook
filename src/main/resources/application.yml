@@ -32,7 +32,6 @@ spring:
       test-on-return: false
       test-while-idle: true
       validation-query: select 'x'
-      validationQueryTimeout: 2
       time-between-eviction-runs-millis: 60000
       filter:
         slf4j:
@@ -55,7 +54,8 @@ spring:
       time-between-log-stats-millis: -1
       remove-abandoned: true
       log-abandoned: true
-      remove-abandoned-timeout: 30
+      remove-abandoned-timeout: 7200
+      validation-query-timeout: 2
     initialization-mode: always
   jpa:
     database: MySQL
