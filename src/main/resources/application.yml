@@ -71,7 +71,7 @@ spring:
     database: 0
     host: ${notebook.redis.host}
     port: ${notebook.redis.port}
-    password: ${notebook.redis.password}
+#    password: ${notebook.redis.password}
     timeout: 20000ms
     jedis:
       pool:
