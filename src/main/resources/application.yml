@@ -96,6 +96,7 @@ server:
     max-threads: 200
     min-spare-threads: 10
     max-http-header-size: 1048576
+    keep-alive-timeout: 6000000
     accesslog:
       enabled: true
       directory: ${NOTEBOOK_HOME}/logs
