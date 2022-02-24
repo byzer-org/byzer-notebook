@@ -27,6 +27,8 @@ import java.io.FileInputStream;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.BIGNUMBER_POSIX;
+
 @Slf4j
 @Validated
 @RestController
@@ -90,8 +92,9 @@ public class UploadFileController {
         response.setContentType("application/octet-stream");
         response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + ".tar\"");
 
-        try (ArchiveOutputStream tarOutputStream = new TarArchiveOutputStream(response.getOutputStream())) {
+        try (TarArchiveOutputStream tarOutputStream = new TarArchiveOutputStream(response.getOutputStream())) {
             log.info("User: [" + username + "] Downloading File: " + fileName);
+            tarOutputStream.setBigNumberMode(BIGNUMBER_POSIX);
             ArchiveEntry entry = tarOutputStream.createArchiveEntry(file, fileName);
             tarOutputStream.putArchiveEntry(entry);
             IOUtils.copyLarge(new FileInputStream((file)), tarOutputStream);
