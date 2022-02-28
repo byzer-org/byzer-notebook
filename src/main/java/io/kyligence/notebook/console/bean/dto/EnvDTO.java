@@ -13,10 +13,14 @@ public class EnvDTO {
     @JsonProperty("file_size_limit_kb")
     private Double fileSizeLimitKB;
 
-    public static EnvDTO valueOf(Boolean isTrial, Double userFileSizeLimit) {
+    @JsonProperty("is_scheduler_enabled")
+    private Boolean isSchedulerEnabled;
+
+    public static EnvDTO valueOf(Boolean isTrial, Double userFileSizeLimit, Boolean isSchedulerEnabled) {
         EnvDTO dto = new EnvDTO();
         dto.setIsTrial(isTrial);
         dto.setFileSizeLimitKB(userFileSizeLimit);
+        dto.setIsSchedulerEnabled(isSchedulerEnabled);
         return dto;
     }
 }

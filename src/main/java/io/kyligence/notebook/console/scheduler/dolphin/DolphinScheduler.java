@@ -3,6 +3,8 @@ package io.kyligence.notebook.console.scheduler.dolphin;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Maps;
 import io.kyligence.notebook.console.bean.dto.TaskInfoDTO;
+import io.kyligence.notebook.console.bean.dto.TaskInstanceDTO;
+import io.kyligence.notebook.console.bean.dto.TaskNodeInfoDTO;
 import io.kyligence.notebook.console.bean.model.ScheduleSetting;
 import io.kyligence.notebook.console.exception.ByzerException;
 import io.kyligence.notebook.console.scheduler.RemoteScheduler;
@@ -20,9 +22,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.text.MessageFormat;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -40,6 +40,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         String processDetail = "/projects/$projectName/process/select-by-id?processId=$processId";
         String onlineProcess = "/projects/$projectName/process/release";
         String deleteProcess = "/projects/$projectName/process/delete?processDefinitionId=$processId";
+        String runProcess = "/projects/$projectName/executors/start-process-instance";
 
         String createSchedule = "/projects/$projectName/schedule/create";
         String updateSchedule = "/projects/$projectName/schedule/update";
@@ -48,6 +49,11 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         String onlineSchedule = "/projects/$projectName/schedule/online?id=$scheduleId";
         String deleteSchedule = "/projects/$projectName/schedule/delete?scheduleId=$scheduleId";
         String mailList = "/projects/$projectName/executors/get-receiver-cc?processDefinitionId=$processId";
+
+        String getProcessInstanceList = "/projects/$projectName/instance/list-paging?searchVal=$prefix&pageSize=100000&pageNo=$page";
+        String getProcessInstance = "/projects/$projectName/instance/select-by-id?processInstanceId=$processInstanceId";
+        String getProcessInstanceTasks = "/projects/$projectName/instance/task-list-by-process-id?processInstanceId=$processInstanceId";
+        String getTaskInstanceLog = "/log/detail?taskInstanceId=$taskInstanceId&skipLineNum=0&limit=10000";
     }
 
     final private String authToken;
@@ -64,8 +70,8 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
     }
 
     @Override
-    public TaskInfoDTO searchForEntity(String entityName, String entityType, Integer entityId){
-        for (String project: getProjectList()){
+    public TaskInfoDTO searchForEntity(String entityName, String entityType, Integer entityId) {
+        for (String project : getProjectList()) {
             ProcessInfo process = searchProcessByEntity(project, null, entityType, entityId);
             if (Objects.nonNull(process)) {
                 Map<String, String> mails = getScheduleMailList(project, process.getId());
@@ -77,33 +83,34 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
     }
 
     @Override
-    public void createTask(String user, String name, String description, String entityType, Integer entityId, String entityName,
+    public void createTask(String user, String name, String description, String entityType, Integer entityId,
+                           String commitId, String taskName, String taskDesc, String entityName,
                            ScheduleSetting scheduleSetting, Map<String, String> extraSettings) {
         String project = Objects.isNull(extraSettings) ? null : extraSettings.get("project_name");
         project = Objects.isNull(project) ? defaultProject : project;
         ensureProject(project);
 
-        Integer taskId = createProcess(project, user, name, description, entityName, entityType, entityId, extraSettings);
+        Integer taskId = createProcess(
+                project, user, name, description, entityName, entityType, entityId, commitId,
+                taskName, taskDesc, extraSettings);
         onlineProcess(project, taskId);
-
-        ScheduleInfo scheduleInfo = createSchedule(project, taskId, scheduleSetting, extraSettings);
-        onlineSchedule(project, scheduleInfo.getId());
+        if (!ScheduleSetting.isNull(scheduleSetting)) {
+            createSchedule(project, taskId, scheduleSetting, extraSettings);
+        }
+        offlineProcess(project, taskId);
     }
 
     @Override
     public void deleteTask(String user, String projectName, Integer taskId) {
         if (Objects.isNull(projectName)) projectName = defaultProject;
-        ProcessInfo processInfo = getProcessDetail(projectName, taskId);
-        if (!processInfo.getName().startsWith(genTaskNamePrefix(user))) {
+        ProcessInfo processInfo = findProcess(user, taskId, projectName);
+        if (processInfo.getReleaseState().equalsIgnoreCase("ONLINE")) {
             throw new ByzerException(
                     MessageFormat.format(
-                            "User: {0} is not the owner of schedule: {1}",
-                            user,
-                            processInfo.getName().replace(genTaskNamePrefix(user), "")
-                    )
-            );
+                    "Task: {0} is currently online.",
+                    processInfo.getName().replace(genTaskNamePrefix(user), "")
+            ));
         }
-        offlineProcess(projectName, taskId);
         deleteProcess(projectName, taskId);
     }
 
@@ -115,7 +122,59 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         ensureProject(project);
 
         // update process definition
-        ProcessInfo processInfo = getProcessDetail(project, taskId);
+        ProcessInfo processInfo = findProcess(user, taskId, project);
+        if (Objects.nonNull(modification)) {
+            ProcessInfo exist = searchProcessByEntity(project, user, modification.getEntityType(), modification.getEntityId());
+            if (Objects.nonNull(exist) && exist.getId() != processInfo.getId()) {
+                throw new ByzerException(
+                        MessageFormat.format("{0}: {1} already used in schedule {3}",
+                                modification.getEntityType(), modification.getEntityName(),
+                                exist.getName()
+                        )
+                );
+            }
+        }
+
+        if (Objects.nonNull(name)){
+            Integer exist = searchProcessByName(project, genTaskNamePrefix(user) + name);
+            if (Objects.nonNull(exist) && exist != processInfo.getId()) {
+                throw new ByzerException(
+                        MessageFormat.format("Schedule name: [{0}] already exist.", name)
+                );
+            }
+        }
+
+        offlineProcess(project, taskId);
+        updateProcess(project, user, processInfo, name, description, modification, extraSettings);
+        onlineProcess(project, taskId);
+
+        ScheduleInfo scheduleInfo = findSchedule(project, taskId);
+
+
+        // handle schedule update
+        if (Objects.isNull(scheduleInfo) && !ScheduleSetting.isNull(scheduleSetting)) {
+            createSchedule(project, taskId, scheduleSetting, extraSettings);
+        } else if (!ScheduleSetting.isNull(scheduleSetting)) {
+
+            Integer scheduleId = scheduleInfo.getId();
+            if (scheduleInfo.getReleaseState().equalsIgnoreCase("ONLINE")) {
+                offlineSchedule(project, scheduleId);
+            }
+            updateSchedule(project, scheduleId, taskId, scheduleSetting, extraSettings);
+        }
+        offlineProcess(project, taskId);
+    }
+
+    @Override
+    public void runTask(String projectName, String user, Integer taskId) {
+        String project = Objects.isNull(projectName) ? defaultProject : projectName;
+
+        findProcess(user, taskId, project);
+        runProcess(project, taskId);
+    }
+
+    private ProcessInfo findProcess(String user, Integer taskId, String projectName) {
+        ProcessInfo processInfo = getProcessDetail(projectName, taskId);
         if (Objects.isNull(processInfo)) throw new ByzerException("Target schedule don't exist");
         if (!processInfo.getName().startsWith(genTaskNamePrefix(user))) {
             throw new ByzerException(
@@ -126,36 +185,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
                     )
             );
         }
-        if (Objects.nonNull(modification)) {
-            ProcessInfo exist = searchProcessByEntity(project, user, modification.getEntityType(), modification.getEntityId());
-            if (Objects.nonNull(exist) && !exist.getName().equals(processInfo.getName())) {
-                throw new ByzerException(
-                        MessageFormat.format("{0}: {1} already used in schedule {3}",
-                                modification.getEntityType(), modification.getEntityName(),
-                                exist.getName()
-                        )
-                );
-            }
-            offlineProcess(project, taskId);
-            updateProcess(project, user, processInfo, name, description, modification, extraSettings);
-        }
-        onlineProcess(project, taskId);
-
-        ScheduleInfo scheduleInfo = findSchedule(project, taskId);
-
-
-        // handle schedule update
-        if (Objects.isNull(scheduleInfo) && Objects.nonNull(scheduleSetting)) {
-            scheduleInfo = createSchedule(project, taskId, scheduleSetting, extraSettings);
-        } else if (Objects.nonNull(scheduleSetting)){
-
-            Integer scheduleId = scheduleInfo.getId();
-            if (scheduleInfo.getReleaseState().equalsIgnoreCase("ONLINE")) {
-                offlineSchedule(project, scheduleId);
-            }
-            scheduleInfo = updateSchedule(project, scheduleId, taskId, scheduleSetting, extraSettings);
-        }
-        onlineSchedule(project, scheduleInfo.getId());
+        return processInfo;
     }
 
     @Override
@@ -204,6 +234,79 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
     }
 
     @Override
+    public List<TaskInstanceDTO> getTaskInstances(String projectName, String user) {
+        String project = Objects.isNull(projectName) ? defaultProject : projectName;
+        String namePrefix = genTaskNamePrefix(user);
+        return getProcessInstanceList(project, user).stream().map(p -> TaskInstanceDTO.valueOf(p, user, namePrefix)).collect(Collectors.toList());
+    }
+
+    @Override
+    public void onlineTask(String user, Integer taskId, String projectName) {
+        String project = Objects.isNull(projectName) ? defaultProject : projectName;
+
+        ProcessInfo processInfo = findProcess(user, taskId, project);
+
+        if (processInfo.getReleaseState().equalsIgnoreCase("ONLINE")) {
+            throw new ByzerException(
+                    MessageFormat.format(
+                            "Task: {0} already online",
+                            processInfo.getName().replace(genTaskNamePrefix(user), "")
+                    )
+            );
+        }
+
+        onlineProcess(project, taskId);
+        ScheduleInfo scheduleInfo = findSchedule(project, taskId);
+        if (Objects.nonNull(scheduleInfo) && !scheduleInfo.getReleaseState().equalsIgnoreCase("ONLINE")){
+            onlineSchedule(project, scheduleInfo.getId());
+        }
+    }
+
+    @Override
+    public void offlineTask(String user, Integer taskId, String projectName) {
+        String project = Objects.isNull(projectName) ? defaultProject : projectName;
+
+        ProcessInfo processInfo = findProcess(user, taskId, project);
+
+        if (processInfo.getReleaseState().equalsIgnoreCase("OFFLINE")) {
+            throw new ByzerException(
+                    MessageFormat.format(
+                            "Task: {0} already offline",
+                            processInfo.getName().replace(genTaskNamePrefix(user), "")
+                    )
+            );
+        }
+
+        offlineProcess(project, taskId);
+    }
+
+    @Override
+    public List<TaskNodeInfoDTO> getTaskInstanceNodes(String projectName, String user, Long taskInstanceId) {
+        String project = Objects.isNull(projectName) ? defaultProject : projectName;
+        ProcessInstance processInstance = getProcessInstance(project, taskInstanceId);
+        if (!processInstance.getName().startsWith(genTaskNamePrefix(user))) {
+            throw new ByzerException(MessageFormat.format(
+                    "User: {0} is not the owner of task instance: {1}",
+                    user,
+                    taskInstanceId.toString()
+            ));
+        }
+        List<TaskNodeInfoDTO> taskNodeInfos = Lists.newArrayList();
+        List<TaskInstance> instanceList = getTaskInstance(project, taskInstanceId);
+        instanceList.sort(Comparator.comparingLong(TaskInstance::getId));
+        for (TaskInstance task : instanceList) {
+            TaskNodeInfoDTO taskInfo = TaskNodeInfoDTO.valueOf(task);
+            taskNodeInfos.add(taskInfo);
+            if (task.getState().equalsIgnoreCase("FAILURE")) {
+                taskInfo.setLog(getTaskInstanceLog(task.getId()));
+                break;
+            }
+        }
+        Collections.reverse(taskNodeInfos);
+        return taskNodeInfos;
+    }
+
+    @Override
     public void getTask(String user) {
 
     }
@@ -230,12 +333,12 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
     }
 
     private Map<String, Object> getUserInfo() {
-        BasicAck ack = request(APIMapping.getUserInfo, HttpMethod.GET, prepareHeader(), null);
+        BasicDataAck ack = request(APIMapping.getUserInfo, HttpMethod.GET, prepareHeader(), null);
         return ack.getData();
     }
 
 
-    private List<String> getProjectList(){
+    private List<String> getProjectList() {
         List<String> projects = Lists.newArrayList();
         int page = 1;
         int totalPage = 1;
@@ -246,7 +349,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
             ProjectInfoDTO ack = request(uri, HttpMethod.GET, prepareHeader(), null, ProjectInfoDTO.class);
             totalPage = ack.getData().getTotalPage();
             page++;
-            ack.getData().getTotalList().forEach(p->projects.add(p.getName()));
+            ack.getData().getTotalList().forEach(p -> projects.add(p.getName()));
         }
         return projects;
     }
@@ -277,12 +380,12 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
     }
 
 
-    private BasicAck request(String uri, HttpMethod method, HttpHeaders headers, MultiValueMap<String, String> body) {
-        BasicAck ack;
+    private BasicDataAck request(String uri, HttpMethod method, HttpHeaders headers, MultiValueMap<String, String> body) {
+        BasicDataAck ack;
         if (method.equals(HttpMethod.GET)) {
-            ack = JacksonUtils.readJson(get(uri, headers), BasicAck.class);
+            ack = JacksonUtils.readJson(get(uri, headers), BasicDataAck.class);
         } else if (method.equals(HttpMethod.POST)) {
-            ack = JacksonUtils.readJson(post(uri, headers, body), BasicAck.class);
+            ack = JacksonUtils.readJson(post(uri, headers, body), BasicDataAck.class);
         } else {
             throw new ByzerException(method.name() + " method not support.");
         }
@@ -328,7 +431,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
                     .replace("$page", Integer.toString(page))
                     .replace("$projectName", projectName)
                     .replace("$processName", namePrefix);
-            BasicAck ack = request(uri, HttpMethod.GET, prepareHeader(), null);
+            BasicDataAck ack = request(uri, HttpMethod.GET, prepareHeader(), null);
             totalPage = (Integer) ack.getData().getOrDefault("totalPage", 0);
             for (Object process : (List<Object>) ack.getData().get("totalList")) {
                 if (((Map<String, Object>) process).get("name").toString().startsWith(namePrefix))
@@ -348,7 +451,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
                     .replace("$page", Integer.toString(page))
                     .replace("$projectName", projectName)
                     .replace("$processName", processName);
-            BasicAck ack = request(uri, HttpMethod.GET, prepareHeader(), null);
+            BasicDataAck ack = request(uri, HttpMethod.GET, prepareHeader(), null);
             totalPage = (Integer) ack.getData().getOrDefault("totalPage", 0);
             for (Object process : (List<Object>) ack.getData().get("totalList")) {
                 if (((Map<String, Object>) process).get("name").toString().equals(processName))
@@ -359,9 +462,10 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         return null;
     }
 
-    private Integer createProcess(String projectName, String user, String processName,
+    private Integer createProcess(String projectName, String user, String name,
                                   String description, String entityName, String entityType,
-                                  Integer entityId, Map<String, String> extraSettings) {
+                                  Integer entityId, String commitId, String taskName, String taskDesc,
+                                  Map<String, String> extraSettings) {
         ProcessInfo exist = searchProcessByEntity(projectName, user, entityType, entityId);
         if (Objects.nonNull(exist)) {
             throw new ByzerException(
@@ -370,10 +474,17 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
             );
         }
 
-        if (Objects.isNull(processName) || processName.isEmpty()) {
+        String processName;
+        if (Objects.isNull(name) || name.isEmpty()) {
             processName = genTaskName(user, entityType, entityId);
         } else {
-            processName = genTaskNamePrefix(user) + processName;
+            processName = genTaskNamePrefix(user) + name;
+        }
+
+        if (Objects.nonNull(searchProcessByName(projectName, processName))){
+            throw new ByzerException(
+                    MessageFormat.format("Schedule name: [{0}] already exist.", name)
+            );
         }
 
         if (Objects.isNull(description) || description.isEmpty())
@@ -381,7 +492,8 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
 
         TaskTimeoutDTO timeouts = TaskTimeoutDTO.parseFrom(extraSettings);
         ModifyProcessDTO dto = ModifyProcessDTO.create(processName, description, entityName,
-                entityType, entityId,
+                entityType, entityId, commitId,
+                taskName, taskDesc,
                 user, callbackToken, callbackUrl,
                 timeouts.getMaxRetryTimes(), timeouts.getRetryInterval(),
                 timeouts.getTimeout(), defaultTenantId
@@ -409,22 +521,28 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         TaskTimeoutDTO timeouts = TaskTimeoutDTO.parseFrom(extraSettings);
 
         ModifyProcessDTO dto;
-        switch (modification.getAction().toLowerCase()) {
-            case EntityModification.Actions.remove:
-                dto = ModifyProcessDTO.remove(processInfo, modification.getEntityType(),
-                        modification.getEntityId());
-                break;
-            case EntityModification.Actions.update:
-                dto = ModifyProcessDTO.modify(processInfo,
-                        Objects.nonNull(processName) ? genTaskNamePrefix(user) + processName : null, description,
-                        modification.getEntityName(), modification.getEntityType(),
-                        modification.getEntityId(), user, callbackToken, callbackUrl,
-                        timeouts.getMaxRetryTimes(), timeouts.getRetryInterval(),
-                        modification.getAttachTo()
-                );
-                break;
-            default:
-                return;
+        if (Objects.isNull(modification)) {
+            dto = ModifyProcessDTO.modify(processInfo,
+                    Objects.nonNull(processName) ? genTaskNamePrefix(user) + processName : null, description);
+        }
+        else {
+            switch (modification.getAction().toLowerCase()) {
+                case EntityModification.Actions.remove:
+                    dto = ModifyProcessDTO.remove(processInfo, modification.getEntityType(),
+                            modification.getEntityId());
+                    break;
+                case EntityModification.Actions.update:
+                    dto = ModifyProcessDTO.modify(processInfo,
+                            Objects.nonNull(processName) ? genTaskNamePrefix(user) + processName : null, description,
+                            modification.getEntityName(), modification.getEntityType(),
+                            modification.getEntityId(), modification.getCommitId(), user, callbackToken, callbackUrl,
+                            timeouts.getMaxRetryTimes(), timeouts.getRetryInterval(),
+                            modification.getAttachTo(), modification.getTaskName(), modification.getTaskDesc()
+                    );
+                    break;
+                default:
+                    return;
+            }
         }
 
 
@@ -538,7 +656,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
                 if (Objects.nonNull(v)) body.add(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, k), v);
             });
         }
-        String uri = APIMapping.createSchedule
+        String uri = APIMapping.updateSchedule
                 .replace("$projectName", projectName);
 
         request(uri, HttpMethod.POST, prepareHeader(), body);
@@ -572,7 +690,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
                 .replace("$projectName", projectName)
                 .replace("$processId", processId.toString());
 
-        BasicAck ack = request(uri, HttpMethod.GET, prepareHeader(), null);
+        BasicDataAck ack = request(uri, HttpMethod.GET, prepareHeader(), null);
         Map<String, String> mails = Maps.newHashMap();
         if (Objects.nonNull(ack.getData())) {
             ack.getData().forEach((k, v) -> {
@@ -584,4 +702,52 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         return mails;
     }
 
+    private List<ProcessInstance> getProcessInstanceList(String projectName, String user) {
+        String uri = APIMapping.getProcessInstanceList
+                .replace("$projectName", projectName)
+                .replace("$prefix", genTaskNamePrefix(user))
+                .replace("$page", "1");
+        ProcessInstanceDTO ack = request(uri, HttpMethod.GET, prepareHeader(), null, ProcessInstanceDTO.class);
+        return ack.getData().getTotalList();
+    }
+
+    private ProcessInstance getProcessInstance(String projectName, Long processInstanceId) {
+        String uri = APIMapping.getProcessInstance
+                .replace("$projectName", projectName)
+                .replace("$processInstanceId", processInstanceId.toString());
+        ProcessInstanceDetailDTO ack = request(uri, HttpMethod.GET, prepareHeader(), null, ProcessInstanceDetailDTO.class);
+        return ack.getData();
+    }
+
+    private List<TaskInstance> getTaskInstance(String projectName, Long processInstanceId) {
+        String uri = APIMapping.getProcessInstanceTasks
+                .replace("$projectName", projectName)
+                .replace("$processInstanceId", processInstanceId.toString());
+        TaskInstanceListDTO ack = request(uri, HttpMethod.GET, prepareHeader(), null, TaskInstanceListDTO.class);
+        return ack.getData().getTaskList();
+    }
+
+    private String getTaskInstanceLog(Long taskInstanceId) {
+        String uri = APIMapping.getTaskInstanceLog
+                .replace("$taskInstanceId", taskInstanceId.toString());
+        InstanceLogDTO ack = request(uri, HttpMethod.GET, prepareHeader(), null, InstanceLogDTO.class);
+        return ack.getData();
+    }
+
+    private void runProcess(String projectName, Integer processId){
+        String uri = APIMapping.runProcess
+                .replace("$projectName", projectName);
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+
+        body.add("processDefinitionId", processId.toString());
+        body.add("failureStrategy", "END");
+        body.add("warningType", "NONE");
+        body.add("warningGroupId", config.getDefaultWarningGroupId().toString());
+        body.add("taskDependType", "TASK_POST");
+        body.add("runMode", "RUN_MODE_SERIAL");
+        body.add("processInstancePriority", config.getDefaultProcessInstancePriority());
+        body.add("workerGroup", config.getDefaultWorker());
+
+        request(uri, HttpMethod.POST, prepareHeader(), body);
+    }
 }

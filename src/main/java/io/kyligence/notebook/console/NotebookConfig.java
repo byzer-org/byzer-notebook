@@ -218,15 +218,9 @@ public class  NotebookConfig {
     public String getScheduleCallbackToken(){return getOptional("notebook.scheduler.callback-token", "6173646661736466e4bda0e8bf983161");}
 
 
-    public Boolean schedulerEnabled(){
-        for (Object key: properties.keySet()){
-            if (key.toString().matches("notebook\\.scheduler.+?scheduler-name")){
-                return true;
-            }
-        }
-        return false;
+    public Boolean getIsSchedulerEnabled(){
+       return Objects.equals(getOptional("notebook.scheduler.enable", "").trim(), "true");
     }
-
 
     public List<SchedulerConfig> getSchedulerConfig() {
 

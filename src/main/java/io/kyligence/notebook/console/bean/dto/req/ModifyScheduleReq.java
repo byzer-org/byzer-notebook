@@ -6,16 +6,15 @@ import io.kyligence.notebook.console.scheduler.dolphin.dto.EntityModification;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import java.util.Map;
 
 @Data
 @NoArgsConstructor
 public class ModifyScheduleReq {
 
-
-    @JsonProperty("id")
-    private Integer id;
-
+    @Pattern(regexp = "[a-zA-Z0-9_\\u4e00-\\u9fa5]+$", message = "The schedule name can only contain numbers, letters, Chinese characters, and underscores")
     @JsonProperty("name")
     private String name;
 
@@ -33,6 +32,5 @@ public class ModifyScheduleReq {
 
     @JsonProperty("extra")
     private Map<String, String> extra;
-
 
 }

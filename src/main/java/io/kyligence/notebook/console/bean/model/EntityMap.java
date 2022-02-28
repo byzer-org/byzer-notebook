@@ -17,4 +17,12 @@ public class EntityMap {
     @JsonProperty("entity_name")
     private String entityName;
 
+    @JsonProperty("commit_id")
+    private String commitId;
+
+    @JsonProperty("name")
+    private String name;
+
+    @JsonProperty("description")
+    private String description;
 }

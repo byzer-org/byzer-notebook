@@ -31,4 +31,12 @@ public class EntityModification {
     @JsonProperty("attach_to")
     private List<EntityMap> attachTo;
 
+    @JsonProperty("commit_id")
+    private String commitId;
+
+    @JsonProperty("task_name")
+    private String taskName;
+
+    @JsonProperty("task_desc")
+    private String taskDesc;
 }
