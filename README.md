@@ -14,7 +14,9 @@
 ```shell
 ./build/package.sh
 ```
-The packaged file will be placed in `./dist/Byzer-Notebook-0.0.1-SNAPSHOT.tar.gz`
+The packaged file will be placed in `./dist/Byzer-Notebook-<version>.tar.gz`
+
+> version is defined in pom.xml
 
 ## VM Options
 
@@ -43,10 +45,10 @@ Now you can start Byzer-Notebook.
 
 1. Clone https://github.com/byzer-org/byzer-notebook-vue.git
 2. npm install && npm run build  (npm version v14.18.1 is tested)
-3. Copy the byzer-notebook-vu disk/* to src/main/resources/static/
+3. Copy the byzer-notebook-vue dist/* to src/main/resources/static/
 
 ```
-cp -r disk/* src/main/resources/static/
+cp -r dist/* src/main/resources/static/
 ```
 
 Try to visit http://127.0.0.1:9002 

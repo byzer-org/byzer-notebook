@@ -22,3 +22,4 @@ notebook.job.history.max-time=30
 notebook.redis.host=localhost
 notebook.redis.port=6379
 notebook.redis.password=redis_pwd
+notebook.redis.database=0

@@ -32,8 +32,6 @@ spring:
       test-on-return: false
       test-while-idle: true
       validation-query: select 'x'
-      validationQueryTimeout: 2
-      remove-abandoned-timeout: 3600000
       time-between-eviction-runs-millis: 60000
       filter:
         slf4j:
@@ -55,6 +53,9 @@ spring:
       keep-alive: false
       time-between-log-stats-millis: -1
       remove-abandoned: true
+      log-abandoned: true
+      remove-abandoned-timeout: 7200
+      validation-query-timeout: 2
     initialization-mode: always
   jpa:
     database: MySQL
@@ -68,7 +69,7 @@ spring:
     async:
       request-timeout: 600000
   redis:
-    database: 0
+    database: ${notebook.redis.database}
     host: ${notebook.redis.host}
     port: ${notebook.redis.port}
     password: ${notebook.redis.password}
@@ -95,6 +96,7 @@ server:
     max-threads: 200
     min-spare-threads: 10
     max-http-header-size: 1048576
+    keep-alive-timeout: 6000000
     accesslog:
       enabled: true
       directory: ${NOTEBOOK_HOME}/logs
