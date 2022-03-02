@@ -153,6 +153,11 @@ public class EngineService {
             return this;
         }
 
+        public RunScriptParams withIncludeSchema(Boolean includeSchema){
+            params.put("includeSchema", includeSchema.toString());
+            return this;
+        }
+
         public Map<String, String> getAll() {
             return this.params;
         }
