@@ -78,6 +78,7 @@ public class ScriptController {
             engineService.runScript(
                     new EngineService.RunScriptParams()
                             .withJobName(jobInfo.getJobId())
+                            .withIncludeSchema(true)
                             .withSql(jobInfo.getContent()));
         } catch (Exception ex) {
             // update job status to FAILED if exception happened
