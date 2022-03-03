@@ -221,6 +221,7 @@ public class ETService {
         if (Objects.nonNull(localParam.getDefaultValue()) && !localParam.getDefaultValue().isEmpty()){
             engineParam.setDefaultValue(localParam.getDefaultValue());
         }
+
         String enumValues = localParam.getEnumValues();
         if (enumValues == null || enumValues.isEmpty()) {
             engineParam.setEnumValues(new ArrayList<>());

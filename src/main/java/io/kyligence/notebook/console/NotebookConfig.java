@@ -73,7 +73,10 @@ public class  NotebookConfig {
     }
 
     private File getPropertiesFile() {
-        String path = getPropertiesDirPath();
+        String path = System.getProperty("PROPERTIES_PATH");
+        if (StringUtils.isBlank(path)) {
+            path = getPropertiesDirPath();
+        }
         File overrideFile = new File(path, OVERRIDE_PROPERTIES_FILE);
         if (overrideFile.exists()) {
             return overrideFile;

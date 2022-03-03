@@ -1,5 +1,6 @@
-# Byzer-Notebook
+![CI](https://github.com/byzer-org/byzer-notebook/actions/workflows/build.yml/badge.svg)   [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)   [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=byzer-org_byzer-notebook&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=byzer-org_byzer-notebook)
 
+# Byzer-Notebook
 
 ## Requirements
 
