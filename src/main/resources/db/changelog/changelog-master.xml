@@ -18,4 +18,5 @@
     <include file="db/changelog/v1.0.0_2021-11-19_01_add_schedule_account.sql"/>
     <include file="db/changelog/v1.0.0_2021-12-08_01_update_admin_default_pw.sql"/>
     <include file="db/changelog/v1.0.1_2022-01-13_01_support_for_version_control_and_demo_update.sql"/>
+    <include file="db/changelog/v1.0.2_2022-03-03_01_set_charset_to_utf8mb4.sql"/>
 </databaseChangeLog>
