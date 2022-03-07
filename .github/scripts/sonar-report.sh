@@ -1,6 +1,6 @@
 mvn clean install test && \
-echo "================================================================"$SONAR_TOKEN && \
-  export SONAR_TOKEN="$1" && echo "================================================================"$SONAR_TOKEN && \
+echo "================================================================" && \
+  export SONAR_TOKEN=${{ secrets.SONAR_TOKEN }}  && \
   export target_dir="/usr/lib/jvm" && \
   export JAVA_HOME="$target_dir/jdk11" && \
   wget --no-check-certificate --no-verbose "https://repo.huaweicloud.com/java/jdk/11.0.2+9/jdk-11.0.2_linux-x64_bin.tar.gz" \
