@@ -54,3 +54,5 @@ cp -r dist/* src/main/resources/static/
 Try to visit http://127.0.0.1:9002 
 
 **Admin Account**: admin/admin
+
+Test workflow
