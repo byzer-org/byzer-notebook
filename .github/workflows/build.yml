@@ -11,14 +11,7 @@ jobs:
 
 
     steps:
-      - name: echo sonar token
+      - name: Run migrations
+        run: sh ./github/scripts/sonar-report.sh
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.PROJ_MGT_TOKEN }}
-        run: echo ${{secrets.SONAR_TOKEN }}
-      
-      - name: echo sonar token
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.PROJ_MGT_TOKEN }}
-        run: echo ${{secrets.PROJ_MGT_TOKEN }}
