@@ -9,8 +9,18 @@ jobs:
     runs-on: ubuntu-latest
     environment: sonar
 
-    env:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
     steps:
+      - name: echo sonar token
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PROJ_MGT_TOKEN }}
       - uses: actions/checkout@v2
-      - run: echo ${{secrets.SONAR_TOKEN }} | sed 's/./& /g'
+      - run: echo ${{secrets.SONAR_TOKEN }}
+      
+      - name: echo sonar token
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PROJ_MGT_TOKEN }}
+      - uses: actions/checkout@v2
+      - run: echo ${{secrets.PROJ_MGT_TOKEN }}
