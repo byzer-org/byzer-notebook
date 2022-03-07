@@ -63,6 +63,7 @@ public class SchedulerService {
         EngineService.RunScriptParams runScriptParams = new EngineService.RunScriptParams()
                 .withAsync("false")
                 .withOwner(scheduleOwner)
+                .withOwnerPathPrefix(scheduleOwner)
                 .with("sessionPerRequest", "true");
 
         String scripts = getScript(entityType, entityId, commitId, runScriptParams.getAll());

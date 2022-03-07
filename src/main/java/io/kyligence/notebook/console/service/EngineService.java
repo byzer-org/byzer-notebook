@@ -143,6 +143,11 @@ public class EngineService {
             return this;
         }
 
+        public RunScriptParams withOwnerPathPrefix(String owner){
+            params.put("defaultPathPrefix", config.getUserHome() + "/" + owner);
+            return this;
+        }
+
         public RunScriptParams withSql(String sql) {
             params.put("sql", sql);
             return this;

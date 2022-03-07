@@ -505,7 +505,9 @@ public class ProcessInfo {
         }
         List<Task> tasks = processDefinition.getTasks();
         Task task = tasks.stream().filter(t -> t.getId().equals(taskId)).collect(Collectors.toList()).get(0);
+        String taskName = task.getName();
         tasks.remove(task);
+        tasks.forEach(t -> t.getPreTasks().remove(taskName));
         deleteFromLocations(taskId);
         deleteFromConnects(taskId);
         processDefinition.setTasks(tasks);
