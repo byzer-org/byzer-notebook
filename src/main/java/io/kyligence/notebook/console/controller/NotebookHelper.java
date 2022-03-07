@@ -97,7 +97,7 @@ public class NotebookHelper {
     }
 
     @SneakyThrows
-    public NotebookInfo createSampleDemo(String user) {
+    public NotebookInfo createSampleDemo(String user, Boolean createInstructionOnly) {
         log.info("Creating Demo For User:" + user);
         String username = user.toLowerCase();
         NotebookInfo result = null;
@@ -111,6 +111,7 @@ public class NotebookHelper {
                 if (demo.getName().endsWith(".mlnb") || demo.getName().endsWith(".bznb")) {
                     NotebookDTO notebookDTO = JacksonUtils.readJson(in, NotebookDTO.class);
                     NotebookInfo nb= importNotebook(notebookDTO, null, "default", username);
+                    if (createInstructionOnly) return nb;
                     if (result == null) result = nb;
                 } else if (demo.getName().endsWith(".mlwf") || demo.getName().endsWith(".bzwf")){
                     WorkflowDTO workflowDTO = JacksonUtils.readJson(in, WorkflowDTO.class);

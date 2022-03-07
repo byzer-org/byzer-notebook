@@ -2,7 +2,6 @@ package io.kyligence.notebook.console.service;
 
 import io.kyligence.notebook.console.bean.dto.NotebookTreeDTO;
 import io.kyligence.notebook.console.bean.entity.*;
-import io.kyligence.notebook.console.controller.NotebookHelper;
 import io.kyligence.notebook.console.dao.SharedFileRepository;
 import io.kyligence.notebook.console.exception.ByzerException;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +9,6 @@ import org.apache.commons.compress.utils.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
@@ -25,32 +23,11 @@ public class FileShareService {
     private NotebookService notebookService;
 
     @Autowired
-    private NotebookHelper notebookHelper;
-
-    @Autowired
     private WorkflowService workflowService;
 
     private NotebookTreeDTO cachedDemo;
 
     private final String ADMIN_ACCOUNT = "admin";
-
-    @PostConstruct
-    public void createDefaultDemo(){
-        if (!Objects.isNull(notebookService.getDefaultDemo())) return;
-
-        // create default sample for admin
-        if (Objects.isNull(notebookService.getDefault(ADMIN_ACCOUNT))) {
-            log.info("Creating Sample for user: " + ADMIN_ACCOUNT);
-            notebookHelper.createSampleDemo(ADMIN_ACCOUNT);
-        }
-
-        // create default demo for all user from admin default sample
-        log.info("Creating Default Demo ...");
-        notebookService.find(ADMIN_ACCOUNT).stream()
-                .filter(nb -> Objects.nonNull(nb.getType()) && nb.getType().equalsIgnoreCase("default"))
-                .forEach(nb -> addNotebookDemo(ADMIN_ACCOUNT, nb.getId()));
-        workflowService.find(ADMIN_ACCOUNT).forEach(wf -> addWorkflowDemo(ADMIN_ACCOUNT, wf.getId()));
-    }
 
     public void addDemo(String user, Integer entityId, String entityType) {
         if (!user.equalsIgnoreCase(ADMIN_ACCOUNT)) {

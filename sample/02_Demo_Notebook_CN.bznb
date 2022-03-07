@@ -1,130 +1,131 @@
 {
-  "id" : "27",
-  "name" : "02_Demo_Notebook",
-  "user" : "admin",
+  "id" : "2068",
+  "name" : "Demo_Notebook_CN",
+  "user" : "byzer",
   "cell_list" : [ {
-    "id" : "114",
-    "content" : "-- Markdown# Demo1: Heart Attack Analysis and Prediction\n在这个Demo中，我们将使用 Kaggle 的公开数据集 - Heart Attack Analysis & Prediction Dataset，为大家演示如何用 Byzer 语言进行数据工程处理和机器学习。",
+    "id" : "23168",
+    "content" : "--%markdown# Demo1: Heart Attack Analysis and Prediction\n**文档最新更新日期：2022.2.11**\n在这个 Demo 中，我们将使用 Kaggle 的公开数据集 - Heart Attack Analysis & Prediction Dataset，为大家演示如何用 Byzer 语言进行数据工程处理和机器学习，并结合 Python 进行可视化分析。",
     "job_id" : null
   }, {
-    "id" : "115",
-    "content" : "-- Markdown### STEP1:先Load数据文件，并将其命名为heartdisease_data",
+    "id" : "23169",
+    "content" : "--%markdown### STEP1:先 Load 数据文件，并将其命名为 heartdisease_data",
     "job_id" : null
   }, {
-    "id" : "116",
-    "content" : "load csv.`/tmp/upload/heart.csv`where header=\"true\" as heartdisease_data;",
+    "id" : "23172",
+    "content" : "-- 此时，我们就可以直接从本地的 File System 中加载并分析数据了\nload csv.`/tmp/upload/heart.csv`where header=\"true\" as heartdisease_data;\n",
     "job_id" : null
   }, {
-    "id" : "117",
+    "id" : "23173",
     "content" : "--用宏命令查看一下数据类型\n!desc heartdisease_data;",
     "job_id" : null
   }, {
-    "id" : "118",
-    "content" : "-- Markdown### STEP2:将特征列和lable列处理成算法适用的格式",
+    "id" : "23174",
+    "content" : "--%markdown### STEP2:将特征列和 lable 列处理成算法适用的格式",
     "job_id" : null
   }, {
-    "id" : "119",
+    "id" : "23175",
     "content" : "select array(cast(age as double)) as age, array(cast(sex as double)) as sex,array(cast(cp as double)) as cp,array(cast(trtbps as double)) as trtbps,array(cast(chol as double)) as chol,array(cast(fbs as double)) as fbs,array(cast(restecg as double)) as restecg,array(cast(thalachh as double)) as thalachh,array(cast(exng as double)) as exng ,array(cast(oldpeak as double)) as oldpeak,array(cast(slp as double)) as slp,array(cast(caa as double)) as caa,array(cast(thall as double)) as thall,output from heartdisease_data\nas demo_data;",
     "job_id" : null
   }, {
-    "id" : "120",
+    "id" : "23176",
     "content" : "-- 将数据合并为特征列和标签列\nselect vec_concat(array( vec_dense(age),vec_dense(sex),vec_dense(cp),vec_dense(trtbps),vec_dense(chol),vec_dense(fbs),vec_dense(restecg),vec_dense(thalachh),vec_dense(exng),vec_dense(oldpeak),\nvec_dense(slp),vec_dense(caa),vec_dense(thall) )) as features, cast(output as int) as label from demo_data as demo_data2;",
     "job_id" : null
   }, {
-    "id" : "121",
-    "content" : "-- Markdown### STEP3:将数据按照8:2的比例拆分训练数据集和测试数据集",
+    "id" : "23177",
+    "content" : "--%markdown### STEP3:将数据按照 8:2 的比例拆分训练数据集和测试数据集",
     "job_id" : null
   }, {
-    "id" : "122",
+    "id" : "23178",
     "content" : "-- 使用 RateSampler 这个ET组件\nrun demo_data2 as RateSampler.`` where sampleRate=\"0.8,0.2\" \nand labelCol=\"label\" as marked_dataset;",
     "job_id" : null
   }, {
-    "id" : "123",
+    "id" : "23179",
     "content" : "-- 将组别为0的定义为训练集，将组别为1的定义为测试集\nselect * from marked_dataset where __split__=0 as train_data;\nselect * from marked_dataset where __split__=1 as test_data;",
     "job_id" : null
   }, {
-    "id" : "124",
-    "content" : "-- Markdown### STEP4: 用 RandomForest 算法训练数据集",
+    "id" : "23180",
+    "content" : "--%markdown### STEP4: 用 RandomForest 算法训练数据集",
     "job_id" : null
   }, {
-    "id" : "125",
-    "content" : "train train_data as RandomForest.`/tmp/models/rf_model` where\n-- 每次模型不要覆盖，保持版本\nkeepVersion = \"true\"\nand `fitParam.0.labelCol`= \"label\"  --y标签\nand `fitParam.0.featuresCol`= \"features\"  -- x特征\nand `fitParam.0.maxDepth`= \"4\"\n\n--设置了两组参数同时运行可对比结果优劣\nand `fitParam.1.labelCol`= \"label\"  --y标签\nand `fitParam.1.featuresCol`= \"features\"  -- x特征\nand `fitParam.1.maxDepth`= \"10\";",
+    "id" : "23181",
+    "content" : "train train_data as RandomForest.`/tmp/models/rf_model` where\n-- 每次模型不要覆盖，保持版本\nkeepVersion = \"true\"\n-- 设置验证集用于测试模型的表现，具体数值会显示在 metrics 中\nand evaluateTable= \"train_data\"\nand `fitParam.0.labelCol`= \"label\"  --y标签\nand `fitParam.0.featuresCol`= \"features\"  -- x特征\nand `fitParam.0.maxDepth`= \"4\"\n\n--设置了两组参数同时运行可对比结果优劣\nand `fitParam.1.labelCol`= \"label\"  --y标签\nand `fitParam.1.featuresCol`= \"features\"  -- x特征\nand `fitParam.1.maxDepth`= \"10\";",
     "job_id" : null
   }, {
-    "id" : "126",
-    "content" : "-- Markdown### STEP5: 用 f1 Score 最高的那组模型 预测测试集",
+    "id" : "23182",
+    "content" : "--%markdown### STEP5: 用 f1 Score 最高的那组模型预测测试集",
     "job_id" : null
   }, {
-    "id" : "127",
+    "id" : "23183",
     "content" : "predict test_data as RandomForest.`/tmp/models/rf_model` \nwhere autoSelectByMetric = \"f1\" \nas predicted_table;",
     "job_id" : null
   }, {
-    "id" : "187",
-    "content" : "-- Markdown将预测结果的分析的逻辑宏定义化，这样可以用宏命令重复使用预测结果分析",
+    "id" : "23184",
+    "content" : "--%markdown### STEP6:将预测结果的分析的逻辑宏定义化，这样可以用宏命令重复使用预测结果分析",
     "job_id" : null
   }, {
-    "id" : "128",
-    "content" : "-- 利用Precision Recall去衡量模型预测结果，并用宏定义方式，用于其他模型的预测结果评估复用\nset evaluateFun = '''\nselect 1 as id, count(*) as TP  from ${tableName} where ${label} = 1 and ${prediction} = 1 as ${tableName}_out1;\nselect 1 as id, count(*) as TN  from ${tableName} where ${label} = 0 and ${prediction} = 0 as ${tableName}_out2;\nselect 1 as id, count(*) as FP  from ${tableName} where ${label} = 0 and ${prediction} = 1 as ${tableName}_out3;\nselect 1 as id, count(*) as FN  from ${tableName} where ${label} = 1 and ${prediction} = 0 as ${tableName}_out4;\nselect ${tableName}_out1.TP as TP, ${tableName}_out2.TN as TN, ${tableName}_out3.FP as FP, ${tableName}_out4.FN as FN from ${tableName}_out1 join ${tableName}_out2 on ${tableName}_out1.id=${tableName}_out2.id inner join ${tableName}_out3 on ${tableName}_out3.id=${tableName}_out1.id inner join ${tableName}_out4 on ${tableName}_out4.id=${tableName}_out1.id as confusionMatrix;\n\nselect float(TP/(TP+FP)) as precision, float(TP/(TP+FN)) as recall, float((TP+TN)/(TP+FP+TN+FN)) as accuracy from confusionMatrix as confusionMatrix2;\nselect precision, recall, accuracy, (2*precision*recall)/(precision+recall) as fscore from confusionMatrix2 as evalTable\n''' where scope=\"session\";",
+    "id" : "23185",
+    "content" : "-- 利用Precision Recall去衡量模型预测结果，并用宏定义方式，用于其他模型的预测结果评估复用\nset evaluateFun = '''\n    select 1 as id, count(*) as TP  from ${tableName} where ${label} = 1 and ${prediction} = 1 as ${tableName}_out1;\n    select 1 as id, count(*) as TN  from ${tableName} where ${label} = 0 and ${prediction} = 0 as ${tableName}_out2;\n    select 1 as id, count(*) as FP  from ${tableName} where ${label} = 0 and ${prediction} = 1 as ${tableName}_out3;\n    select 1 as id, count(*) as FN  from ${tableName} where ${label} = 1 and ${prediction} = 0 as ${tableName}_out4;\n    select ${tableName}_out1.TP as TP, ${tableName}_out2.TN as TN, ${tableName}_out3.FP as FP, ${tableName}_out4.FN as FN from ${tableName}_out1 join ${tableName}_out2 on ${tableName}_out1.id=${tableName}_out2.id inner join ${tableName}_out3 on ${tableName}_out3.id=${tableName}_out1.id inner join ${tableName}_out4 on ${tableName}_out4.id=${tableName}_out1.id as confusionMatrix;\n    \n    select float(TP/(TP+FP)) as precision, float(TP/(TP+FN)) as recall, float((TP+TN)/(TP+FP+TN+FN)) as accuracy from confusionMatrix as confusionMatrix2;\n    select precision, recall, accuracy, (2*precision*recall)/(precision+recall) as fscore from confusionMatrix2 as evalTable\n''' \n-- 设置 set 语法的生命周期是为 session 级别，默认为 request 级别\nwhere scope=\"session\";",
     "job_id" : null
   }, {
-    "id" : "129",
-    "content" : "-- 使用宏定义evaluate\n!evaluateFun _ -tableName predicted_table -label label -prediction prediction;",
+    "id" : "23186",
+    "content" : "-- 使用宏定义 evaluate\n!evaluateFun _ -tableName predicted_table -label label -prediction prediction;",
     "job_id" : null
   }, {
-    "id" : "188",
-    "content" : "-- Markdown抽取出预测结果的分值，并且取最大值用来画二分类的AUC曲线",
+    "id" : "23187",
+    "content" : "--%markdown### STEP7: 抽取出预测结果的分值，并且取最大值用来画二分类的 AUC 曲线",
     "job_id" : null
   }, {
-    "id" : "130",
+    "id" : "23188",
     "content" : "select array_max(array_string_to_double(split(regexp_replace(string(probability), \"[\\\\[\\\\]]\",\"\"), \",\"))) as pred, label from predicted_table as pred_table;",
     "job_id" : null
   }, {
-    "id" : "131",
+    "id" : "23189",
     "content" : "#%env=source activate ray1.8.0\n#%python\n#%input=pred_table\n#%dataMode=model\n#%schema=st(field(content,string),field(mime,string))\nfrom pyjava.api.mlsql import RayContext,PythonContext\nimport pandas as pd\nimport os\nfrom pyjava.api import Utils\nfrom sklearn.metrics import roc_curve, auc\nimport matplotlib.pyplot as plt\n\n# 这句是为了代码提示\ncontext:PythonContext = context\nray_context = RayContext.connect(globals(), None)\n# servers = ray_context.data_servers()\n# datas = RayContext.collect_from(servers)\n# ray_context = RayContext.connect(globals(),None)\ndata = ray_context.to_pandas()\nlabel = data['label']\npred = data['pred']\nfpr,tpr,thresholds=roc_curve(label, pred)\nroc_auc=auc(fpr,tpr)\nplt.figure()\nlw = 2\nplt.figure(figsize=(10,10))\nplt.plot(fpr, tpr, color='darkorange',lw=lw, label='ROC curve (area = %0.2f)' % roc_auc)\nplt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')\nplt.xlim([0.0, 1.0])\nplt.ylim([0.0, 1.05])\nplt.xlabel('False Positive Rate')\nplt.ylabel('True Positive Rate')\nplt.title('Receiver operating characteristic example')\nplt.legend(loc=\"lower right\")\n# context.build_result([{\"col1\":\"heelo1\",\"col2\":\"mime\"}])\n# context.build_result([datas])\nUtils.show_plt(plt,context)\n",
     "job_id" : null
   }, {
-    "id" : "132",
-    "content" : "-- Markdown### STEP6: 换一种算法 NaiveBayes再试一次",
+    "id" : "23190",
+    "content" : "--%markdown### STEP8: 换一种算法 NaiveBayes 再试一次",
     "job_id" : null
   }, {
-    "id" : "133",
-    "content" : "train train_data as NaiveBayes.`/tmp/models/NB_model` \nwhere  keepVersion=\"true\"\nand fitParam.0.featuresCol=\"features\"\nand fitParam.0.predictionCol = \"prediction\"\nand fitParam.0.labelcol = \"label\";",
+    "id" : "23191",
+    "content" : "train train_data as NaiveBayes.`/tmp/models/NB_model` \nwhere  keepVersion=\"true\"\n-- 设置验证集用于测试模型的表现，具体数值会显示在 metrics 中\nand evaluateTable= \"train_data\"\nand fitParam.0.featuresCol=\"features\"\nand fitParam.0.predictionCol = \"prediction\"\nand fitParam.0.labelcol = \"label\";",
     "job_id" : null
   }, {
-    "id" : "134",
+    "id" : "23192",
     "content" : "predict test_data as NaiveBayes.`/tmp/models/NB_model` \nas NB_table;",
     "job_id" : null
   }, {
-    "id" : "136",
+    "id" : "23193",
     "content" : "--同样检查一下被正确预测的数量\nselect count(*) from NB_table where label = 0 and prediction = 0 as NBtable1;",
     "job_id" : null
   }, {
-    "id" : "137",
+    "id" : "23194",
     "content" : "--同样检查一下被错误预测的数量，发现正确率不如 RandomForest\nselect count(*) from NB_table where label = 0 and prediction = 1 as NB_table2;",
     "job_id" : null
   }, {
-    "id" : "189",
+    "id" : "23195",
     "content" : "-- 使用宏定义evaluate\n!evaluateFun _ -tableName NB_table -label label -prediction prediction;",
     "job_id" : null
   }, {
-    "id" : "190",
+    "id" : "23196",
     "content" : "select array_max(array_string_to_double(split(regexp_replace(string(probability), \"[\\\\[\\\\]]\",\"\"), \",\"))) as pred, label from NB_table as pred_table1;",
     "job_id" : null
   }, {
-    "id" : "191",
+    "id" : "23197",
     "content" : "#%env=source activate ray1.8.0\n#%python\n#%input=pred_table1\n#%dataMode=model\n#%schema=st(field(content,string),field(mime,string))\nfrom pyjava.api.mlsql import RayContext,PythonContext\nimport pandas as pd\nimport os\nfrom pyjava.api import Utils\nfrom sklearn.metrics import roc_curve, auc\nimport matplotlib.pyplot as plt\n\n# 这句是为了代码提示\ncontext:PythonContext = context\nray_context = RayContext.connect(globals(), None)\n# servers = ray_context.data_servers()\n# datas = RayContext.collect_from(servers)\n# ray_context = RayContext.connect(globals(),None)\ndata = ray_context.to_pandas()\nlabel = data['label']\npred = data['pred']\nfpr,tpr,thresholds=roc_curve(label, pred)\nroc_auc=auc(fpr,tpr)\nplt.figure()\nlw = 2\nplt.figure(figsize=(10,10))\nplt.plot(fpr, tpr, color='darkorange',lw=lw, label='ROC curve (area = %0.2f)' % roc_auc)\nplt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')\nplt.xlim([0.0, 1.0])\nplt.ylim([0.0, 1.05])\nplt.xlabel('False Positive Rate')\nplt.ylabel('True Positive Rate')\nplt.title('Receiver operating characteristic example')\nplt.legend(loc=\"lower right\")\n# context.build_result([{\"col1\":\"heelo1\",\"col2\":\"mime\"}])\n# context.build_result([datas])\nUtils.show_plt(plt,context)\n",
     "job_id" : null
   }, {
-    "id" : "192",
-    "content" : "-- Markdown### STEP7: 模型注册\n\n用户根据业务场景以及需求选取对应的模型，将模型部署成函数",
+    "id" : "23198",
+    "content" : "--%markdown### STEP9: 模型注册\n\n用户根据业务场景以及需求选取对应的模型，将模型部署成函数",
     "job_id" : null
   }, {
-    "id" : "138",
+    "id" : "23199",
     "content" : "register RandomForest.`/tmp/models/rf_model` as pred_func;\n-- 可以通过algIndex去选择要注册的模型\n-- register RandomForest.`/tmp/models/rf_model` as pred_func where algIndex=\"0\";\n-- 可以通过模型的metrics去去选择要注册的模型\n-- register RandomForest.`/tmp/models/rf_model` as pred_func where autoSelectByMetric='f1';",
     "job_id" : null
   }, {
-    "id" : "139",
-    "content" : "select pred_func(features) as pred, label from test_data as pred_result;",
+    "id" : "23200",
+    "content" : "-- 然后即可直接调用注册成功的函数用于后续的分析预测中\nselect pred_func(features) as pred, label from test_data as pred_result;",
     "job_id" : null
-  } ]
+  } ],
+  "is_demo" : null
 }
