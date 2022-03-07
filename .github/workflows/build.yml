@@ -1,0 +1,18 @@
+
+name: Build with sonar_cloud
+
+on: [pull_request, workflow_dispatch]
+
+jobs:
+  my-workflow-job-3:
+    name: my-workflow-job-3
+    runs-on: ubuntu-latest
+    environment: sonar
+
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          echo 'printing envs'
+          env
