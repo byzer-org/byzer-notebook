@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class FolderService {
@@ -95,7 +96,9 @@ public class FolderService {
 
         // if trans here, can not figure out type: notebook/workflow
         NotebookTreeDTO userFiles = NotebookTreeDTO.valueOf(execFiles, folders);
-        userFiles.getList().add(0, fileShareService.getDemo());
+
+        NotebookTreeDTO demoFolder = fileShareService.getDemo();
+        if (!demoFolder.getList().isEmpty()) userFiles.getList().add(0, demoFolder);
         return userFiles;
     }
 
