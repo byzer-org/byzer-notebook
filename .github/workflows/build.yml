@@ -13,4 +13,4 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v2
-      - run: echo ${{secrets.YOUR_SECRET }} | sed 's/./& /g'
+      - run: echo ${{secrets.SONAR_TOKEN }} | sed 's/./& /g'
