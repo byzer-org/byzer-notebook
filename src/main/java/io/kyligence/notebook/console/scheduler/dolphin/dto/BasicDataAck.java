@@ -7,10 +7,10 @@ import java.util.Map;
 
 @Data
 @NoArgsConstructor
-public class BasicAck {
+public class BasicDataAck {
     private String msg;
 
     private Integer code;
 
-    private Object data;
+    private Map<String, Object> data;
 }

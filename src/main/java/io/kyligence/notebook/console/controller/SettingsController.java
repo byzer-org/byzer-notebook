@@ -70,7 +70,7 @@ public class SettingsController {
     @ApiOperation("Environment Info")
     @GetMapping("/settings/env")
     public Response<EnvDTO> getEnv() {
-        return new Response<EnvDTO>().data(EnvDTO.valueOf(config.getIsTrial(), config.getUserFileSizeLimit()));
+        return new Response<EnvDTO>().data(EnvDTO.valueOf(config.getIsTrial(), config.getUserFileSizeLimit(), config.getIsSchedulerEnabled()));
     }
 
     @ApiOperation("Engine List")

@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -221,6 +222,17 @@ public class NotebookController {
     @GetMapping("/notebook/default")
     @Permission
     public Response<DemoInfoDTO> getDefaultNotebook() {
+        String user = WebUtils.getCurrentLoginUser();
+        NotebookInfo defaultNotebook = notebookService.getDefault(user);
+        if (Objects.nonNull(defaultNotebook)) {
+            return new Response<DemoInfoDTO>().data(
+                    DemoInfoDTO.valueOf(
+                            defaultNotebook.getId(),
+                            defaultNotebook.getName(),
+                            "notebook"
+                    )
+            );
+        }
         NotebookCommit notebookCommit = notebookService.getDefaultDemo();
 
         if (notebookCommit == null) {
@@ -244,7 +256,7 @@ public class NotebookController {
         NotebookInfo notebookInfo = notebookService.getDefault(user);
 
         if (notebookInfo == null) {
-            notebookInfo = notebookHelper.createSampleDemo(user);
+            notebookInfo = notebookHelper.createSampleDemo(user, false);
         }
 
         return new Response<IdNameDTO>().data(IdNameDTO.valueOf(notebookInfo.getId(), notebookInfo.getName()));

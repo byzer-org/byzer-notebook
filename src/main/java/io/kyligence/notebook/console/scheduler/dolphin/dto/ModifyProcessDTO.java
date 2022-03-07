@@ -21,13 +21,15 @@ public class ModifyProcessDTO {
     private String connects;
 
     public static ModifyProcessDTO create(String processName, String description, String entityName,
-                                          String entityType, Integer entityId,
+                                          String entityType, Integer entityId, String commitId,
+                                          String taskName, String taskDesc,
                                           String owner, String token, String callbackUrl,
                                           Integer maxRetryTimes, Integer retryInterval,
                                           Integer timeout, Integer tenantId) {
         ProcessInfo processInfo = ProcessInfo.valueOf(
                 processName, description, entityName, entityType,
-                entityId, owner, token, callbackUrl, maxRetryTimes, retryInterval,
+                entityId, commitId, taskName, taskDesc,
+                owner, token, callbackUrl, maxRetryTimes, retryInterval,
                 timeout, tenantId
         );
         ModifyProcessDTO dto = new ModifyProcessDTO();
@@ -40,12 +42,24 @@ public class ModifyProcessDTO {
         return dto;
     }
 
+    public static ModifyProcessDTO modify(ProcessInfo processInfo, String name, String description) {
+        ModifyProcessDTO dto = new ModifyProcessDTO();
+
+        dto.setName((Objects.nonNull(name))  ? name : processInfo.getName() );
+        dto.setDescription((Objects.nonNull(description)) ? description : processInfo.getDescription());
+        dto.setId(String.valueOf(processInfo.getId()));
+        dto.setProcessDefinitionJson(JacksonUtils.writeJson(processInfo.getProcessDefinition()));
+        dto.setConnects(JacksonUtils.writeJson(processInfo.getConnections()));
+        dto.setLocations(JacksonUtils.writeJson(processInfo.getLocationMap()));
+        return dto;
+    }
+
     public static ModifyProcessDTO modify(ProcessInfo processInfo, String name, String description, String entityName,
-                                          String entityType, Integer entityId,
+                                          String entityType, Integer entityId, String commitId,
                                           String owner, String token, String callbackUrl,
                                           Integer maxRetryTimes, Integer retryInterval,
-                                          List<EntityMap> attachTo) {
-        processInfo.modify(entityName, entityType, entityId, owner, token, callbackUrl, maxRetryTimes, retryInterval, attachTo);
+                                          List<EntityMap> attachTo, String taskName, String taskDesc) {
+        processInfo.modify(entityName, entityType, entityId, commitId, taskName, taskDesc, owner, token, callbackUrl, maxRetryTimes, retryInterval, attachTo);
         ModifyProcessDTO dto = new ModifyProcessDTO();
 
         dto.setName((Objects.nonNull(name))  ? name : processInfo.getName() );

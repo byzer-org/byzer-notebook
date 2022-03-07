@@ -23,3 +23,18 @@ notebook.redis.host=localhost
 notebook.redis.port=6379
 notebook.redis.password=redis_pwd
 notebook.redis.database=0
+
+# configuration for DolphinScheduler
+#notebook.scheduler.enable=false
+#notebook.scheduler.scheduler-name=DolphinScheduler
+#notebook.scheduler.scheduler-url=http://localhost:12345/dolphinscheduler
+#notebook.scheduler.auth-token=
+#notebook.scheduler.callback-token=6173646661736466e4bda0e8bf983161
+
+## optional configuration for DolphinScheduler
+#notebook.scheduler.project-name=ByzerScheduler
+#notebook.scheduler.warning-type=ALL
+#notebook.scheduler.warning-group-id=1
+#notebook.scheduler.failure-strategy=END
+#notebook.scheduler.instance-priority=MEDIUM
+#notebook.scheduler.worker=default
