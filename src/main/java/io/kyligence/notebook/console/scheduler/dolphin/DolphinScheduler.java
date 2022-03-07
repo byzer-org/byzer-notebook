@@ -667,8 +667,11 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         String uri = APIMapping.onlineSchedule
                 .replace("$projectName", projectName)
                 .replace("$scheduleId", scheduleId.toString());
-        request(uri, HttpMethod.POST, prepareHeader(), null);
-
+        try {
+            request(uri, HttpMethod.POST, prepareHeader(), null);
+        } catch (Exception ex) {
+            throw new ByzerException("Schedule cron setting error");
+        }
     }
 
     private void offlineSchedule(String projectName, Integer scheduleId) {
