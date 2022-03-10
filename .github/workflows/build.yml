@@ -4,14 +4,37 @@ name: Build with sonar_cloud
 on: [pull_request, workflow_dispatch]
 
 jobs:
-  my-workflow-job-3:
-    name: my-workflow-job-3
+  build:
+    name: Build byzer-notebook
     runs-on: ubuntu-latest
-    environment: sonar
-
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - java: 8
 
     steps:
-      - name: Run migrations
-        run: sh ./github/scripts/sonar-report.sh
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Cache Maven packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Build and analyze
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./.github/scripts/sonar-report.sh
+        shell: bash
