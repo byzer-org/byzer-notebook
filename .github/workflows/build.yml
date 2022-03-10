@@ -1,0 +1,17 @@
+
+name: Build with sonar_cloud
+
+on: [pull_request, workflow_dispatch]
+
+jobs:
+  my-workflow-job-3:
+    name: my-workflow-job-3
+    runs-on: ubuntu-latest
+    environment: sonar
+
+
+    steps:
+      - name: Run migrations
+        run: sh ./github/scripts/sonar-report.sh
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

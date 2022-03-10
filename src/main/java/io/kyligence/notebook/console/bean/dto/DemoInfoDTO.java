@@ -33,4 +33,12 @@ public class DemoInfoDTO {
         result.setCommitId(commitId);
         return result;
     }
+
+    public static DemoInfoDTO valueOf(Integer id, String name, String type){
+        DemoInfoDTO result = new DemoInfoDTO();
+        result.setId(EntityUtils.toStr(id));
+        result.setName(name);
+        result.setType(type);
+        return result;
+    }
 }

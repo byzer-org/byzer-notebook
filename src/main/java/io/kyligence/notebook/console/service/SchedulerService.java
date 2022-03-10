@@ -3,6 +3,8 @@ package io.kyligence.notebook.console.service;
 import io.kyligence.notebook.console.NotebookConfig;
 import io.kyligence.notebook.console.bean.dto.IdNameDTO;
 import io.kyligence.notebook.console.bean.dto.TaskInfoDTO;
+import io.kyligence.notebook.console.bean.dto.TaskInstanceDTO;
+import io.kyligence.notebook.console.bean.dto.TaskNodeInfoDTO;
 import io.kyligence.notebook.console.bean.entity.JobInfo;
 import io.kyligence.notebook.console.bean.model.ScheduleSetting;
 import io.kyligence.notebook.console.exception.ByzerException;
@@ -18,6 +20,7 @@ import javax.annotation.PostConstruct;
 import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class SchedulerService {
@@ -36,7 +39,7 @@ public class SchedulerService {
 
     private final NotebookConfig config = NotebookConfig.getInstance();
 
-    private final Boolean enabled = config.schedulerEnabled();
+    private final Boolean enabled = config.getIsSchedulerEnabled();
 
     private final Map<Integer, RemoteSchedulerInterface> schedulerMap = new LinkedHashMap<>();
 
@@ -52,18 +55,18 @@ public class SchedulerService {
     }
 
 
-    public void callback(String token, String scheduleOwner, String entityType, String entityId) {
+    public void callback(String token, String scheduleOwner, String entityType, String entityId, String commitId) {
         if (!config.getScheduleCallbackToken().equals(token)) {
             throw new ByzerException();
         }
-
         String user = config.getScheduleCallbackUser();
         EngineService.RunScriptParams runScriptParams = new EngineService.RunScriptParams()
                 .withAsync("false")
                 .withOwner(scheduleOwner)
+                .withOwnerPathPrefix(scheduleOwner)
                 .with("sessionPerRequest", "true");
 
-        String scripts = getScript(entityType, entityId, runScriptParams.getAll());
+        String scripts = getScript(entityType, entityId, commitId, runScriptParams.getAll());
 
         runScriptParams.withSql(scripts);
 
@@ -108,19 +111,36 @@ public class SchedulerService {
         return schedulers;
     }
 
-    public void createSchedule(Integer schedulerId, String name, String desc, String user, String entityType, Integer entityId, ScheduleSetting scheduleSetting,
+    public void createSchedule(Integer schedulerId, String name, String desc, String user, String entityType,
+                               Integer entityId, String commitId, String taskName, String taskDesc,
+                               ScheduleSetting scheduleSetting,
                                Map<String, String> extraSettings) {
         if (!enabled) throw new ByzerException("SchedulerService not enabled");
         RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
-        scheduler.createTask(user, name, desc, entityType, entityId, getEntityName(entityType, entityId), scheduleSetting, extraSettings);
+        commitId = Objects.isNull(commitId) ? autoCommit(user, entityType, entityId) : commitId;
+        scheduler.createTask(
+                user, name, desc, entityType, entityId, commitId, taskName, taskDesc,
+                getEntityName(entityType, entityId), scheduleSetting, extraSettings
+        );
     }
 
     public void updateSchedule(Integer schedulerId, Integer id, String name, String desc, String user, EntityModification modification, ScheduleSetting scheduleSetting,
                                Map<String, String> extraSettings) {
         if (!enabled) throw new ByzerException("SchedulerService not enabled");
         RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
-        modification.setEntityName(getEntityName(modification.getEntityType(), modification.getEntityId()));
+        if (Objects.nonNull(modification)) {
+            modification.setEntityName(getEntityName(modification.getEntityType(), modification.getEntityId()));
+            if (Objects.equals(modification.getAction(), EntityModification.Actions.update) && Objects.isNull(modification.getCommitId())){
+                modification.setCommitId(autoCommit(user, modification.getEntityType(), modification.getEntityId()));
+            }
+        }
         scheduler.updateTask(user, id, name, desc, modification, scheduleSetting, extraSettings);
+    }
+
+    public void runTask(String user, Integer schedulerId, String projectName, Integer taskId){
+        if (!enabled) throw new ByzerException("SchedulerService not enabled");
+        RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
+        scheduler.runTask(projectName, user, taskId);
     }
 
     public void deleteSchedule(String user, Integer schedulerId, String projectName, Integer taskId) {
@@ -147,6 +167,31 @@ public class SchedulerService {
         return scheduler.getTasks(projectName, user);
     }
 
+    public List<TaskInstanceDTO> getInstanceList(String user, Integer schedulerId, String projectName, Integer taskId){
+        if (!enabled) throw new ByzerException("SchedulerService not enabled");
+        RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
+        List<TaskInstanceDTO> instances = scheduler.getTaskInstances(projectName, user);
+        return Objects.isNull(taskId) ? instances : instances.stream().filter(instance-> Objects.equals(instance.getTaskId(), taskId)).collect(Collectors.toList());
+    }
+
+    public List<TaskNodeInfoDTO> getInstanceNodes(String user, Long taskInstanceId, Integer schedulerId, String projectName){
+        if (!enabled) throw new ByzerException("SchedulerService not enabled");
+        RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
+        return scheduler.getTaskInstanceNodes(projectName, user, taskInstanceId);
+    }
+
+    public void onlineTask(String user, Integer taskId, Integer schedulerId, String projectName){
+        if (!enabled) throw new ByzerException("SchedulerService not enabled");
+        RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
+        scheduler.onlineTask(user, taskId, projectName);
+    }
+
+    public void offlineTask(String user, Integer taskId, Integer schedulerId, String projectName){
+        if (!enabled) throw new ByzerException("SchedulerService not enabled");
+        RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
+        scheduler.offlineTask(user, taskId, projectName);
+    }
+
     public boolean entityUsedInSchedule(String entityType, Integer entityId){
         for (RemoteSchedulerInterface scheduler: schedulerMap.values()){
             TaskInfoDTO exist = scheduler.searchForEntity(getEntityName(entityType, entityId), entityType, entityId);
@@ -155,12 +200,12 @@ public class SchedulerService {
         return false;
     }
 
-    private String getScript(String entityType, String entityId, Map<String, String> options) {
+    private String getScript(String entityType, String entityId, String commitId, Map<String, String> options) {
         switch (entityType.toLowerCase()) {
             case "notebook":
-                return notebookService.getNotebookScripts("admin", Integer.valueOf(entityId), null, options);
+                return notebookService.getNotebookScripts("admin", Integer.valueOf(entityId), commitId, options);
             case "workflow":
-                return workflowService.getWorkflowScripts("admin", Integer.valueOf(entityId), null, options);
+                return workflowService.getWorkflowScripts("admin", Integer.valueOf(entityId), commitId, options);
             default:
                 return "";
         }
@@ -175,5 +220,19 @@ public class SchedulerService {
             default:
                 return "";
         }
+    }
+
+    private String autoCommit(String user, String entityType, Integer entityId){
+        switch (entityType.toLowerCase()) {
+            case "notebook":
+                return notebookService.commit(user, entityId).getCommitId();
+            case "workflow":
+                return workflowService.commit(user, entityId).getCommitId();
+            default:
+                return "";
+        }
+    }
+
+    public void getTaskInstance(Integer schedulerId, String projectName, String user) {
     }
 }

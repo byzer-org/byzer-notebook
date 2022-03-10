@@ -143,6 +143,11 @@ public class EngineService {
             return this;
         }
 
+        public RunScriptParams withOwnerPathPrefix(String owner){
+            params.put("defaultPathPrefix", config.getUserHome() + "/" + owner);
+            return this;
+        }
+
         public RunScriptParams withSql(String sql) {
             params.put("sql", sql);
             return this;
@@ -150,6 +155,11 @@ public class EngineService {
 
         public RunScriptParams withAsync(String async) {
             params.put("async", async);
+            return this;
+        }
+
+        public RunScriptParams withIncludeSchema(Boolean includeSchema){
+            params.put("includeSchema", includeSchema.toString());
             return this;
         }
 

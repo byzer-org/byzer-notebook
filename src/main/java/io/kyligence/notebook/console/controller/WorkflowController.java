@@ -200,4 +200,13 @@ public class WorkflowController {
         workflowService.delete(workflowId);
         return new Response<IdDTO>().data(IdDTO.valueOf(workflowId));
     }
+
+    @ApiOperation("Commit Workflow")
+    @PostMapping("/workflow/{id}/commit")
+    @Permission
+    public Response<String> commit(@PathVariable("id") @NotNull Integer workflowId){
+        String user = WebUtils.getCurrentLoginUser();
+        WorkflowCommit commit = workflowService.commit(user, workflowId);
+        return new Response<String>().data(commit.getCommitId());
+    }
 }

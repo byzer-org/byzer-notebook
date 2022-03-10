@@ -28,4 +28,9 @@ public class ScheduleSetting {
         schedule.setStartTime(scheduleInfo.getStartTime());
         return schedule;
     }
+
+    public static Boolean isNull(ScheduleSetting setting){
+        return Objects.isNull(setting) || Objects.isNull(setting.getCrontab()) ||
+                Objects.isNull(setting.getEndTime()) || Objects.isNull(setting.getStartTime());
+    }
 }

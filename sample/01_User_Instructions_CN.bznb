@@ -1,0 +1,35 @@
+{
+  "id" : "269",
+  "name" : "User_Instructions_CN",
+  "user" : "byzer",
+  "cell_list" : [ {
+    "id" : "3537",
+    "content" : "--%markdown# Byzer Notebook 快速上手\n**文档最新更新日期：2022.3.08**\n本文档将向您介绍如何快速上手体验 Byzer Notebook。您可预留 5 分钟完成一次全流程体验。",
+    "job_id" : null
+  }, {
+    "id" : "3538",
+    "content" : "--%markdown## 1.0 登录 Byzer Notebook 并进入工作区 Workspace \n#### 1.1 创建文件\n您可在工作区列表查看所有项目文件。您可通过点击工作区 Workspace 右侧的 ➕ 创建 Notebook 文件、Workflow 文件和文件夹。也可通过 Import 导入本地的 Notebook 文件（.bznb) 和 Workflow 文件（.bzwf)。\n\n#### 1.2 操作文件\n点击项目文件右侧浮标，可以对文件进行复制 Duplicate，移动 Move，重命名 Rename，删除 Delete 等操作。\n#### 1.3 导出文件\n点击项目文件右侧浮标中的 Export，可以把项目文件导出保存到本地。（重要文件内容建议及时保存）\n",
+    "job_id" : null
+  }, {
+    "id" : "3539",
+    "content" : "--%markdown## 2.0 数据目录 Data Catalog \nByzer Notebook 支持多种数据源类型的一站式接入。\n线上试用的环境目前仅支持 Detalake 和 HDFS 数据源的导入和存储。\n\n#### 2.1 上传文件\n您可通过数据目录 —— File System 右上角悬浮的 ➕ 上传您的文件。\n也可以通过主页中 “快速导入和连接数据” 模块中的**上传**按钮上传您的文件。\n\n#### 2.2 下载文件\n通过 Notebook 编辑过程中生成的数据文件，可以通过点击 Notebook 中 cell 左下角的 **“下载”** 按钮进行下载。\n\n提示：Detalake 线上环境为 Public 环境，请勿保存重要文件。",
+    "job_id" : null
+  }, {
+    "id" : "3540",
+    "content" : "--%markdown## 3.0 笔记本 Notebook \n#### 3.1 编辑 Notebook\n在 Workspace 中，点击对应 Notebook 可进入该项目文件的专属工作区。\n您可通过 Notebook 工作区上方工具栏中的按钮，对cell 执行运行、删除、清除结果 等操作。\n\n#### 3.2 运行 Notebook\ncell 右上角提供了运行 Run 和 运行至此 Run to here 两种按钮，工具栏同时提供了 Run，Run Next 和 Run All 三种运行按钮。\n\n#### 3.3 Coding 模式 VS Markdown 模式\n对于 cell 可以切换 Byzer 语言编码模式，Python 语言编码模式 和 Markdown 文本编辑模式。\n\n#### 3.3 快捷键辅助\n点击工具栏中的 **Show Shortcut Help** 可以查看 Byzer Notebook 的快捷键\n\n#### 3.4 文档手册辅助\n点击导航栏右上角的 ？按钮，可查看 Byzer Notebook 用户手册，也可以通过 **“反馈”** 链接到 Byzer 社区给我们提出您宝贵的建议和意见。",
+    "job_id" : null
+  }, {
+    "id" : "3541",
+    "content" : "--%markdown## 4.0 工作流 Workflow\nByzer Notebook 提供了可视化 Workflow 功能。您可以通过拖拽实现对数据集的导入、筛选、训练、预测和存储。\n同时 Byzer Notebook 还提供了一键转码的功能。编辑好的 Workflow 可以通过右上角的开关一键转换为 Notebook，方便您的二次开发。",
+    "job_id" : null
+  }, {
+    "id" : "3542",
+    "content" : "--%markdown## 5.0 Demo 文件的获取和使用\n对于本地部署的 Byzer Notebook，为方便用户个性化操作使用，未配置内置的 Demo 文件，若想获取 Demo 数据集和 Demo Notebook，请访问如下链接：\n\n[Demo数据及文件](https://download.byzer.org/byzer-notebook/example/Byzer-Notebook_example_20220307.tar.gz)",
+    "job_id" : null
+  }, {
+    "id" : "3543",
+    "content" : "--%markdown以上为对 Byzer Notebook 在线体验环境的快速上手教程，若您在使用中遇到了困难或有任何建议和意见，欢迎到 Byzer 社区提 issue 或通过微信助手/邮件的方式联系我们。",
+    "job_id" : null
+  } ],
+  "is_demo" : null
+}
