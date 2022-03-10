@@ -1,6 +1,5 @@
-package io.kyligence.notebook.console.controller;
+package io.kyligence.notebook.console;
 
-import io.kyligence.notebook.console.NotebookLauncherTestBase;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -10,7 +9,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Objects;
 
-public class BaseControllerTest extends NotebookLauncherTestBase {
+public class BaseResourceLoader {
     protected static final String DEFAULT_CONTENT_TYPE = "application/json";
     protected static final String DEFAULT_AUTH_HEADER = "Authorization";
     protected static final String DEFAULT_AUTH_TOKEN = "Basic YWRtaW46YWRtaW4=";
@@ -40,6 +39,11 @@ public class BaseControllerTest extends NotebookLauncherTestBase {
         return FileUtils.openInputStream(new File(path));
     }
 
+    protected InputStream getInputStream(String collectionName, String instanceName) throws IOException {
+        String path = System.getProperty("NOTEBOOK_HOME") + "/" +
+                MOCK_DATA_DIR + "/" + collectionName + "/" + instanceName;
+        return FileUtils.openInputStream(new File(path));
+    }
     protected String getCollectionName() {
         throw new UnsupportedOperationException();
     }

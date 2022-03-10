@@ -30,7 +30,7 @@ public class CriteriaQueryBuilder {
         for (Field field0 : fields) {
             field0.setAccessible(true);
 
-            if (field0.get(t) == null) {
+            if (field0.get(t) == null || field0.isSynthetic()) {
                 continue;
             }
 

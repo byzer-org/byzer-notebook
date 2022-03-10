@@ -221,7 +221,7 @@ public class  NotebookConfig {
     public String getScheduleCallbackToken(){return getOptional("notebook.scheduler.callback-token", "6173646661736466e4bda0e8bf983161");}
 
 
-    public Boolean getIsSchedulerEnabled(){
+    public boolean getIsSchedulerEnabled(){
        return Objects.equals(getOptional("notebook.scheduler.enable", "").trim(), "true");
     }
 
