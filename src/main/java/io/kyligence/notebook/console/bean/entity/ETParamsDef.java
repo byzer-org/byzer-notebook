@@ -48,7 +48,7 @@ public class ETParamsDef {
     @Column(name = "depends")
     private String depends;
 
-    @Column(name = "constraint")
+    @Column(name = "`constraint`")
     private String constraint;
 
 }
