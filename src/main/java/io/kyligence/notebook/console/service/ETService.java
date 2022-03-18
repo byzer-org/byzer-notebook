@@ -50,6 +50,7 @@ public class ETService {
 
     @PostConstruct
     public void registerET() {
+        System.out.println("非必要装箱" + new Integer(123414));
         RequestContextHolder.resetRequestAttributes();
         String sql = "!show et;";
         String responseBody = engineService.runScript(
