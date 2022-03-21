@@ -231,7 +231,7 @@ public class  NotebookConfig {
         config.setSchedulerName(getOptional("notebook.scheduler.scheduler-name", ""));
         config.setSchedulerUrl(getOptional("notebook.scheduler.scheduler-url", ""));
         config.setAuthToken(getOptional("notebook.scheduler.auth-token", ""));
-        config.setCallbackUrl(getNotebookUrl() + "/api/schedule/execution");
+        config.setCallbackUrl(getOptional("notebook.scheduler.callback-url", getNotebookUrl()) + "/api/schedule/execution");
         config.setCallbackToken(getScheduleCallbackToken());
         config.setDefaultProjectName(getOptional("notebook.scheduler.project-name", "ByzerScheduler"));
         config.setDefaultWarningType(getOptional("notebook.scheduler.warning-type", "ALL"));
