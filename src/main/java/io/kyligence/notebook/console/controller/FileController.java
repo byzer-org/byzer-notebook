@@ -245,22 +245,31 @@ public class FileController {
     @SneakyThrows
     public void exportNotebook(@PathVariable("id") Integer execFileId, @RequestParam("type") String type,
                                @RequestParam(value = "commit_id", required = false) String commitId,
+                               @RequestParam(value = "output", required = false, defaultValue = "json") String outputType,
                                HttpServletResponse response) {
-        String extName = getExtension(type);
         String user = WebUtils.getCurrentLoginUser();
+
         ExecFileDTO execFileDTO = getExecFile(execFileId, user, type, commitId);
 
         String fileName = String.format(Locale.ROOT, "%s_%s", execFileDTO.getName(),
                 new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault(Locale.Category.FORMAT)).format(new Date()));
 
+        String content;
         response.setContentType("application/xml;charset=UTF-8");
-        response.setHeader("Content-Disposition",
-                String.format(Locale.ROOT, "attachment; filename=\"%s.%s\"", fileName, extName));
 
-        String json = JacksonUtils.writeJson(execFileDTO);
-        assert json != null;
+        if (outputType.equalsIgnoreCase("byzer")) {
+            content = getExecFileContent(user, execFileId, type, commitId);
+            response.setHeader("Content-Disposition",
+                    String.format(Locale.ROOT, "attachment; filename=\"%s.byzer\"", fileName));
+        } else {
+            String extName = getExtension(type);
+            response.setHeader("Content-Disposition",
+                    String.format(Locale.ROOT, "attachment; filename=\"%s.%s\"", fileName, extName));
+            content = JacksonUtils.writeJson(execFileDTO);
+        }
+        assert content != null;
 
-        response.getWriter().write(json);
+        response.getWriter().write(content);
         response.getWriter().flush();
         response.getWriter().close();
     }
@@ -329,6 +338,18 @@ public class FileController {
             return notebookService.getNotebook(execFileId, user, commitId);
         } else if (type.equals("workflow")) {
             return workflowService.getWorkflow(execFileId, user, commitId);
+        } else {
+            throw new ByzerException(ErrorCodeEnum.NO_SUCH_TYPE);
+        }
+    }
+
+    private String getExecFileContent(String user, Integer execFileId, String type, String commitId) {
+        if (type.equals("notebook")) {
+            return notebookService.getNotebookScripts(user, execFileId, commitId,
+                    new EngineService.RunScriptParams().getAll());
+        } else if (type.equals("workflow")) {
+            return workflowService.getWorkflowScripts(user, execFileId, commitId,
+                    new EngineService.RunScriptParams().getAll());
         } else {
             throw new ByzerException(ErrorCodeEnum.NO_SUCH_TYPE);
         }
