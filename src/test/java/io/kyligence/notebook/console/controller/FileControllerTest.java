@@ -54,7 +54,7 @@ public class FileControllerTest extends BaseControllerTest {
         ImportResponseDTO result = JacksonUtils.readJson(content, ImportResponseDTO.class);
         Assert.assertNotNull(result);
         List<IdNameTypeDTO> listDTO = result.getData();
-        Assert.assertEquals(listDTO.size(), 1);
+        Assert.assertEquals(1, listDTO.size());
     }
 
     @Test
@@ -65,11 +65,6 @@ public class FileControllerTest extends BaseControllerTest {
                         .header(DEFAULT_AUTH_HEADER, DEFAULT_AUTH_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(EXPORT_CONTENT_TYPE));
-    }
-
-    @Test
-    public void testExportWorkflow() {
-
     }
 
     @Test
