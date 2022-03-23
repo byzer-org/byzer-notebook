@@ -19,4 +19,5 @@
     <include file="changelog/v1.0.0_2021-12-08_01_update_admin_default_pw.sql"/>
     <include file="changelog/v1.0.1_2022-01-13_01_support_for_version_control_and_demo_update.sql"/>
     <include file="changelog/v1.0.2_2022-03-03_01_set_charset_to_utf8mb4.sql"/>
+    <include file="changelog/v1.1.1_2022-03-16_01_add_job_info_archive.sql"/>
 </databaseChangeLog>

@@ -168,12 +168,20 @@ public class  NotebookConfig {
         return getMlsqlEngineBackupUrl();
     }
 
+    public Integer getExecutionEngineCallbackRetries() {
+        return Integer.valueOf(getOptional("notebook.execution.engine.max-retries", "2"));
+    }
+
     public String getJobHistorySize(){
         return getOptional("notebook.job.history.max-size", "2000000");
     }
 
     public String getJobHistoryTime(){
         return getOptional("notebook.job.history.max-time", "30");
+    }
+
+    public String getJobArchiveTime(){
+        return getOptional("notebook.job.history.archive-time", "7");
     }
 
     public void updateConfig(String name, String value) {
@@ -243,4 +251,5 @@ public class  NotebookConfig {
         r.add(config);
         return r;
     }
+
 }

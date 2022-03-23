@@ -11,5 +11,5 @@ public class JobLog {
 
     private List<String> value;
 
-    private Integer offset;
+    private Long offset;
 }

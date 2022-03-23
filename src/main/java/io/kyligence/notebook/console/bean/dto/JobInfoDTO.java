@@ -2,16 +2,15 @@ package io.kyligence.notebook.console.bean.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.kyligence.notebook.console.bean.entity.JobInfo;
+import io.kyligence.notebook.console.bean.entity.JobInfoArchive;
 import io.kyligence.notebook.console.bean.model.CurrentJobInfo;
-import io.kyligence.notebook.console.bean.model.JobProgress;
 import io.kyligence.notebook.console.util.EntityUtils;
 import io.kyligence.notebook.console.util.ExceptionUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
 
 @Data
 @NoArgsConstructor
@@ -34,9 +33,6 @@ public class JobInfoDTO {
 
     @JsonProperty("status")
     private String status;
-
-    @JsonProperty("console_log_offset")
-    private String consoleLogOffset;
 
     @JsonProperty("result")
     private String result;
@@ -66,15 +62,18 @@ public class JobInfoDTO {
     private String currentJobIndex;
 
     @JsonProperty("completed_jobs")
-    private List<SparkJobProgressDTO> completedJobs;
+    private Integer completedJobs;
 
     @JsonProperty("in_progress_jobs")
-    private List<SparkJobProgressDTO> inProgressJobs;
+    private Integer inProgressJobs;
 
     @JsonProperty("failed_jobs")
-    private List<SparkJobProgressDTO> failedJobs;
+    private Integer failedJobs;
 
-    public static JobInfoDTO valueOf(JobInfo jobInfo, JobProgress jobProgress, CurrentJobInfo currentJobInfo) {
+    @JsonProperty("progress")
+    private Double progress;
+
+    public static JobInfoDTO valueOf(JobInfo jobInfo, JobProgressDTO jobProgress, CurrentJobInfo currentJobInfo) {
         if (jobInfo == null) {
             return null;
         }
@@ -88,37 +87,20 @@ public class JobInfoDTO {
         resp.startTime = EntityUtils.toStr(jobInfo.getCreateTime());
         resp.endTime = EntityUtils.toStr(jobInfo.getFinishTime());
         resp.result = jobInfo.getResult();
-        resp.consoleLogOffset = EntityUtils.toStr(jobInfo.getConsoleLogOffset());
         resp.msg = jobInfo.getMsg();
         resp.rootCause = ExceptionUtils.getRootCause(jobInfo.getMsg());
         resp.notebook = StringUtils.isBlank(jobInfo.getNotebook()) ? "untitled" : jobInfo.getNotebook();
         resp.engine = StringUtils.isBlank(jobInfo.getEngine()) ? "default" : jobInfo.getEngine();
+        if (Objects.nonNull(jobProgress)) {
+            resp.completedJobs = jobProgress.getCompletedJobs();
+            resp.failedJobs = jobProgress.getFailedJobs();
+            resp.inProgressJobs = jobProgress.getInProgressJobs();
+            resp.progress = jobProgress.getProgress();
+        }
 
         if (resp.startTime != null) {
             long endTimestamp = (resp.endTime == null) ? System.currentTimeMillis() : jobInfo.getFinishTime().getTime();
             resp.duration = String.valueOf(endTimestamp - jobInfo.getCreateTime().getTime());
-        }
-
-        if (jobProgress != null && jobProgress.getActiveJobs() != null && jobProgress.getActiveJobs().size() != 0) {
-            resp.completedJobs = new ArrayList<>();
-            resp.inProgressJobs = new ArrayList<>();
-            resp.failedJobs = new ArrayList<>();
-            for (JobProgress.ActiveJob activeJob : jobProgress.getActiveJobs()) {
-                if ((activeJob.getNumFailedTasks() != null && activeJob.getNumFailedTasks() > 0) ||
-                        (activeJob.getNumFailedStages() != null && activeJob.getNumFailedStages() > 0)) {
-                    resp.failedJobs.add(SparkJobProgressDTO.valueOf(activeJob));
-                    continue;
-                }
-                if (StringUtils.isEmpty(activeJob.getCompletionTime())) {
-                    resp.inProgressJobs.add(SparkJobProgressDTO.valueOf(activeJob));
-                    continue;
-                }
-                if (StringUtils.isNotEmpty(activeJob.getCompletionTime())) {
-                    resp.completedJobs.add(SparkJobProgressDTO.valueOf(activeJob));
-                }
-
-
-            }
         }
 
         if (currentJobInfo != null && currentJobInfo.getProgress() != null) {
@@ -134,7 +116,20 @@ public class JobInfoDTO {
         return valueOf(jobInfo, null, null);
     }
 
-    public static JobInfoDTO valueOf(JobInfo jobInfo, JobProgress jobProgress) {
+    public static JobInfoDTO valueOf(JobInfoArchive jobInfoArchive) {
+        JobInfo jobInfo = new JobInfo();
+        jobInfo.setStatus(jobInfoArchive.getStatus());
+        jobInfo.setJobId(jobInfoArchive.getJobId());
+        jobInfo.setEngine(jobInfoArchive.getEngine());
+        jobInfo.setUser(jobInfoArchive.getUser());
+        jobInfo.setNotebook(jobInfoArchive.getNotebook());
+        jobInfo.setCreateTime(jobInfoArchive.getCreateTime());
+        jobInfo.setFinishTime(jobInfoArchive.getFinishTime());
+        jobInfo.setMsg(jobInfoArchive.getMsg());
+        return valueOf(jobInfo);
+    }
+
+    public static JobInfoDTO valueOf(JobInfo jobInfo, JobProgressDTO jobProgress) {
         return valueOf(jobInfo, jobProgress, null);
     }
 
@@ -145,43 +140,5 @@ public class JobInfoDTO {
         JobInfo jobInfo = new JobInfo();
         jobInfo.setContent(currentJobInfo.getProgress().getScript());
         return valueOf(jobInfo, null, currentJobInfo);
-    }
-
-
-    @Data
-    @NoArgsConstructor
-    public static class SparkJobProgressDTO {
-
-        @JsonProperty("spark_job_id")
-        private String sparkJobId;
-
-        @JsonProperty("total_task_count")
-        private String totalTaskCount;
-
-        @JsonProperty("completed_task_count")
-        private String completedTaskCount;
-
-        @JsonProperty("skipped_task_count")
-        private String skippedTaskCount;
-
-        @JsonProperty("duration")
-        private String duration;
-
-        public static SparkJobProgressDTO valueOf(JobProgress.ActiveJob activeJob) {
-            SparkJobProgressDTO sparkJobProgressDTO = new SparkJobProgressDTO();
-            sparkJobProgressDTO.sparkJobId = EntityUtils.toStr(activeJob.getJobId());
-            sparkJobProgressDTO.totalTaskCount = EntityUtils.toStr(activeJob.getNumTasks());
-            // complete include skipped
-            if (activeJob.getNumCompletedTasks() != null && activeJob.getNumSkippedTasks() != null) {
-                int completedTasksCount = activeJob.getNumCompletedTasks() + activeJob.getNumSkippedTasks();
-                sparkJobProgressDTO.completedTaskCount = String.valueOf(completedTasksCount);
-            } else {
-                sparkJobProgressDTO.completedTaskCount = EntityUtils.toStr(activeJob.getNumCompletedTasks());
-            }
-            sparkJobProgressDTO.skippedTaskCount = EntityUtils.toStr(activeJob.getNumSkippedTasks());
-            sparkJobProgressDTO.duration = EntityUtils.toStr(activeJob.getDuration());
-            return sparkJobProgressDTO;
-        }
-
     }
 }

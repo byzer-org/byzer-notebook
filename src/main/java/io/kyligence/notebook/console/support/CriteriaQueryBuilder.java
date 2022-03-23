@@ -27,6 +27,7 @@ public class CriteriaQueryBuilder {
         Root root = update.from(t.getClass());
 
         Field[] fields = t.getClass().getDeclaredFields();
+        if (fields.length == 0) fields = t.getClass().getSuperclass().getDeclaredFields();
         for (Field field0 : fields) {
             field0.setAccessible(true);
 
@@ -46,7 +47,7 @@ public class CriteriaQueryBuilder {
         return entityManager.createQuery(update);
     }
 
-    public Query getAll(Class clazz,
+    public Query getAll(Class<?> clazz,
                         boolean isSelectAll,
                         List<String> selectFields,
                         Integer pageSize,
@@ -56,21 +57,45 @@ public class CriteriaQueryBuilder {
                         Map<String, String> filters,
                         Map<String, String> keywords) {
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-        CriteriaQuery criteriaQuery = builder.createQuery(clazz);
-        Root root = criteriaQuery.from(clazz);
+        CriteriaQuery<?> criteriaQuery = builder.createQuery(clazz);
+        Root<?> root = criteriaQuery.from(clazz);
 
         if (!isSelectAll && selectFields != null && selectFields.size() != 0) {
-            List<Selection> selections = new ArrayList<>();
+            List<Selection<?>> selections = new ArrayList<>();
             selectFields.forEach(selectField -> selections.add(root.get(selectField)));
             criteriaQuery.multiselect(selections);
         }
 
         if (StringUtils.isNotBlank(sortBy)) {
-            reverse = (reverse == null ? true : reverse);
+            reverse = (reverse == null || reverse);
             Order order = reverse ? builder.desc(root.get(sortBy)) : builder.asc(root.get(sortBy));
             criteriaQuery.orderBy(order);
         }
 
+        buildFilterExp(criteriaQuery, builder, root, filters, keywords);
+
+        TypedQuery<?> query = entityManager.createQuery(criteriaQuery);
+        if (pageSize != null && pageOffset != null) {
+            query.setFirstResult(pageSize * pageOffset);
+            query.setMaxResults(pageSize);
+        }
+        return query;
+    }
+
+    public Query count(Class<?> clazz, Map<String, String> filters, Map<String, String> keywords) {
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Long> criteriaQuery = builder.createQuery(Long.class);
+        Root<?> root = criteriaQuery.from(clazz);
+
+        criteriaQuery.select(builder.count(root));
+
+        buildFilterExp(criteriaQuery, builder, root, filters, keywords);
+
+        return entityManager.createQuery(criteriaQuery);
+    }
+
+    private void buildFilterExp(CriteriaQuery<?> criteriaQuery, CriteriaBuilder builder, Root<?> root,
+                                Map<String, String> filters, Map<String, String> keywords) {
         List<Predicate> filterExpList = new ArrayList<>();
         if (filters != null && filters.size() != 0) {
             filters.forEach((key, value) -> {
@@ -95,41 +120,6 @@ public class CriteriaQueryBuilder {
             criteriaQuery.where(filterExpList.toArray(type));
 
         }
-
-        TypedQuery query = entityManager.createQuery(criteriaQuery);
-        if (pageSize != null && pageOffset != null) {
-            query.setFirstResult(pageSize * pageOffset);
-            query.setMaxResults(pageSize);
-        }
-        return query;
-    }
-
-    public Query count(Class clazz, Map<String, String> filters) {
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Long> criteriaQuery = builder.createQuery(Long.class);
-        Root root = criteriaQuery.from(clazz);
-
-        criteriaQuery.select(builder.count(root));
-
-        List<Predicate> filterExpList = new ArrayList<>();
-        if (filters != null && filters.size() != 0) {
-            filters.forEach((key, value) -> {
-                if (value == null) {
-                    filterExpList.add(builder.isNull(root.get(key)));
-                } else {
-                    filterExpList.add(builder.equal(root.get(key), value));
-                }
-            });
-        }
-
-        if (filterExpList.size() >= 1) {
-            Predicate[] type = new Predicate[filterExpList.size()];
-            criteriaQuery.where(filterExpList.toArray(type));
-
-        }
-
-        TypedQuery query = entityManager.createQuery(criteriaQuery);
-        return query;
     }
 
 
