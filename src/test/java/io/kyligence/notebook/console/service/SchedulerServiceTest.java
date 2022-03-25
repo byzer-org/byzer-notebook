@@ -2,10 +2,7 @@ package io.kyligence.notebook.console.service;
 
 import io.kyligence.notebook.console.NotebookConfig;
 import io.kyligence.notebook.console.NotebookLauncherTestBase;
-import io.kyligence.notebook.console.bean.dto.IdNameDTO;
-import io.kyligence.notebook.console.bean.dto.TaskInfoDTO;
-import io.kyligence.notebook.console.bean.dto.TaskInstanceDTO;
-import io.kyligence.notebook.console.bean.dto.TaskNodeInfoDTO;
+import io.kyligence.notebook.console.bean.dto.*;
 import io.kyligence.notebook.console.bean.entity.JobInfo;
 import io.kyligence.notebook.console.exception.ByzerException;
 import io.kyligence.notebook.console.scheduler.RemoteSchedulerInterface;
@@ -34,16 +31,19 @@ public class SchedulerServiceTest extends NotebookLauncherTestBase {
     private JobService jobService;
 
     @InjectMocks
-    private SchedulerService mockSchedulerService;
+    private SchedulerService mockService;
 
     @Mock
-    private RemoteSchedulerInterface mockRemoteSchedulerInterface;
+    private NotebookService notebookService;
+
+    @Mock
+    private RemoteSchedulerInterface mockInterface;
 
     private final Integer mockSchedulerId = 5;
 
-    private final Integer mockSchedulerTaskId = 50;
+    private final Integer mockTaskId = 50;
     private final Integer mockNotebookId = 100;
-    private final Long mockSchedulerTaskInstanceId = 102448L;
+    private final Long mockTaskInstanceId = 102448L;
 
     private final String mockSchedulerName = "MockScheduler";
     private final String mockUser = "MockScheduler";
@@ -57,8 +57,8 @@ public class SchedulerServiceTest extends NotebookLauncherTestBase {
     @PostConstruct
     public void mock() throws Exception {
         super.mock();
-        mockSchedulerService.mockEnableSchedule();
-        mockSchedulerService.mockScheduler(mockSchedulerId, mockRemoteSchedulerInterface);
+        mockService.mockEnableSchedule();
+        mockService.mockScheduler(mockSchedulerId, mockInterface);
     }
 
     @Override
@@ -92,10 +92,10 @@ public class SchedulerServiceTest extends NotebookLauncherTestBase {
 
     @Test
     public void testSetStatus() {
-        mockSchedulerService.setStatus(mockUser, mockSchedulerId, null,
-                mockSchedulerTaskInstanceId, 1);
-        verify(mockRemoteSchedulerInterface, times(1)).sendCommand(null, mockUser,
-                mockSchedulerTaskInstanceId, 1);
+        mockService.setStatus(mockUser, mockSchedulerId, null,
+                mockTaskInstanceId, 1);
+        verify(mockInterface, times(1)).sendCommand(null, mockUser,
+                mockTaskInstanceId, 1);
         thrown.expect(ByzerException.class);
         thrown.expectMessage("SchedulerService not enabled");
         schedulerService.setStatus("mock-user", 1, null, 12L, 1);
@@ -103,9 +103,9 @@ public class SchedulerServiceTest extends NotebookLauncherTestBase {
 
     @Test
     public void testDeleteSchedule() {
-        mockSchedulerService.deleteSchedule(mockUser, mockSchedulerId, null, mockSchedulerTaskId);
-        verify(mockRemoteSchedulerInterface, times(1)).deleteTask(mockUser,
-                null, mockSchedulerTaskId);
+        mockService.deleteSchedule(mockUser, mockSchedulerId, null, mockTaskId);
+        verify(mockInterface, times(1)).deleteTask(mockUser,
+                null, mockTaskId);
 
         thrown.expect(ByzerException.class);
         thrown.expectMessage("SchedulerService not enabled");
@@ -114,9 +114,9 @@ public class SchedulerServiceTest extends NotebookLauncherTestBase {
 
     @Test
     public void testOnlineTask() {
-        mockSchedulerService.onlineTask(mockUser, mockSchedulerTaskId, mockSchedulerId, null);
-        verify(mockRemoteSchedulerInterface, times(1)).onlineTask(mockUser,
-                mockSchedulerTaskId, null);
+        mockService.onlineTask(mockUser, mockTaskId, mockSchedulerId, null);
+        verify(mockInterface, times(1)).onlineTask(mockUser,
+                mockTaskId, null);
 
         thrown.expect(ByzerException.class);
         thrown.expectMessage("SchedulerService not enabled");
@@ -125,9 +125,9 @@ public class SchedulerServiceTest extends NotebookLauncherTestBase {
 
     @Test
     public void testOfflineTask() {
-        mockSchedulerService.offlineTask(mockUser, mockSchedulerTaskId, mockSchedulerId, null);
-        verify(mockRemoteSchedulerInterface, times(1)).offlineTask(mockUser,
-                mockSchedulerTaskId, null);
+        mockService.offlineTask(mockUser, mockTaskId, mockSchedulerId, null);
+        verify(mockInterface, times(1)).offlineTask(mockUser,
+                mockTaskId, null);
 
         thrown.expect(ByzerException.class);
         thrown.expectMessage("SchedulerService not enabled");
@@ -136,8 +136,8 @@ public class SchedulerServiceTest extends NotebookLauncherTestBase {
 
     @Test
     public void testGetSchedulerList() {
-        when(mockRemoteSchedulerInterface.getServiceName()).thenReturn(mockSchedulerName);
-        List<IdNameDTO> schedulers = mockSchedulerService.getSchedulerList();
+        when(mockInterface.getServiceName()).thenReturn(mockSchedulerName);
+        List<IdNameDTO> schedulers = mockService.getSchedulerList();
         Assert.assertEquals(1, schedulers.size());
         Assert.assertEquals(mockSchedulerName, schedulers.get(0).getName());
         thrown.expect(ByzerException.class);
@@ -147,10 +147,10 @@ public class SchedulerServiceTest extends NotebookLauncherTestBase {
 
     @Test
     public void testGetScheduleById() {
-        when(mockRemoteSchedulerInterface.getTask(any(), eq(mockUser), eq(mockSchedulerTaskId)))
+        when(mockInterface.getTask(any(), eq(mockUser), eq(mockTaskId)))
                 .thenReturn(new TaskInfoDTO());
-        Assert.assertNotNull(mockSchedulerService.getScheduleById(mockUser, mockSchedulerId,
-                null, mockSchedulerTaskId));
+        Assert.assertNotNull(mockService.getScheduleById(mockUser, mockSchedulerId,
+                null, mockTaskId));
 
         thrown.expect(ByzerException.class);
         thrown.expectMessage("SchedulerService not enabled");
@@ -159,9 +159,9 @@ public class SchedulerServiceTest extends NotebookLauncherTestBase {
 
     @Test
     public void testGetScheduleByEntity() {
-        when(mockRemoteSchedulerInterface.getTask(any(), eq(mockUser), eq("notebook"), eq(mockNotebookId)))
+        when(mockInterface.getTask(any(), eq(mockUser), eq("notebook"), eq(mockNotebookId)))
                 .thenReturn(new TaskInfoDTO());
-        Assert.assertNotNull(mockSchedulerService.getScheduleByEntity(mockUser, mockSchedulerId,
+        Assert.assertNotNull(mockService.getScheduleByEntity(mockUser, mockSchedulerId,
                 null, "notebook", mockNotebookId));
 
         thrown.expect(ByzerException.class);
@@ -175,9 +175,9 @@ public class SchedulerServiceTest extends NotebookLauncherTestBase {
         List<TaskInfoDTO> mockData = new ArrayList<>();
         mockData.add(new TaskInfoDTO());
         mockData.add(new TaskInfoDTO());
-        when(mockRemoteSchedulerInterface.getTasks(any(), eq(mockUser)))
+        when(mockInterface.getTasks(any(), eq(mockUser)))
                 .thenReturn(mockData);
-        Assert.assertEquals(mockData.size(), mockSchedulerService.getScheduleList(mockUser,
+        Assert.assertEquals(mockData.size(), mockService.getScheduleList(mockUser,
                 mockSchedulerId, null).size());
 
         thrown.expect(ByzerException.class);
@@ -191,11 +191,11 @@ public class SchedulerServiceTest extends NotebookLauncherTestBase {
         mockData.add(new TaskNodeInfoDTO());
         mockData.add(new TaskNodeInfoDTO());
 
-        when(mockRemoteSchedulerInterface.getTaskInstanceNodes(any(), eq(mockUser), eq(mockSchedulerTaskInstanceId)))
+        when(mockInterface.getTaskInstanceNodes(any(), eq(mockUser), eq(mockTaskInstanceId)))
                 .thenReturn(mockData);
 
         Assert.assertEquals(mockData.size(),
-                mockSchedulerService.getInstanceNodes(mockUser, mockSchedulerTaskInstanceId,
+                mockService.getInstanceNodes(mockUser, mockTaskInstanceId,
                         mockSchedulerId, null).size());
         thrown.expect(ByzerException.class);
         thrown.expectMessage("SchedulerService not enabled");
@@ -207,23 +207,42 @@ public class SchedulerServiceTest extends NotebookLauncherTestBase {
         List<TaskInstanceDTO> mockData = new ArrayList<>();
         TaskInstanceDTO t1 = new TaskInstanceDTO();
         t1.setOwner(mockUser);
-        t1.setTaskId(mockSchedulerTaskId);
+        t1.setTaskId(mockTaskId);
         TaskInstanceDTO t2 = new TaskInstanceDTO();
         t2.setOwner(mockUser);
         t2.setTaskId(10);
         mockData.add(t2);
         mockData.add(t1);
 
-        when(mockRemoteSchedulerInterface.getTaskInstances(any(), eq(mockUser))).thenReturn(mockData);
-        Assert.assertEquals(1, mockSchedulerService.getInstanceList(mockUser, mockSchedulerId,
-                null, mockSchedulerTaskId).size());
+        when(mockInterface.getTaskInstances(any(), eq(mockUser))).thenReturn(mockData);
+        Assert.assertEquals(1, mockService.getInstanceList(mockUser, mockSchedulerId,
+                null, mockTaskId).size());
         thrown.expect(ByzerException.class);
         thrown.expectMessage("SchedulerService not enabled");
-        schedulerService.getInstanceList("mock-user", null, null, mockSchedulerTaskId);
+        schedulerService.getInstanceList("mock-user", null, null, mockTaskId);
+    }
+
+    @Test
+    public void testGetInstanceStatus() {
+        String status = "RUNNING";
+        when(mockInterface.getTaskInstanceStatus(any(), eq(mockUser), eq(mockTaskInstanceId)))
+                .thenReturn(status);
+        Assert.assertEquals(status, mockService.getInstanceStatus(mockUser, mockTaskInstanceId, mockSchedulerId, null));
+        thrown.expect(ByzerException.class);
+        thrown.expectMessage("SchedulerService not enabled");
+        schedulerService.getInstanceStatus("mock-user", mockTaskInstanceId, mockSchedulerId, null);
     }
 
     @Test
     public void testEntityUsedInSchedule() {
+        String mockName = "mockNotebook";
+        NotebookDTO mockNotebook = new NotebookDTO();
+        mockNotebook.setName(mockName);
+        when(mockInterface.searchForEntity(any(), eq("notebook"), eq(mockNotebookId)))
+                .thenReturn(new TaskInfoDTO());
+        when(notebookService.getNotebook(eq(mockNotebookId), any()))
+                .thenReturn(mockNotebook);
+        Assert.assertTrue(mockService.entityUsedInSchedule("notebook", mockNotebookId));
         Assert.assertFalse(schedulerService.entityUsedInSchedule("notebook", 1));
     }
 

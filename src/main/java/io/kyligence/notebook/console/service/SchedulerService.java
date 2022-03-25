@@ -177,8 +177,17 @@ public class SchedulerService {
         if (!enabled) throw new ByzerException("SchedulerService not enabled");
         RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
         List<TaskInstanceDTO> instances = scheduler.getTaskInstances(projectName, user);
-        return Objects.isNull(taskId) ? instances : instances.stream().filter(instance-> Objects.equals(instance.getTaskId(), taskId)).collect(Collectors.toList());
+        return Objects.isNull(taskId) ? instances : instances.stream().filter(
+                instance-> Objects.equals(instance.getTaskId(), taskId)).collect(Collectors.toList());
     }
+
+
+    public String getInstanceStatus(String user, Long taskInstanceId, Integer schedulerId, String projectName) {
+        if (!enabled) throw new ByzerException("SchedulerService not enabled");
+        RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
+        return scheduler.getTaskInstanceStatus(projectName, user, taskInstanceId);
+    }
+
 
     public List<TaskNodeInfoDTO> getInstanceNodes(String user, Long taskInstanceId, Integer schedulerId, String projectName){
         if (!enabled) throw new ByzerException("SchedulerService not enabled");
