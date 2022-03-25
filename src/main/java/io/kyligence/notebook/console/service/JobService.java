@@ -23,10 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import javax.persistence.Query;
 import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -75,7 +72,7 @@ public class JobService {
         }
 
         List<JobLog> resultsMap = JacksonUtils.readJsonArray(response, JobLog.class);
-        JobLog jobLog = resultsMap.get(0);
+        JobLog jobLog = Objects.requireNonNull(resultsMap).get(0);
         if (offset == -1 && jobLog.getOffset() != null && jobLog.getOffset() != -1) {
             offset = jobLog.getOffset() - jobLog.getValue().toString().length();
             jobInfoRepository.updateLogOffset(jobId, offset);

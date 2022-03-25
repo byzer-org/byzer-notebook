@@ -39,7 +39,7 @@ public class SchedulerService {
 
     private final NotebookConfig config = NotebookConfig.getInstance();
 
-    private final Boolean enabled = config.getIsSchedulerEnabled();
+    private boolean enabled = config.getIsSchedulerEnabled();
 
     private final Map<Integer, RemoteSchedulerInterface> schedulerMap = new LinkedHashMap<>();
 
@@ -143,6 +143,12 @@ public class SchedulerService {
         scheduler.runTask(projectName, user, taskId);
     }
 
+    public void setStatus(String user, Integer schedulerId, String projectName, Long taskInstanceId, Integer setStatus){
+        if (!enabled) throw new ByzerException("SchedulerService not enabled");
+        RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
+        scheduler.sendCommand(projectName, user, taskInstanceId, setStatus);
+    }
+
     public void deleteSchedule(String user, Integer schedulerId, String projectName, Integer taskId) {
         if (!enabled) throw new ByzerException("SchedulerService not enabled");
         RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
@@ -234,5 +240,15 @@ public class SchedulerService {
     }
 
     public void getTaskInstance(Integer schedulerId, String projectName, String user) {
+    }
+
+    // for test
+    public void mockScheduler(Integer id, RemoteSchedulerInterface mockInterface) {
+        schedulerMap.put(id, mockInterface);
+    }
+
+    // for test
+    public void mockEnableSchedule() {
+        enabled = true;
     }
 }

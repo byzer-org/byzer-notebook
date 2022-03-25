@@ -1,0 +1,12 @@
+{
+  "id": "2144",
+  "name": "test_import_notebook",
+  "user": "byzer",
+  "cell_list": [
+    {
+      "id": "23917",
+      "content": "!show version;",
+      "job_id": "12c59b40-2c56-481c-b83d-9fa427af55ff"
+    }
+  ]
+}

@@ -42,6 +42,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         String deleteProcess = "/projects/$projectName/process/delete?processDefinitionId=$processId";
         String runProcess = "/projects/$projectName/executors/start-process-instance";
 
+        String stopProcessInstance = "/projects/$projectName/executors/execute";
         String createSchedule = "/projects/$projectName/schedule/create";
         String updateSchedule = "/projects/$projectName/schedule/update";
         String scheduleList = "/projects/$projectName/schedule/list-paging?processDefinitionId=$processId&pageNo=1&pageSize=10";
@@ -171,6 +172,16 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
 
         findProcess(user, taskId, project);
         runProcess(project, taskId);
+    }
+
+    @Override
+    public void sendCommand(String projectName, String user, Long taskInstanceId, Integer commandCode) {
+        String project = Objects.isNull(projectName) ? defaultProject : projectName;
+        ProcessInstance instance = getProcessInstance(project, taskInstanceId);
+
+        findProcess(user, instance.getProcessDefinitionId(), project);
+        sendCommandToProcessInstance(project, taskInstanceId,
+                DolphinInstanceCommandEnum.valueOf(commandCode).getValue());
     }
 
     private ProcessInfo findProcess(String user, Integer taskId, String projectName) {
@@ -751,6 +762,15 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         body.add("processInstancePriority", config.getDefaultProcessInstancePriority());
         body.add("workerGroup", config.getDefaultWorker());
 
+        request(uri, HttpMethod.POST, prepareHeader(), body);
+    }
+
+    private void sendCommandToProcessInstance(String projectName, Long taskInstanceId, String command) {
+        String uri = APIMapping.stopProcessInstance
+                .replace("$projectName", projectName);
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("processInstanceId", taskInstanceId.toString());
+        body.add("executeType", command);
         request(uri, HttpMethod.POST, prepareHeader(), body);
     }
 }
