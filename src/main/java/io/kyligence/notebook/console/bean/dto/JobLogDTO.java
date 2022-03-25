@@ -16,7 +16,7 @@ public class JobLogDTO {
     private String jobId;
 
     @JsonProperty("offset")
-    private Integer offset;
+    private Long offset;
 
     @JsonProperty("logs")
     private List<String> logs;

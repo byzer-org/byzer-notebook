@@ -7,15 +7,15 @@ import java.sql.Timestamp;
 
 @Data
 @Entity
-@Table(name = "job_info")
-public class JobInfo {
+@Table(name = "job_info_archive")
+public class JobInfoArchive {
 
-    public JobInfo() {
+    public JobInfoArchive() {
 
     }
 
-    public JobInfo(String jobId, Integer status, String user, String notebook, String engine,
-                   java.util.Date createTime, java.util.Date finishTime) {
+    public JobInfoArchive(String jobId, Integer status, String user, String notebook, String engine,
+                          java.util.Date createTime, java.util.Date finishTime) {
         this.jobId = jobId;
         this.status = status;
         this.user = user;
@@ -23,10 +23,9 @@ public class JobInfo {
         this.engine = engine;
         this.createTime = (Timestamp) createTime;
         this.finishTime = (Timestamp) finishTime;
-
     }
 
-    public JobInfo(String jobId, Integer status) {
+    public JobInfoArchive(String jobId, Integer status) {
         this.jobId = jobId;
         this.status = status;
     }
@@ -76,15 +75,5 @@ public class JobInfo {
 
     @Column(name = "result")
     private String result;
-
-
-    public interface JobStatus {
-        int RUNNING = 0;
-        int SUCCESS = 1;
-        int FAILED = 2;
-        int KILLED = 3;
-        int RETRYING = 4;
-        int NOT_EXIST = -1;
-    }
 
 }
