@@ -5,7 +5,8 @@
 --tag: 1.1.1
 
 ALTER TABLE `job_info` DROP COLUMN `console_log_offset`,
-MODIFY COLUMN `job_progress` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL AFTER `msg`,
+DROP COLUMN `job_progress`,
+ADD COLUMN `job_progress` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL AFTER `msg`,
 MODIFY COLUMN `status` smallint(4) NOT NULL DEFAULT 0 COMMENT '0: Running; 1: Success; 2: Failed; 3: Killed; 4-6 Waiting' AFTER `content`,
 ADD INDEX `job_info_archive_ctime_status_k`(`create_time`, `status`) USING BTREE,
 ADD INDEX `job_info_archive_ctime_k`(`create_time`) USING BTREE;
