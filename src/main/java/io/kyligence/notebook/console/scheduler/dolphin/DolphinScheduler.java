@@ -36,12 +36,13 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
 
         String createProcess = "/projects/$projectName/process/save";
         String updateProcess = "/projects/$projectName/process/update";
-        String searchProcess = "/projects/$projectName/process/list-paging?pageSize=100000&pageNo=$page&searchVal=$processName";
+        String searchProcess = "/projects/$projectName/process/list-paging?pageSize=10000&pageNo=$page&searchVal=$processName";
         String processDetail = "/projects/$projectName/process/select-by-id?processId=$processId";
         String onlineProcess = "/projects/$projectName/process/release";
         String deleteProcess = "/projects/$projectName/process/delete?processDefinitionId=$processId";
         String runProcess = "/projects/$projectName/executors/start-process-instance";
 
+        String stopProcessInstance = "/projects/$projectName/executors/execute";
         String createSchedule = "/projects/$projectName/schedule/create";
         String updateSchedule = "/projects/$projectName/schedule/update";
         String scheduleList = "/projects/$projectName/schedule/list-paging?processDefinitionId=$processId&pageNo=1&pageSize=10";
@@ -50,7 +51,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         String deleteSchedule = "/projects/$projectName/schedule/delete?scheduleId=$scheduleId";
         String mailList = "/projects/$projectName/executors/get-receiver-cc?processDefinitionId=$processId";
 
-        String getProcessInstanceList = "/projects/$projectName/instance/list-paging?searchVal=$prefix&pageSize=100000&pageNo=$page";
+        String getProcessInstanceList = "/projects/$projectName/instance/list-paging?searchVal=$prefix&pageSize=10000&pageNo=$page";
         String getProcessInstance = "/projects/$projectName/instance/select-by-id?processInstanceId=$processInstanceId";
         String getProcessInstanceTasks = "/projects/$projectName/instance/task-list-by-process-id?processInstanceId=$processInstanceId";
         String getTaskInstanceLog = "/log/detail?taskInstanceId=$taskInstanceId&skipLineNum=0&limit=10000";
@@ -173,6 +174,16 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         runProcess(project, taskId);
     }
 
+    @Override
+    public void sendCommand(String projectName, String user, Long taskInstanceId, Integer commandCode) {
+        String project = Objects.isNull(projectName) ? defaultProject : projectName;
+        ProcessInstance instance = getProcessInstance(project, taskInstanceId);
+
+        findProcess(user, instance.getProcessDefinitionId(), project);
+        sendCommandToProcessInstance(project, taskInstanceId,
+                DolphinInstanceCommandEnum.valueOf(commandCode).getValue());
+    }
+
     private ProcessInfo findProcess(String user, Integer taskId, String projectName) {
         ProcessInfo processInfo = getProcessDetail(projectName, taskId);
         if (Objects.isNull(processInfo)) throw new ByzerException("Target schedule don't exist");
@@ -237,7 +248,18 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
     public List<TaskInstanceDTO> getTaskInstances(String projectName, String user) {
         String project = Objects.isNull(projectName) ? defaultProject : projectName;
         String namePrefix = genTaskNamePrefix(user);
-        return getProcessInstanceList(project, user).stream().map(p -> TaskInstanceDTO.valueOf(p, user, namePrefix)).collect(Collectors.toList());
+        return getProcessInstanceList(project, namePrefix).stream()
+                .map(p -> TaskInstanceDTO.valueOf(p, user, namePrefix)).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<TaskInstanceDTO> getTaskInstances(String projectName, String user, Integer taskId) {
+        String project = Objects.isNull(projectName) ? defaultProject : projectName;
+        String namePrefix = genTaskNamePrefix(user);
+        ProcessInfo processInfo = getProcessDetail(project, taskId);
+        String prefix = processInfo.getName();
+        return getProcessInstanceList(project, prefix).stream()
+                .map(p -> TaskInstanceDTO.valueOf(p, user, namePrefix)).collect(Collectors.toList());
     }
 
     @Override
@@ -304,6 +326,20 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         }
         Collections.reverse(taskNodeInfos);
         return taskNodeInfos;
+    }
+
+    @Override
+    public String getTaskInstanceStatus(String projectName, String user, Long taskInstanceId) {
+        String project = Objects.isNull(projectName) ? defaultProject : projectName;
+        ProcessInstance processInstance = getProcessInstance(project, taskInstanceId);
+        if (!processInstance.getName().startsWith(genTaskNamePrefix(user))) {
+            throw new ByzerException(MessageFormat.format(
+                    "User: {0} is not the owner of task instance: {1}",
+                    user,
+                    taskInstanceId.toString()
+            ));
+        }
+        return processInstance.getState();
     }
 
     @Override
@@ -705,10 +741,10 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         return mails;
     }
 
-    private List<ProcessInstance> getProcessInstanceList(String projectName, String user) {
+    private List<ProcessInstance> getProcessInstanceList(String projectName, String prefix) {
         String uri = APIMapping.getProcessInstanceList
                 .replace("$projectName", projectName)
-                .replace("$prefix", genTaskNamePrefix(user))
+                .replace("$prefix", prefix)
                 .replace("$page", "1");
         ProcessInstanceDTO ack = request(uri, HttpMethod.GET, prepareHeader(), null, ProcessInstanceDTO.class);
         return ack.getData().getTotalList();
@@ -719,6 +755,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
                 .replace("$projectName", projectName)
                 .replace("$processInstanceId", processInstanceId.toString());
         ProcessInstanceDetailDTO ack = request(uri, HttpMethod.GET, prepareHeader(), null, ProcessInstanceDetailDTO.class);
+
         return ack.getData();
     }
 
@@ -751,6 +788,15 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         body.add("processInstancePriority", config.getDefaultProcessInstancePriority());
         body.add("workerGroup", config.getDefaultWorker());
 
+        request(uri, HttpMethod.POST, prepareHeader(), body);
+    }
+
+    private void sendCommandToProcessInstance(String projectName, Long taskInstanceId, String command) {
+        String uri = APIMapping.stopProcessInstance
+                .replace("$projectName", projectName);
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("processInstanceId", taskInstanceId.toString());
+        body.add("executeType", command);
         request(uri, HttpMethod.POST, prepareHeader(), body);
     }
 }

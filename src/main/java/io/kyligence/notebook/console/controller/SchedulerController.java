@@ -186,4 +186,27 @@ public class SchedulerController {
         schedulerService.runTask(user, schedulerId, projectName, id);
         return new Response<String>().data("success");
     }
+
+    @ApiOperation("Stop Task Instance")
+    @PostMapping("/schedule/task/instance/{id}/status")
+    @Permission
+    public Response<String> setTaskInstanceStatus(@PathVariable("id") @NotNull Long id,
+                                 @RequestParam(value = "set_status") Integer setStatus,
+                                 @RequestParam(value = "scheduler", required = false) Integer schedulerId,
+                                 @RequestParam(value = "project_name", required = false) String projectName) {
+        String user = WebUtils.getCurrentLoginUser();
+        schedulerService.setStatus(user, schedulerId, projectName, id, setStatus);
+        return new Response<String>().data("success");
+    }
+
+    @ApiOperation("Get Task Instance Status")
+    @GetMapping("/schedule/task/instance/{id}/status")
+    @Permission
+    public Response<String> getTaskInstanceStatus(@PathVariable("id") @NotNull Long id,
+                                                  @RequestParam(value = "scheduler", required = false) Integer schedulerId,
+                                                  @RequestParam(value = "project_name", required = false) String projectName) {
+        String user = WebUtils.getCurrentLoginUser();
+        String status = schedulerService.getInstanceStatus(user, id, schedulerId, projectName);
+        return new Response<String>().data(status);
+    }
 }

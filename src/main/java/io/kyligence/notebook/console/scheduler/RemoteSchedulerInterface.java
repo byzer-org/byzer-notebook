@@ -19,11 +19,13 @@ public interface RemoteSchedulerInterface {
     TaskInfoDTO getTask(String projectName, String user, String entityType, Integer entityId);
     List<TaskInfoDTO> getTasks(String projectName, String user);
     List<TaskInstanceDTO> getTaskInstances(String projectName, String user);
+    List<TaskInstanceDTO> getTaskInstances(String projectName, String user, Integer taskId);
+    void sendCommand(String projectName, String user, Long taskInstanceId, Integer commandCode);
 
     void onlineTask(String user, Integer taskId, String projectName);
     void offlineTask(String user, Integer taskId, String projectName);
     List<TaskNodeInfoDTO> getTaskInstanceNodes(String projectName, String user, Long taskInstanceId);
-
+    String getTaskInstanceStatus(String projectName, String user, Long taskInstanceId);
     void getTask(String user);
     void getTask();
     String getServiceName();

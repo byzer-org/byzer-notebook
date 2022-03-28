@@ -54,7 +54,7 @@ public class JobInfo {
     @Column(name = "status", nullable = false)
     private Integer status;
 
-    @Column(name = "user", nullable = false)
+    @Column(name = "`user`", nullable = false)
     private String user;
 
     @Column(name = "create_time", nullable = false)
