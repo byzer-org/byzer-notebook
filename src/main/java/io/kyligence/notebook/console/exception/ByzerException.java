@@ -12,6 +12,11 @@ public class ByzerException extends BaseException {
         this.code = ErrorCodeEnum.UNKNOWN_ERROR.getCode();
     }
 
+    public ByzerException(String message, Throwable cause) {
+        super(message, cause);
+        this.code = ErrorCodeEnum.UNKNOWN_ERROR.getCode();
+    }
+
     public ByzerException(ErrorCodeEnum errorCodeEnum) {
         super(errorCodeEnum.getReportMsg());
         this.code = errorCodeEnum.getCode();

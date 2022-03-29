@@ -2,10 +2,14 @@ package io.kyligence.notebook.console.service;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import io.kyligence.notebook.console.NotebookConfig;
+import io.kyligence.notebook.console.bean.dto.JobProgressDTO;
 import io.kyligence.notebook.console.bean.entity.JobInfo;
+import io.kyligence.notebook.console.bean.entity.JobInfoArchive;
 import io.kyligence.notebook.console.bean.model.CurrentJobInfo;
 import io.kyligence.notebook.console.bean.model.JobLog;
 import io.kyligence.notebook.console.bean.model.JobProgress;
+import io.kyligence.notebook.console.dao.JobInfoArchiveRepository;
 import io.kyligence.notebook.console.dao.JobInfoRepository;
 import io.kyligence.notebook.console.exception.ByzerException;
 import io.kyligence.notebook.console.exception.ErrorCodeEnum;
@@ -43,18 +47,20 @@ public class JobService {
     private JobInfoRepository jobInfoRepository;
 
     @Autowired
+    private JobInfoArchiveRepository jobInfoArchiveRepository;
+
+    @Autowired
     private EngineService engineService;
 
+    private final NotebookConfig config = NotebookConfig.getInstance();
+
     @Transactional
-    public JobLog getJobLog(String user, String jobId) {
-        JobInfo jobInfo = findByJobId(jobId);
-        if (jobInfo == null){
+    public JobLog getJobLog(String user, String jobId, Long offset) {
+        Integer jobStatus = getJobStatus(jobId);
+        if (!isRunning(jobStatus)) {
             return null;
         }
-        Integer offset = -1;
-        if (jobInfo.getConsoleLogOffset() != null){
-            offset = jobInfo.getConsoleLogOffset();
-        }
+        String groupId = getGroupOrJobId(jobId);
         String response = null;
         try {
             response = engineService.runScript(new EngineService
@@ -73,15 +79,11 @@ public class JobService {
 
         List<JobLog> resultsMap = JacksonUtils.readJsonArray(response, JobLog.class);
         JobLog jobLog = Objects.requireNonNull(resultsMap).get(0);
-        if (offset == -1 && jobLog.getOffset() != null && jobLog.getOffset() != -1) {
-            offset = jobLog.getOffset() - jobLog.getValue().toString().length();
-            jobInfoRepository.updateLogOffset(jobId, offset);
-        }
-        jobLog.setOffset(offset);
         if (jobLog.getValue() != null) {
             jobLog.setValue(
                     jobLog.getValue().stream().filter(
-                            s -> s.contains(String.format("DriverLogServer: [owner] [%s]", user))
+                            s -> s.contains(String.format("[owner] [%s] [groupId] [%s]", user, groupId))
+                                    && !s.contains("DefaultConsoleClient")
                     ).collect(Collectors.toList())
             );
         } else {
@@ -118,6 +120,13 @@ public class JobService {
         return jobInfoList.isEmpty() ? null : jobInfoList.get(0);
     }
 
+    public Integer getJobStatus(String jobId) {
+        return Optional.ofNullable(jobInfoRepository.getJobStatus(jobId)).orElse(JobInfo.JobStatus.NOT_EXIST);
+    }
+
+    public Timestamp getJobStartTime(String jobId) {
+        return jobInfoRepository.getJobStartTime(jobId);
+    }
 
     @Transactional
     public void killJobById(String jobId) {
@@ -127,7 +136,7 @@ public class JobService {
             throw new ByzerException(ErrorCodeEnum.JOB_NOT_EXIST, jobId);
         }
 
-        if (jobInfo.getStatus() != JobInfo.JobStatus.RUNNING) {
+        if (!isRunning(jobInfo.getStatus())) {
             return;
         }
 
@@ -163,13 +172,13 @@ public class JobService {
         }
 
         List<CurrentJobInfo> resultsMap = JacksonUtils.readJsonArray(response, CurrentJobInfo.class);
-        CurrentJobInfo currentJobInfo = resultsMap.get(0);
+        CurrentJobInfo currentJobInfo = Objects.requireNonNull(resultsMap).get(0);
         setJobAndGroup(jobId, currentJobInfo.getGroupId());
 
         return currentJobInfo;
     }
 
-    public JobProgress getJobProgress(String jobId) {
+    public JobProgressDTO getJobProgress(String jobId) {
         String groupId = getGroupOrJobId(jobId);
         String response = null;
 
@@ -187,14 +196,22 @@ public class JobService {
         }
 
         List<JobProgress> jobProgresses = JacksonUtils.readJsonArray(response, JobProgress.class);
-        JobProgress jobProgress = jobProgresses.get(0);
+        JobProgress jobProgress = Objects.requireNonNull(jobProgresses).get(0);
         setJobAndGroup(jobId, jobProgress.getGroupId());
 
-        return jobProgress;
+        return JobProgressDTO.valueOf(jobProgress);
+    }
+
+    public Pair<Long, List<JobInfo>> getJobList(Integer pageSize, Integer pageOffset, String sortBy, Boolean reverse, String status, String user, String keyword) {
+        return getJobList(JobInfo.class, pageSize, pageOffset, sortBy, reverse, status, user, keyword);
+    }
+
+    public Pair<Long, List<JobInfoArchive>> getJobArchiveList(Integer pageSize, Integer pageOffset, String sortBy, Boolean reverse, String status, String user, String keyword) {
+        return getJobList(JobInfoArchive.class, pageSize, pageOffset, sortBy, reverse, status, user, keyword);
     }
 
     @Transactional
-    public Pair<Long, List<JobInfo>> getJobList(Integer pageSize, Integer pageOffset, String sortBy, Boolean reverse, String status, String user, String keyword) {
+    public <T> Pair<Long, List<T>> getJobList(Class<T> clazz, Integer pageSize, Integer pageOffset, String sortBy, Boolean reverse, String status, String user, String keyword) {
         List<String> selectFields = Arrays.asList("jobId", "status", "user", "notebook", "engine", "createTime", "finishTime");
 
         if ("start_time".equals(sortBy)) {
@@ -215,20 +232,74 @@ public class JobService {
             keywords.put("jobId", keyword);
         }
 
-        Query query = queryBuilder.getAll(JobInfo.class, false, selectFields, pageSize, pageOffset, reverse, sortBy, filters, keywords);
-        List<JobInfo> jobInfos = query.getResultList();
+        Query query = queryBuilder.getAll(clazz, false, selectFields, pageSize, pageOffset, reverse, sortBy, filters, keywords);
+        List<T> jobInfos = query.getResultList();
 
-        Query countQuery = queryBuilder.count(JobInfo.class, filters);
+        Query countQuery = queryBuilder.count(clazz, filters, keywords);
         Long count = (Long) countQuery.getSingleResult();
 
         return Pair.of(count, jobInfos);
     }
 
     public String getJobContent(String jobId) {
-        return jobInfoRepository.getContentByJobId(jobId);
+        String content = jobInfoRepository.getContentByJobId(jobId);
+        return Objects.isNull(content) ? jobInfoArchiveRepository.getContentByJobId(jobId) : content;
     }
 
+    public boolean isRunning(Integer status) {
+        return Objects.nonNull(status) && (status == JobInfo.JobStatus.RUNNING || status >= JobInfo.JobStatus.RETRYING);
+    }
 
+    public boolean needRetry(Integer status){
+        return config.getExecutionEngineCallbackRetries() > 0 && Objects.nonNull(status)
+                && (status == JobInfo.JobStatus.RUNNING || status > JobInfo.JobStatus.RETRYING);
+    }
 
+    @Transactional
+    public boolean jobDone(String jobId, Integer status, String result, String msg, Timestamp finishTime) {
+        JobInfo jobInfo = new JobInfo();
+        jobInfo.setJobId(jobId);
+        jobInfo.setMsg(msg);
+        jobInfo.setResult(result);
+        jobInfo.setFinishTime(finishTime);
+        jobInfo.setStatus(status);
 
+        try {
+            JobProgressDTO jobProgress = getJobProgress(jobId);
+            if (jobProgress != null) {
+                jobInfo.setJobProgress(JacksonUtils.writeJson(jobProgress));
+            }
+        } catch (Exception e) {
+            log.warn("get job progress failed, job id is {}.", jobId);
+        }
+        try {
+            updateByJobId(jobInfo);
+            return true;
+        } catch (Exception e) {
+            log.warn("Error when save job_info callback, job id is {}.", jobId);
+            Integer currentStatus = getJobStatus(jobId);
+            if (needRetry(currentStatus)) {
+                log.warn("Retry for save job_info callback, job id is {}.", jobId);
+                int nextStatus;
+                if (currentStatus == JobInfo.JobStatus.RUNNING) {
+                    nextStatus = JobInfo.JobStatus.RETRYING + config.getExecutionEngineCallbackRetries() - 1;
+                } else {
+                    nextStatus = currentStatus - 1;
+                }
+                updateByJobId(new JobInfo(jobId, nextStatus));
+                return false;
+            } else {
+                jobInfo.setMsg(e.getMessage());
+                jobInfo.setStatus(JobInfo.JobStatus.FAILED);
+                jobInfo.setJobProgress(null);
+                jobInfo.setResult(null);
+                updateByJobId(jobInfo);
+                log.error(String.format("Fail to save job_info callback for job: [%s], mark job status as [Failed].\n" +
+                        "Trace stack as below:\n", jobId) + ExceptionUtils.getRootCause(e));
+                return true;
+            }
+
+        }
+
+    }
 }
