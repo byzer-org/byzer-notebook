@@ -155,7 +155,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         // handle schedule update
         if (Objects.isNull(scheduleInfo) && !ScheduleSetting.isNull(scheduleSetting)) {
             createSchedule(project, taskId, scheduleSetting, extraSettings);
-        } else if (!ScheduleSetting.isNull(scheduleSetting)) {
+        } else if (Objects.nonNull(scheduleInfo) && !ScheduleSetting.isNull(scheduleSetting)) {
 
             Integer scheduleId = scheduleInfo.getId();
             if (scheduleInfo.getReleaseState().equalsIgnoreCase("ONLINE")) {
