@@ -1,6 +1,6 @@
 package io.kyligence.notebook.console.service;
 
-import io.kyligence.notebook.console.NotebookLauncherTestBase;
+import io.kyligence.notebook.console.NotebookLauncherBaseTest;
 import io.kyligence.notebook.console.bean.entity.JobInfo;
 import io.kyligence.notebook.console.bean.entity.JobInfoArchive;
 import io.kyligence.notebook.console.bean.model.JobLog;
@@ -25,7 +25,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
-public class JobServiceTest extends NotebookLauncherTestBase {
+public class JobServiceTest extends NotebookLauncherBaseTest {
 
     public static boolean initialized;
 

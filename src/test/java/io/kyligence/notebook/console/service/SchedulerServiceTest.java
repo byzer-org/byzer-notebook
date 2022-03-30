@@ -1,7 +1,7 @@
 package io.kyligence.notebook.console.service;
 
 import io.kyligence.notebook.console.NotebookConfig;
-import io.kyligence.notebook.console.NotebookLauncherTestBase;
+import io.kyligence.notebook.console.NotebookLauncherBaseTest;
 import io.kyligence.notebook.console.bean.dto.*;
 import io.kyligence.notebook.console.bean.entity.JobInfo;
 import io.kyligence.notebook.console.exception.ByzerException;
@@ -22,7 +22,7 @@ import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SchedulerServiceTest extends NotebookLauncherTestBase {
+public class SchedulerServiceTest extends NotebookLauncherBaseTest {
 
     @Autowired
     private SchedulerService schedulerService;

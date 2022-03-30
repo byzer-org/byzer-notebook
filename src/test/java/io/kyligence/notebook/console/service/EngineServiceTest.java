@@ -1,6 +1,6 @@
 package io.kyligence.notebook.console.service;
 
-import io.kyligence.notebook.console.NotebookLauncherTestBase;
+import io.kyligence.notebook.console.NotebookLauncherBaseTest;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 
-public class EngineServiceTest extends NotebookLauncherTestBase {
+public class EngineServiceTest extends NotebookLauncherBaseTest {
 
     private final String testSQL = "!show version";
 
