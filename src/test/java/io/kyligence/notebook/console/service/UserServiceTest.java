@@ -86,14 +86,6 @@ public class UserServiceTest extends NotebookLauncherBaseTest {
     }
 
     @Test
-    public void testGetUploadedFileRecords() {
-
-
-
-
-    }
-
-    @Test
     public void testUploadedFiles() {
         String user = "userForFile";
         Assert.assertNull(userService.getUploadedFileRecords("not-exist-user"));
