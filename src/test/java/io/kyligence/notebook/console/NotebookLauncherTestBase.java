@@ -54,7 +54,7 @@ public class NotebookLauncherTestBase extends BaseResourceLoader {
 
     protected static final String DEFAULT_ADMIN_USER = "admin";
 
-    private static final String MOCK_NOTEBOOK = "test_import_notebook.bznb";
+    protected static final String MOCK_NOTEBOOK = "test_import_notebook.bznb";
 
     @ClassRule
     public static final Network byzerNetwork = Network.newNetwork();
