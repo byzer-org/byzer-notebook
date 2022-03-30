@@ -10,16 +10,16 @@ import java.util.List;
 
 public interface WorkflowRepository extends JpaRepository<WorkflowInfo, Integer> {
 
-    @Query(value = "select count(id) from workflow_info where user = ?1", nativeQuery = true)
+    @Query(value = "select count(id) from workflow_info where `user` = ?1", nativeQuery = true)
     Integer getUserWorkflowCount(String user);
 
-    @Query(value = "select * from workflow_info where user = ?1 and name = ?2", nativeQuery = true)
+    @Query(value = "select * from workflow_info where `user` = ?1 and name = ?2", nativeQuery = true)
     List<WorkflowInfo> find(String user, String name);
 
-    @Query(value = "select * from workflow_info where user = ?1", nativeQuery = true)
+    @Query(value = "select * from workflow_info where `user` = ?1", nativeQuery = true)
     List<WorkflowInfo> find(String user);
 
-    @Query(value = "select * from workflow_info where user = ?1 and name = ?2 and folder_id = ?3", nativeQuery = true)
+    @Query(value = "select * from workflow_info where `user` = ?1 and name = ?2 and folder_id = ?3", nativeQuery = true)
     List<WorkflowInfo> find(String user, String name, Integer folderId);
 
     @Modifying

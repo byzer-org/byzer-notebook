@@ -23,7 +23,7 @@ public class NodeCommit {
     @Column(name = "content")
     private String content;
 
-    @Column(name = "user", nullable = false)
+    @Column(name = "`user`", nullable = false)
     private String user;
 
     @Column(name = "type")

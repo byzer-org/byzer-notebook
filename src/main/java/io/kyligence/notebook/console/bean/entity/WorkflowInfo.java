@@ -19,7 +19,7 @@ public class WorkflowInfo extends ExecFileInfo {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "user", nullable = false)
+    @Column(name = "`user`", nullable = false)
     private String user;
 
     @Column(name = "folder_id")

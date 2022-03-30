@@ -33,7 +33,7 @@ public class NodeDefService {
 
     public NodeDefInfo getNode(String nodeType, String nodeName){
         List<NodeDefInfo> nodes = nodeDefInfoRepository.findNodeByTypeAndName(nodeType, nodeName);
-        if (nodes.size() < 1){
+        if (nodes.isEmpty()){
             throw new ByzerException(ErrorCodeEnum.NODE_DEFINE_NOT_EXIST);
         }
         return nodes.get(0);
@@ -46,7 +46,7 @@ public class NodeDefService {
 
     public ParamDefInfo getParamDefByName(Integer nodeDefId, String paramName){
         List<ParamDefInfo> params = paramDefInfoRepository.findByName(nodeDefId, paramName);
-        if (params.size() < 1){
+        if (params.isEmpty()){
             throw new ByzerException(ErrorCodeEnum.PARAM_DEFINE_NOT_EXIST);
         }
         return params.get(0);
