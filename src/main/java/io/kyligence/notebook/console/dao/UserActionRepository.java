@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface UserActionRepository extends JpaRepository<UserAction, Integer> {
 
-    @Query(value = "select * from user_action where user = ?1", nativeQuery = true)
+    @Query(value = "select * from user_action where `user` = ?1", nativeQuery = true)
     List<UserAction> findByUser(String user);
 }
