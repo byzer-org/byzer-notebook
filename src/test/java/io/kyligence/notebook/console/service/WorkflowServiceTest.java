@@ -1,6 +1,6 @@
 package io.kyligence.notebook.console.service;
 
-import io.kyligence.notebook.console.NotebookLauncherTestBase;
+import io.kyligence.notebook.console.NotebookLauncherBaseTest;
 import io.kyligence.notebook.console.bean.dto.NodeInfoDTO;
 import io.kyligence.notebook.console.bean.entity.NodeInfo;
 import io.kyligence.notebook.console.bean.entity.NotebookInfo;
@@ -23,7 +23,7 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Objects;
 
-public class WorkflowServiceTest extends NotebookLauncherTestBase {
+public class WorkflowServiceTest extends NotebookLauncherBaseTest {
 
     @Autowired
     private WorkflowService workflowService;

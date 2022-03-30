@@ -1,6 +1,6 @@
 package io.kyligence.notebook.console.service;
 
-import io.kyligence.notebook.console.NotebookLauncherTestBase;
+import io.kyligence.notebook.console.NotebookLauncherBaseTest;
 import io.kyligence.notebook.console.exception.ByzerException;
 import io.kyligence.notebook.console.util.NodeUtils;
 import org.junit.Assert;
@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class NodeDefServiceTest extends NotebookLauncherTestBase {
+public class NodeDefServiceTest extends NotebookLauncherBaseTest {
 
     @Autowired
     private NodeDefService nodeDefService;
@@ -45,8 +45,7 @@ public class NodeDefServiceTest extends NotebookLauncherTestBase {
         Assert.assertNotNull(nodeDefService.getParamDefByName(LOAD_HDFS_NODE_DEF_ID, "data_type"));
         thrown.expect(ByzerException.class);
         thrown.expectMessage("Parameter Define Not Exist");
-
-        Assert.assertNull(nodeDefService.getParamDefByName(0, "csv"));
+        nodeDefService.getParamDefByName(0, "csv");
     }
 
     @Test

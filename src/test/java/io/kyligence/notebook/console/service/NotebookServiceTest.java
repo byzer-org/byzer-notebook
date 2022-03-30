@@ -1,6 +1,6 @@
 package io.kyligence.notebook.console.service;
 
-import io.kyligence.notebook.console.NotebookLauncherTestBase;
+import io.kyligence.notebook.console.NotebookLauncherBaseTest;
 import io.kyligence.notebook.console.bean.entity.CellInfo;
 import io.kyligence.notebook.console.bean.entity.NotebookCommit;
 import io.kyligence.notebook.console.bean.entity.NotebookInfo;
@@ -16,7 +16,7 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
 
-public class NotebookServiceTest extends NotebookLauncherTestBase {
+public class NotebookServiceTest extends NotebookLauncherBaseTest {
 
     @Autowired
     private NotebookService nbService;

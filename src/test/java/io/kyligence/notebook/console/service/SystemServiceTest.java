@@ -1,8 +1,7 @@
 package io.kyligence.notebook.console.service;
 
 import io.kyligence.notebook.console.NotebookConfig;
-import io.kyligence.notebook.console.NotebookLauncherTestBase;
-import io.kyligence.notebook.console.bean.dto.VersionInfo;
+import io.kyligence.notebook.console.NotebookLauncherBaseTest;
 import io.kyligence.notebook.console.bean.entity.SystemConfig;
 import io.kyligence.notebook.console.dao.SystemConfigRepository;
 import org.junit.Assert;
@@ -11,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 
-public class SystemServiceTest extends NotebookLauncherTestBase {
+public class SystemServiceTest extends NotebookLauncherBaseTest {
 
     private final NotebookConfig notebookConfig = NotebookConfig.getInstance();
 
@@ -27,7 +26,6 @@ public class SystemServiceTest extends NotebookLauncherTestBase {
     @PostConstruct
     public void mock() {
         systemConfig.setTimeout(666);
-        systemConfig.setEngine("backup");
     }
 
     @Test
