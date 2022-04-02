@@ -6,7 +6,7 @@
 
     <groupId>io.kyligence</groupId>
     <artifactId>notebook-console</artifactId>
-    <version>1.1.1</version>
+    <version>1.2.0-SNAPSHOT</version>
 
     <properties>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
@@ -231,6 +231,28 @@
                 <version>${spring-boot.version}</version>
                 <scope>test</scope>
             </dependency>
+            <!--annotation-->
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>3.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.9</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>20.0</version>
+            </dependency>
+            <dependency>
+                <groupId>redis.clients</groupId>
+                <artifactId>jedis</artifactId>
+                <version>3.3.0</version>
+            </dependency>
+
         </dependencies>
 
     </dependencyManagement>
@@ -376,6 +398,19 @@
             <artifactId>h2</artifactId>
             <version>2.1.210</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
         </dependency>
     </dependencies>
 
@@ -558,16 +593,16 @@
                 </dependency>
             </dependencies>
         </profile>
-        <profile>
-            <id>prod</id>
-            <properties>
-                <envs>prod</envs>
-                <root_log_mode>notebook</root_log_mode>
-                <exclude_class>
-                    org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
-                </exclude_class>
-            </properties>
-        </profile>
+<!--        <profile>-->
+<!--            <id>prod</id>-->
+<!--            <properties>-->
+<!--                <envs>prod</envs>-->
+<!--                <root_log_mode>notebook</root_log_mode>-->
+<!--                <exclude_class>-->
+<!--                    org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration-->
+<!--                </exclude_class>-->
+<!--            </properties>-->
+<!--        </profile>-->
     </profiles>
 
 </project>

@@ -39,3 +39,13 @@ notebook.redis.database=0
 #notebook.scheduler.failure-strategy=END
 #notebook.scheduler.instance-priority=MEDIUM
 #notebook.scheduler.worker=default
+
+## whether to enable redis
+notebook.env.redis-enable=false
+
+## whether to enable auto log rotate
+notebook.env.log-rotate-enabled=false
+notebook.env.max-keep-log-file-threshold-mb=256
+notebook.env.max-keep-log-file-number=10
+## use crontab to check whether the log files(shell.stderr, shell.stdout and kylin.out) needs to be rotated
+notebook.env.log-rotate-check-cron=33 * * * *

@@ -70,15 +70,16 @@ echo "${version}" > VERSION
 
 
 ## 4. copy console jar file
-cp ${root_dir}/target/notebook-console.jar .
+mkdir lib
+cp ${root_dir}/target/notebook-console.jar lib
 
 ## 5. copy config
 mkdir conf
 cp ${root_dir}/conf/notebook.properties.example conf/notebook.properties
 
 ## 6. copy scripts
-cp ${root_dir}/build/startup.sh .
-cp ${root_dir}/build/shutdown.sh .
+mkdir bin
+cp ${root_dir}/build/* bin
 
 ## 7. others
 mkdir logs
