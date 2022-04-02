@@ -7,6 +7,10 @@
       "id": "23917",
       "content": "!show version;",
       "job_id": "12c59b40-2c56-481c-b83d-9fa427af55ff"
+    },
+    {
+      "id": "23918",
+      "content": "load Everything.`` as Table;"
     }
   ]
 }

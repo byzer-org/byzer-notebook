@@ -13,7 +13,7 @@ public class UserAction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "user", nullable = false)
+    @Column(name = "`user`", nullable = false)
     private String user;
 
     @Column(name = "opened_notebooks")

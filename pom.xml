@@ -6,7 +6,7 @@
 
     <groupId>io.kyligence</groupId>
     <artifactId>notebook-console</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
 
     <properties>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
@@ -45,7 +45,7 @@
         <scala.binary.version>2.11</scala.binary.version>
         <mockito.version>3.8.0</mockito.version>
         <scalatest.version>3.0.8</scalatest.version>
-        <liquibase.version>4.2.2</liquibase.version>
+        <liquibase.version>4.8.0</liquibase.version>
         <sonar.organization>byzer-org</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>

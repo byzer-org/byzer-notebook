@@ -1,6 +1,6 @@
 package io.kyligence.notebook.console.controller;
 
-import io.kyligence.notebook.console.NotebookLauncherTestBase;
+import io.kyligence.notebook.console.NotebookLauncherBaseTest;
 import io.kyligence.notebook.console.bean.dto.IdNameTypeDTO;
 import io.kyligence.notebook.console.tools.ImportResponseDTO;
 import io.kyligence.notebook.console.util.JacksonUtils;
@@ -14,7 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-public class FileControllerTest extends NotebookLauncherTestBase {
+public class FileControllerTest extends NotebookLauncherBaseTest {
 
     private static final String EXPORT_CONTENT_TYPE = "application/xml;charset=UTF-8";
     private static final String TEST_IMPORT_NOTEBOOK = "test_import_notebook.bznb";

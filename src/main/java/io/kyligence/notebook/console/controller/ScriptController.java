@@ -79,6 +79,7 @@ public class ScriptController {
                     new EngineService.RunScriptParams()
                             .withJobName(jobInfo.getJobId())
                             .withIncludeSchema(true)
+                            .withLimit(config.getOutputSize())
                             .withSql(jobInfo.getContent()));
         } catch (Exception ex) {
             // update job status to FAILED if exception happened

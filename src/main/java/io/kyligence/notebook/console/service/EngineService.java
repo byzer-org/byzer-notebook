@@ -114,7 +114,7 @@ public class EngineService {
             params.put("sessionPerUser", "true");
             params.put("defaultPathPrefix", "/mlsql");
             params.put("home", config.getUserHome());
-            params.put("outputSize", config.getOutputSize());
+            params.put("maxRetries", String.valueOf(config.getExecutionEngineCallbackRetries() - 1));
 
             String username = null;
             try {
@@ -155,6 +155,11 @@ public class EngineService {
 
         public RunScriptParams withAsync(String async) {
             params.put("async", async);
+            return this;
+        }
+
+        public RunScriptParams withLimit(String limit) {
+            params.put("outputSize", limit);
             return this;
         }
 
