@@ -14,6 +14,7 @@ import io.kyligence.notebook.console.dao.JobInfoRepository;
 import io.kyligence.notebook.console.exception.ByzerException;
 import io.kyligence.notebook.console.exception.ErrorCodeEnum;
 import io.kyligence.notebook.console.support.CriteriaQueryBuilder;
+import io.kyligence.notebook.console.util.EngineExceptionUtils;
 import io.kyligence.notebook.console.util.ExceptionUtils;
 import io.kyligence.notebook.console.util.JacksonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -259,10 +260,11 @@ public class JobService {
     public boolean jobDone(String jobId, Integer status, String result, String msg, Timestamp finishTime) {
         JobInfo jobInfo = new JobInfo();
         jobInfo.setJobId(jobId);
-        jobInfo.setMsg(msg);
         jobInfo.setResult(result);
         jobInfo.setFinishTime(finishTime);
         jobInfo.setStatus(status);
+        jobInfo.setMsg(status == JobInfo.JobStatus.SUCCESS ? msg :
+                EngineExceptionUtils.parseStackTrace(getJobContent(jobId), msg));
 
         try {
             JobProgressDTO jobProgress = getJobProgress(jobId);
