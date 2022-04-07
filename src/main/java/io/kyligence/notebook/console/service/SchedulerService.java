@@ -12,6 +12,7 @@ import io.kyligence.notebook.console.scheduler.RemoteSchedulerInterface;
 import io.kyligence.notebook.console.scheduler.SchedulerConfig;
 import io.kyligence.notebook.console.scheduler.SchedulerFactory;
 import io.kyligence.notebook.console.scheduler.dolphin.dto.EntityModification;
+import io.kyligence.notebook.console.util.WebUtils;
 import org.apache.commons.compress.utils.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -60,6 +61,9 @@ public class SchedulerService {
             throw new ByzerException();
         }
         String user = config.getScheduleCallbackUser();
+
+        WebUtils.setCurrentLoginUser(scheduleOwner);
+
         EngineService.RunScriptParams runScriptParams = new EngineService.RunScriptParams()
                 .withAsync("false")
                 .withOwner(scheduleOwner)
@@ -79,7 +83,7 @@ public class SchedulerService {
         jobInfo.setUser(user);
         jobInfo.setNotebook(getEntityName(entityType, Integer.parseInt(entityId)));
 
-        String engine = config.getExecutionEngine();
+        String engine = engineService.getExecutionEngine();
         jobInfo.setEngine(engine);
 
         jobService.insert(jobInfo);

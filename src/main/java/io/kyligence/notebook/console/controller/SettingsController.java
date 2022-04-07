@@ -10,22 +10,20 @@ import io.kyligence.notebook.console.bean.entity.ConnectionInfo;
 import io.kyligence.notebook.console.bean.entity.NodeDefInfo;
 import io.kyligence.notebook.console.bean.entity.ParamDefInfo;
 import io.kyligence.notebook.console.bean.entity.SystemConfig;
-import io.kyligence.notebook.console.service.ConnectionService;
-import io.kyligence.notebook.console.service.FileShareService;
-import io.kyligence.notebook.console.service.NodeDefService;
-import io.kyligence.notebook.console.service.SystemService;
+import io.kyligence.notebook.console.service.*;
 import io.kyligence.notebook.console.support.DisableInTrial;
 import io.kyligence.notebook.console.support.Permission;
+import io.kyligence.notebook.console.util.EngineStatus;
 import io.kyligence.notebook.console.util.WebUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +36,9 @@ public class SettingsController {
 
     @Autowired
     private SystemService systemService;
+
+    @Autowired
+    private EngineService engineService;
 
     @Autowired
     private ConnectionService connectionService;
@@ -61,10 +62,7 @@ public class SettingsController {
     @Permission
     @DisableInTrial
     public Response<EngineListDTO> getEngineList() {
-        EngineListDTO engineListDTO = new EngineListDTO();
-        engineListDTO.setList(Arrays.asList("default", "backup"));
-
-        return new Response<EngineListDTO>().data(engineListDTO);
+        return new Response<EngineListDTO>().data(EngineListDTO.valueOf(engineService.getEngineStatusMap()));
     }
 
     @ApiOperation("Environment Info")
@@ -78,7 +76,8 @@ public class SettingsController {
     @Permission
     @DisableInTrial
     public Response<SystemConfigDTO> getSystemConfig() {
-        SystemConfig systemConfig = systemService.getConfig();
+        String user = WebUtils.getCurrentLoginUser();
+        SystemConfig systemConfig = systemService.getConfig(user);
         return new Response<SystemConfigDTO>().data(SystemConfigDTO.valueOf(systemConfig));
     }
 
@@ -87,10 +86,13 @@ public class SettingsController {
     @Permission
     @DisableInTrial
     public Response<SystemConfigDTO> resetSystemConfig() {
+        String user = WebUtils.getCurrentLoginUser();
         SystemConfig systemConfig = new SystemConfig();
-
-        systemConfig.setTimeout(2880);
-        systemService.updateConfig(systemConfig);
+        systemConfig.setUser(user);
+        systemConfig.setEngine(config.getExecutionEngine());
+        systemConfig.setTimeout(config.getExecutionTimeout());
+        systemService.updateByUser(systemConfig);
+        connectionService.refreshUserConnections(user);
         return new Response<SystemConfigDTO>().data(SystemConfigDTO.valueOf(systemConfig));
     }
 
@@ -107,11 +109,13 @@ public class SettingsController {
     @Permission
     @DisableInTrial
     public Response<String> updateSystemConfig(@RequestBody @Validated SettingsUpdateReq settingsUpdateReq) {
+        String user = WebUtils.getCurrentLoginUser();
         SystemConfig systemConfig = new SystemConfig();
+        systemConfig.setUser(user);
         systemConfig.setTimeout(settingsUpdateReq.getTimeout());
         systemConfig.setEngine(settingsUpdateReq.getEngine());
-        systemService.updateConfig(systemConfig);
-
+        systemService.updateByUser(systemConfig);
+        connectionService.refreshUserConnections(user);
         return new Response<String>().data("update success");
     }
 
@@ -176,10 +180,11 @@ public class SettingsController {
     @GetMapping("/settings/connection")
     @Permission
     @DisableInTrial
-    public Response<ConnectionListDTO> getConnectionList() {
+    public Response<ConnectionListDTO> getConnectionList(
+            @RequestParam(value = "refresh", required = false, defaultValue = "false") Boolean refresh) {
         String user = WebUtils.getCurrentLoginUser();
         List<ConnectionInfo> connectionInfos = connectionService.getConnectionList(user);
-        Map<Integer, Boolean> statusMap = connectionService.getConnectionStatus(connectionInfos);
+        Map<Integer, Boolean> statusMap = connectionService.getConnectionStatus(connectionInfos, refresh);
         return new Response<ConnectionListDTO>().data(ConnectionListDTO.valueOf(connectionInfos, statusMap));
     }
 
@@ -240,4 +245,13 @@ public class SettingsController {
         return new Response<String>().data("success");
     }
 
+    @ApiOperation("Engine Status")
+    @GetMapping("/engine/status")
+    @Permission
+    public Response<EngineStatusDTO> getEngineStatus() {
+        Pair<EngineStatus, Double> engineStatusAndUsage = engineService.getEngineStatusAndUsage();
+        return new Response<EngineStatusDTO>().data(
+                EngineStatusDTO.valueOf(engineService.getExecutionEngine(),
+                        engineStatusAndUsage.getFirst(),engineStatusAndUsage.getSecond()));
+    }
 }
