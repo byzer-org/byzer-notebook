@@ -8,16 +8,21 @@ import io.kyligence.notebook.console.exception.ErrorCodeEnum;
 import io.kyligence.notebook.console.support.CriteriaQueryBuilder;
 import io.kyligence.notebook.console.util.ConnectionUtils;
 import io.kyligence.notebook.console.util.JacksonUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.persistence.Query;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.concurrent.*;
 
 
 @Service
+@Slf4j
 public class ConnectionService {
     @Autowired
     private ConnectionInfoRepository connectionInfoRepository;
@@ -28,22 +33,42 @@ public class ConnectionService {
     @Autowired
     private CriteriaQueryBuilder criteriaQueryBuilder;
 
-    public ConnectionInfo findById(Integer id) {
-        return connectionInfoRepository.findById(id).orElse(null);
+    private final Map<String, Map<Integer, Boolean>> connectionStatus = new HashMap<>();
+
+    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r, "ConnectionStatusRefresher");
+        t.setDaemon(true);
+        return t;
+    });
+
+    @PostConstruct
+    public void initConnectionStatusRefresher() {
+        log.info("Starting ConnectionStatusRefresher...");
+
+        // init connection status map for each engine
+        engineService.getEngineList().forEach(engine -> connectionStatus.put(engine, new ConcurrentHashMap<>()));
+
+        Runnable checkAllConnection = () -> engineService.getEngineList().forEach(this::refreshAllConnections);
+        // refresh at start
+        checkAllConnection.run();
+
+        // refresh every 5 minutes
+        this.executor.scheduleWithFixedDelay(checkAllConnection, 5, 5, TimeUnit.MINUTES);
+        log.info("Schedule ConnectionStatusRefresher every 5 minutes");
     }
 
-    public List<ConnectionInfo> findByUser(String user) {
-        return connectionInfoRepository.findByUser(user);
+    public ConnectionInfo findById(Integer id) {
+        return connectionInfoRepository.findById(id).orElse(null);
     }
 
     public boolean testConnection(ConnectionDTO content) {
         if (content.getName() == null) content.setName("UserConnectionTmp");
         String sql = ConnectionUtils.renderSQL(content);
-        return checkConnection(sql, content.getName());
+        return checkConnection(sql, content.getName(), engineService.getExecutionEngine());
     }
 
-    public boolean testConnection(ConnectionInfo info) {
-        return checkConnection(renderConnectionSQL(info), info.getName());
+    public boolean testConnection(ConnectionInfo info, String engine) {
+        return checkConnection(renderConnectionSQL(info), info.getName(), engine);
     }
 
     public String renderConnectionSQL(ConnectionInfo info) {
@@ -87,14 +112,15 @@ public class ConnectionService {
         return tables;
     }
 
-    private boolean checkConnection(String renderedSQL, String connectionName) {
+    private boolean checkConnection(String renderedSQL, String connectionName, String engine) {
         EngineService.RunScriptParams runScriptParams = new EngineService.RunScriptParams();
 
         try {
             engineService.runScript(
                     runScriptParams
                             .withSql(renderedSQL)
-                            .withAsync("false")
+                            .withAsync("false"),
+                    engine
             );
             String testSQL = String.format(
                     "run command as JDBC.`%1$s._` where" +
@@ -107,6 +133,7 @@ public class ConnectionService {
                     runScriptParams.withSql(testSQL)
                             .with("skipAuth", "true")
                             .withAsync("false")
+                            .withTimeout(500)
             );
             List<Map> parsed = JacksonUtils.readJsonArray(result, Map.class);
             return parsed != null;
@@ -197,6 +224,7 @@ public class ConnectionService {
     public void deleteConnection(Integer connectionId, String user) {
         permissionCheck(connectionId, user);
         connectionInfoRepository.deleteById(connectionId);
+        connectionStatus.forEach((k, v) -> v.remove(connectionId));
     }
 
     public void permissionCheck(Integer connectionId, String user) {
@@ -213,11 +241,55 @@ public class ConnectionService {
         return connectionInfoRepository.findByUser(user);
     }
 
-    public Map<Integer, Boolean> getConnectionStatus(List<ConnectionInfo> connectionInfos) {
+    public void refreshAllConnections(String engine) {
+        try {
+            if (!engineService.isReady(engine)) return;
+            connectionInfoRepository.findAll().forEach(connectionInfo ->
+                    connectionStatus.get(engine)
+                            .put(connectionInfo.getId(), testConnection(connectionInfo, engine))
+            );
+            log.info("All connection have refreshed!");
+        } catch (Exception e) {
+            log.error("Error when refresh connection status!", e);
+        }
+    }
+
+    public void refreshUserConnections(String user) {
+        try {
+            String engine = engineService.getExecutionEngine();
+            connectionInfoRepository.findByUser(user).forEach(connectionInfo ->
+                    connectionStatus.get(engine).put(connectionInfo.getId(), testConnection(connectionInfo, engine))
+            );
+            log.info("User:[" + user + "] connection have refreshed!");
+        } catch (Exception e) {
+            log.error("Error when refresh connection for user: [" + user + "]", e);
+        }
+    }
+
+    public Map<Integer, Boolean> getConnectionStatus(List<ConnectionInfo> connectionInfos, boolean refresh) {
+        String engine = engineService.getExecutionEngine();
+
         Map<Integer, Boolean> statusMap = new HashMap<>();
-        connectionInfos.forEach(connectionInfo ->
-                statusMap.put(connectionInfo.getId(), testConnection(connectionInfo))
+        Map<Integer, Boolean> cachedStatusMap = connectionStatus.get(engine);
+
+        connectionInfos.forEach(connectionInfo -> {
+                    Integer connectionId = connectionInfo.getId();
+                    if (refresh) {
+                        cachedStatusMap.put(connectionId, testConnection(connectionInfo,
+                                engineService.getExecutionEngine()));
+                    } else {
+                        cachedStatusMap.computeIfAbsent(connectionId, k -> testConnection(connectionInfo,
+                                engineService.getExecutionEngine()));
+                    }
+                    statusMap.put(connectionId, cachedStatusMap.get(connectionId));
+                }
         );
         return statusMap;
+    }
+
+    @PreDestroy
+    public void shutdownConnectionStatusRefresher() {
+        log.info("Shutdown ConnectionStatusRefresher");
+        this.executor.shutdownNow();
     }
 }

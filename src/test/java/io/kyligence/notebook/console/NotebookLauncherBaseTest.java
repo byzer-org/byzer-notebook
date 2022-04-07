@@ -106,6 +106,10 @@ public class NotebookLauncherBaseTest extends BaseResourceLoader {
         assertTrue("Mockserver running", client.isRunning());
 
         // used by !show et;
+        client.when(request().withPath("/health/liveness").withMethod("GET"))
+                .respond(response().withStatusCode(200));
+        client.when(request().withPath("/health/readiness").withMethod("GET"))
+                .respond(response().withStatusCode(200));
         client.when(request().withPath("/run/script").withMethod("POST")
         ).respond(response().withBody(etResponse));
         System.setProperty("spring.datasource.url", mockDatabase.getJdbcUrl());
