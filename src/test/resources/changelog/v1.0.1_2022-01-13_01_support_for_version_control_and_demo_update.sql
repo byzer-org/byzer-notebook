@@ -13,9 +13,9 @@ CREATE TABLE `cell_commit` (
   `commit_id` varchar(64) NOT NULL,
   `last_job_id` varchar(255) DEFAULT NULL,
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `cell_notebook_idx_commit` (`notebook_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE = utf8mb4_unicode_ci;
+  PRIMARY KEY (`id`) USING BTREE,
+  KEY `idx_commit` (`notebook_id`,`commit_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 DROP TABLE IF EXISTS `shared_file`;
 CREATE TABLE `shared_file` (
@@ -27,8 +27,8 @@ CREATE TABLE `shared_file` (
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `idx_entity` (`entity_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE = utf8mb4_unicode_ci;
+  KEY `idx_entity` (`entity_id`,`entity_type`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4;
 
 DROP TABLE IF EXISTS `node_commit`;
 CREATE TABLE `node_commit` (
@@ -43,9 +43,9 @@ CREATE TABLE `node_commit` (
   `output` text,
   `type` varchar(255) DEFAULT NULL,
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `node_commit_idx_commit` (`workflow_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE = utf8mb4_unicode_ci;
+  PRIMARY KEY (`id`) USING BTREE,
+  KEY `idx_commit` (`workflow_id`,`commit_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 DROP TABLE IF EXISTS `notebook_commit`;
 CREATE TABLE `notebook_commit` (
@@ -55,9 +55,9 @@ CREATE TABLE `notebook_commit` (
   `commit_id` varchar(64) NOT NULL,
   `cell_list` longtext,
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `notebook_commit_idx_commit` (`notebook_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4 COLLATE = utf8mb4_unicode_ci;
+  PRIMARY KEY (`id`) USING BTREE,
+  KEY `idx_commit` (`notebook_id`,`commit_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4;
 
 DROP TABLE IF EXISTS `workflow_commit`;
 CREATE TABLE `workflow_commit` (
@@ -66,8 +66,8 @@ CREATE TABLE `workflow_commit` (
   `name` varchar(255) NOT NULL,
   `commit_id` varchar(64) NOT NULL,
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `idx_commit` (`workflow_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE = utf8mb4_unicode_ci;
+  PRIMARY KEY (`id`) USING BTREE,
+  KEY `idx_commit` (`workflow_id`,`commit_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4;
 
 --comment: add support for version control and demo update

@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS usage_template (
     PRIMARY KEY (`id`)
 );
 
---ets
+# ets
 INSERT IGNORE INTO register_et VALUES(1, 'ALSInPlace', '', 'Algorithm', 'Alternating Least Square (ALS), a collaborative recommendation algorithm.', 'train', true);
 INSERT IGNORE INTO register_et VALUES(2, 'TfIdfInPlace', '', 'Algorithm', 'Term Frequency–Inverse Document Frequency.', 'train', true);
 INSERT IGNORE INTO register_et VALUES(3, 'KMeans', '', 'Algorithm', 'K-means clustering algorithm.', 'train', true);
@@ -64,16 +64,16 @@ INSERT IGNORE INTO register_et VALUES(21, 'SendMessage', '', 'Tool', ' SendMessa
 INSERT IGNORE INTO register_et VALUES(22, 'SyntaxAnalyzeExt', '', 'Tool', ' SyntaxAnalyzeExt can be used to complete table extraction, parsing all tables in SQL.', 'run-sa', true);
 INSERT IGNORE INTO register_et VALUES(23, 'TreeBuildExt', '', 'Tool', ' TreeBuildExt is used to process tree structure analysis.', 'run', true);
 
---templates
+# templates
 INSERT IGNORE INTO usage_template VALUES(-1, 'train', 'train $INPUT_DATA as $ET_NAME.`$MODEL_PATH/$MODEL_NAME` where {{parameters}};');
 INSERT IGNORE INTO usage_template VALUES(-2, 'train-fe', 'train $INPUT_DATA as $ET_NAME.`$MODEL_PATH/$MODEL_NAME` where {{parameters}};');
 INSERT IGNORE INTO usage_template VALUES(-3, 'dp-train', 'train $INPUT_DATA as $ET_NAME.`` where {{parameters}} as $OUTPUT_DATA;');
 INSERT IGNORE INTO usage_template VALUES(-4, 'run', 'run $INPUT_DATA as $ET_NAME.`` where {{parameters}} as $OUTPUT_DATA;');
-INSERT IGNORE INTO usage_template VALUES(-5, 'runScript', '!runScript ''''''$parameters'''''' named $OUTPUT_DATA;');
+INSERT IGNORE INTO usage_template VALUES(-5, 'runScript', "!runScript '''$parameters''' named $OUTPUT_DATA;");
 INSERT IGNORE INTO usage_template VALUES(-6, 'run-sa', 'run command as $ET_NAME.`` where {{parameters}} as $OUTPUT_DATA;');
 INSERT IGNORE INTO usage_template VALUES(-7, 'run-sm', 'run data as $ET_NAME.`` where {{parameters}};');
 
---key parameters
+# key parameters
 INSERT IGNORE INTO et_params_def VALUES(501, -1, 'INPUT_DATA', '', true, 'Key', 'INPUT/TABLE', '', '', true, '', 'Select the Table to Be Trained', null);
 INSERT IGNORE INTO et_params_def VALUES(502, -1, 'MODEL_PATH', '', true, 'Key', 'OUTPUT/MODEL_PATH', '/tmp/model/algorithm', '', true, '', 'Save Path', null);
 INSERT IGNORE INTO et_params_def VALUES(503, -1, 'MODEL_NAME', '', true, 'Key', 'OUTPUT/MODEL_NAME', '', '', true, '', 'Model Name', null);
@@ -87,7 +87,7 @@ INSERT IGNORE INTO et_params_def VALUES(511, -4, 'OUTPUT_DATA', '', true, 'Key',
 INSERT IGNORE INTO et_params_def VALUES(512, -5, 'OUTPUT_DATA', '', true, 'Key', 'OUTPUT/TABLE', '', '', true, '', 'Output Name', null);
 INSERT IGNORE INTO et_params_def VALUES(513, -6, 'OUTPUT_DATA', '', true, 'Key', 'OUTPUT/TABLE', '', '', true, '', 'Output Name', null);
 
---AlSInPlace
+# AlSInPlace
 INSERT IGNORE INTO et_params_def VALUES(1001, 1, 'maxIter', '', true, 'Group/B', 'INT', '10', '', false, '', '', '{min:0}');
 INSERT IGNORE INTO et_params_def VALUES(1002, 1, 'regParam', '', true, 'Group/B', 'FLOAT', '0.1', '', false, '', '', '{min:0}');
 INSERT IGNORE INTO et_params_def VALUES(1003, 1, 'userCol', '', true, 'Group/A', 'STRING', 'user', '', false, '', '', null);
@@ -108,14 +108,14 @@ INSERT IGNORE INTO et_params_def VALUES(1017, 1, 'seed', '', false, '', '', '', 
 INSERT IGNORE INTO et_params_def VALUES(1018, 1, 'nonnegative', '', false, '', '', '', '', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1019, 1, 'coldStartStrategy', '', true, 'Group/A', 'ENUM', 'nan', 'nan,drop', false, '', '', null);
 
---TfIdfInPlace
+# TfIdfInPlace
 INSERT IGNORE INTO et_params_def VALUES(1051, 2, 'inputCol', '', true, 'Normal', 'STRING', '', '', true, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1052, 2, 'priorityDicPath', '', true, 'Normal', 'INPUT/HDFS', '', '', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1053, 2, 'stopWordPath', '', true, 'Normal', 'INPUT/HDFS', '', '', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1054, 2, 'dicPaths', '', true, 'Normal', 'INPUT/HDFS', '', '', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1055, 2, 'nGrams', '', true, 'Normal', 'MULTI_ENUM', '2,3', '2,3', false, '', '', null);
 
---KMeans
+# KMeans
 INSERT IGNORE INTO et_params_def VALUES(1101, 3, 'distanceMeasure', '', true, 'Group/A', 'ENUM', 'euclidean', 'euclidean,cosine', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1102, 3, 'featuresCol', '', true, 'Group/A', 'STRING', 'features', '', true, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1103, 3, 'k', '', true, 'Group/A', 'INT', '4', '', true, '', '', '{min:2}');
@@ -125,7 +125,7 @@ INSERT IGNORE INTO et_params_def VALUES(1106, 3, 'predictionCol', '', true, 'Gro
 INSERT IGNORE INTO et_params_def VALUES(1107, 3, 'seed', '', true, 'Group/A', 'INT', '566573821', '', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1108, 3, 'weightCol', '', true, 'Group/A', 'STRING', '', '', false, '', '', null);
 
---NaiveBayes
+# NaiveBayes
 INSERT IGNORE INTO et_params_def VALUES(1151, 5, 'featuresCol', '', true, 'Group/A', 'STRING', 'features', '', true, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1152, 5, 'labelCol', '', true, 'Group/A', 'STRING', 'label', '', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1153, 5, 'modelType', '', true, 'Group/A', 'ENUM', 'multinomial', 'multinomial,bernoulli', false, '', '', null);
@@ -136,7 +136,7 @@ INSERT IGNORE INTO et_params_def VALUES(1157, 5, 'smoothing', '', true, 'Group/B
 INSERT IGNORE INTO et_params_def VALUES(1158, 5, 'thresholds', '', true, 'Group/B', 'STRING', '', '', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1159, 5, 'weightCol', '', true, 'Group/A', 'STRING', '', '', false, '', '', null);
 
---RandomForest
+# RandomForest
 INSERT IGNORE INTO et_params_def VALUES(1201, 6, 'bootstrap', '', true, 'Group/A', 'ENUM', 'false', 'true,false', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1202, 6, 'cacheNodeIds', '', true, 'Group/A', 'ENUM', 'true', 'true,false', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1203, 6, 'checkpointInterval', '', false, 'Group/A', 'INT', '10', '', false, '', '', '{min:1}');
@@ -159,7 +159,7 @@ INSERT IGNORE INTO et_params_def VALUES(1219, 6, 'thresholds', '', true, 'Group/
 INSERT IGNORE INTO et_params_def VALUES(1220, 6, 'weightCol', '', false, 'Group/A','STRING', '', '', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1221, 6, 'leafCol', '', false, '','', '', '', false, '', '', null);
 
---LogisticRegression
+# LogisticRegression
 INSERT IGNORE INTO et_params_def VALUES(1251, 4, 'elasticNetParam', '', true, 'Group/A','FLOAT', '0.0', '', false, '', '', '{min:0,max:1}');
 INSERT IGNORE INTO et_params_def VALUES(1252, 4, 'epsilon', '', true, 'Group/A','FLOAT', '1.35', '', false, '', '', '{min:1.0}');
 INSERT IGNORE INTO et_params_def VALUES(1253, 4, 'featuresCol', '', true, 'Group/A','STRING', 'features', '', false, '', '', null);
@@ -184,7 +184,7 @@ INSERT IGNORE INTO et_params_def VALUES(1271, 4, 'threshold', '', true, 'Group/B
 INSERT IGNORE INTO et_params_def VALUES(1272, 4, 'thresholds', '', true, 'Group/B','STRING', '', '', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1273, 4, 'family', '', true, 'Group/A','ENUM', 'auto', 'auto,binomial,multinomial', false, '', '', null);
 
---LinearRegression
+# LinearRegression
 INSERT IGNORE INTO et_params_def VALUES(1301, 8, 'elasticNetParam', '', true, 'Group/A','FLOAT', '0.0', '', false, '', '', '{min:0,max:1}');
 INSERT IGNORE INTO et_params_def VALUES(1302, 8, 'featuresCol', '', true, 'Group/A', 'STRING', 'features', '', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1303, 8, 'fitIntercept', '', true, 'Group/A','ENUM', 'true', 'true,false', false, '', '', null);
@@ -201,18 +201,18 @@ INSERT IGNORE INTO et_params_def VALUES(1313, 8, 'aggregationDepth', '', false, 
 INSERT IGNORE INTO et_params_def VALUES(1314, 8, 'epsilon', '', false, 'Group/A', 'FLOAT', '', '', false, '', '', '{min:1.0}');
 INSERT IGNORE INTO et_params_def VALUES(1315, 8, 'maxBlockSizeInMB', '', false, 'Group/A', 'INT', '', '', false, '', '', '{min:0}');
 
---RateSampler
+# RateSampler
 INSERT IGNORE INTO et_params_def VALUES(1351, 15, 'labelCol', '', true, 'Normal', 'STRING', 'label', '', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1352, 15, 'sampleRate', '', true, 'Normal', 'STRING', '0.9,0.1', '', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1353, 15, 'isSplitWithSubLabel', '', true, 'Normal', 'ENUM', 'true', 'true,false', false, '', '', null);
 
---SyntaxAnalyzeExt
+# SyntaxAnalyzeExt
 INSERT IGNORE INTO et_params_def VALUES(1401, 22, 'sql', '', true, 'Normal', 'TEXT', '', '', false, '', '', null);
 
---RunScript
+# RunScript
 INSERT IGNORE INTO et_params_def VALUES(1451, 20, 'parameters', '', true, 'Key', 'TEXT', '', '', false, '', 'Script', null);
 
---Discretizer
+# Discretizer
 INSERT IGNORE INTO et_params_def VALUES(1501, 9, 'handleInvalid', '', true, 'Normal', 'ENUM', 'error', 'skip,error,keep', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1502, 9, 'splitsArray', '', true, 'Normal', 'STRING', 'e.g. [-inf,-0.3,0,0.3,inf],[-inf,-0.5,0, 0.5,inf]', '', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1503, 9, 'splits', '', true, 'Normal', 'STRING', 'e.g. [-inf,-0.5,0,0.5,inf]', '', false, '', '', null);
@@ -221,19 +221,19 @@ INSERT IGNORE INTO et_params_def VALUES(1505, 9, 'outputCols', '', false, 'Norma
 INSERT IGNORE INTO et_params_def VALUES(1506, 9, 'numBucketsArray', '', false, 'Normal', 'STRING', '', '', true, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1507, 9, 'splitArray', '', false, 'Normal', 'STRING', '', '', true, '', '', null);
 
---Word2VecInPlace
+# Word2VecInPlace
 INSERT IGNORE INTO et_params_def VALUES(1551, 13, 'wordvecPaths', '', true, 'Normal', 'INPUT/HDFS', '', '', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1552, 13, 'stopWordPath', '', true, 'Normal', 'INPUT/HDFS', '', '', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1553, 13, 'dicPaths', '', true, 'Normal', 'INPUT/HDFS', '', '', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1554, 13, 'resultFeature', '', true, 'Normal', 'ENUM', '', 'flat,merge,index', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1555, 13, 'ignoreNature', '', true, 'Normal', 'ENUM', 'true', 'true,false', false, '', '', null);
 
---TableRepartition
+# TableRepartition
 INSERT IGNORE INTO et_params_def VALUES(1601, 16, 'partitionNum', '', true, 'Normal', 'INT', '', '', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1602, 16, 'partitionType', '', true, 'Normal', 'ENUM', 'hash', 'hash,range', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1603, 16, 'shuffle', '', true, 'Normal', 'ENUM', 'true', 'true,false', false, '', '', null);
 
---TreeBuildExt
+# TreeBuildExt
 INSERT IGNORE INTO et_params_def VALUES(1651, 23, 'treeType', '', true, 'Normal', 'ENUM', '', 'nodeTreePerRow,treePerRow', false, '', '', null);
 INSERT IGNORE INTO et_params_def VALUES(1652, 23, 'recurringDependencyBreakTimes', '', true, 'Normal', 'INT', '1000', '', false, '', '', null);
 
