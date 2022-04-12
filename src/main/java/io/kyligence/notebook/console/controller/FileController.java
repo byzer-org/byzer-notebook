@@ -189,12 +189,13 @@ public class FileController {
     @PostMapping("/file/import")
     @SneakyThrows
     @Permission
-    public Response<List<IdNameTypeDTO>> importExecFiles(@RequestParam("file") MultipartFile[] files) {
+    public Response<List<IdNameTypeDTO>> importExecFiles(@RequestParam("file") MultipartFile[] files,
+                                                         @RequestParam(value = "folder_id", required = false) Integer folderId) {
         checkFiles(files);
         List<IdNameTypeDTO> result = new ArrayList<>();
         if (files != null) {
             for (MultipartFile file : files) {
-                IdNameTypeDTO DTO = importExecFile(file);
+                IdNameTypeDTO DTO = importExecFile(file, folderId);
                 result.add(DTO);
             }
         }
@@ -231,11 +232,11 @@ public class FileController {
         });
     }
 
-    private IdNameTypeDTO importExecFile(MultipartFile file) throws IOException {
+    private IdNameTypeDTO importExecFile(MultipartFile file, Integer folderId) throws IOException {
         String type = getExecFileType(file.getOriginalFilename());
         execFileService = getService(type);
         ExecFileDTO execFileDTO = execFileService.analyzeFile(file);
-        ExecFileInfo execFileInfo = execFileService.importExecFile(execFileDTO, null);
+        ExecFileInfo execFileInfo = execFileService.importExecFile(execFileDTO, folderId);
         return IdNameTypeDTO.valueOf(execFileInfo.getId(), execFileInfo.getName(), type);
     }
 
