@@ -1,9 +1,21 @@
 #!/bin/bash
 
-function runTool() {
-    runToolInternal "$@"
-    exit $?
-}
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 
 function clearCrontab() {
     if ! isCrontabUseable;then
@@ -49,8 +61,6 @@ function prepareEnv {
 
     echo "NOTEBOOK_HOME is:${NOTEBOOK_HOME}"
     echo "NOTEBOOK_CONFIG_FILE is:${NOTEBOOK_CONFIG_FILE}"
-
-#    retrieveDependency
 
     mkdir -p ${NOTEBOOK_HOME}/logs
 }
@@ -134,19 +144,6 @@ function start(){
         checkRestPort
     fi
 
-#    runToolInternal io.kyligence.kap.tool.upgrade.AddInstanceColumnCLI
-#
-#    runToolInternal io.kyligence.kap.tool.security.AdminUserInitCLI
-#    if [[ $? == 1 ]]; then
-#      quit "Create Admin user failed, for more details please refer to \"\$NOTEBOOK_HOME/logs/shell.stderr\"."
-#    fi
-
-#    if [[ -f ${NOTEBOOK_HOME}/conf/kylin-server-log4j.xml ]]; then
-#        kylin_server_log4j="file:${NOTEBOOK_HOME}/conf/kylin-server-log4j.xml"
-#    else
-#        kylin_server_log4j="file:${NOTEBOOK_HOME}/server/conf/kylin-server-log4j.xml"
-#    fi
-
     nohup java -DNOTEBOOK_HOME=${NOTEBOOK_HOME} -Dspring.config.name=application,notebook -Dspring.config.location=classpath:/,file:${NOTEBOOK_HOME}/conf/ -jar ${NOTEBOOK_HOME}/lib/notebook-console.jar >> ${NOTEBOOK_HOME}/logs/notebook.out 2>&1 < /dev/null & echo $! >> ${NOTEBOOK_HOME}/pid &
     sleep 3
     clearRedundantProcess
@@ -154,8 +151,6 @@ function start(){
     PID=`cat ${NOTEBOOK_HOME}/pid`
     CUR_DATE=$(date "+%Y-%m-%d %H:%M:%S")
     echo $CUR_DATE" new Byzer Notebook process pid is "$PID >> ${NOTEBOOK_HOME}/logs/notebook.log
-
-#    sh ${NOTEBOOK_HOME}/bin/guardian.sh start
 
     echo "Byzer Notebook is starting. It may take a while. For status, please visit http://`hostname`:$port."
     echo "You may also check status via: PID:`cat ${NOTEBOOK_HOME}/pid`, or Log: ${NOTEBOOK_HOME}/logs/notebook.log."
@@ -199,10 +194,8 @@ function stop(){
     fi
 }
 
-if [[ "$1" == io.kyligence.* ]]; then
-    runTool "$@"
 # start command
-elif [ "$1" == "start" ]; then
+if [ "$1" == "start" ]; then
     echo "Starting Byzer Notebook..."
     start
 # stop command

@@ -47,5 +47,4 @@ notebook.env.redis-enable=false
 notebook.env.log-rotate-enabled=false
 notebook.env.max-keep-log-file-threshold-mb=256
 notebook.env.max-keep-log-file-number=10
-## use crontab to check whether the log files(shell.stderr, shell.stdout and kylin.out) needs to be rotated
 notebook.env.log-rotate-check-cron=33 * * * *

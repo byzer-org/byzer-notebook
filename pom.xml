@@ -593,16 +593,16 @@
                 </dependency>
             </dependencies>
         </profile>
-<!--        <profile>-->
-<!--            <id>prod</id>-->
-<!--            <properties>-->
-<!--                <envs>prod</envs>-->
-<!--                <root_log_mode>notebook</root_log_mode>-->
-<!--                <exclude_class>-->
-<!--                    org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration-->
-<!--                </exclude_class>-->
-<!--            </properties>-->
-<!--        </profile>-->
+        <profile>
+            <id>prod</id>
+            <properties>
+                <envs>prod</envs>
+                <root_log_mode>notebook</root_log_mode>
+                <exclude_class>
+                    org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+                </exclude_class>
+            </properties>
+        </profile>
     </profiles>
 
 </project>

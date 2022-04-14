@@ -17,26 +17,29 @@
 # limitations under the License.
 #
 
-if [ $# != 1 ]
-then
-    if [[ $# < 2 || $2 != 'DEC' ]]
-        then
-            echo 'invalid input'
-            exit 1
+#title=Checking Byzer engine
+
+source $(cd -P -- "$(dirname -- "$0")" && pwd -P)/header.sh
+
+echo "Checking Byzer engine..."
+Byzer_engine_url="`${NOTEBOOK_HOME}/bin/get-properties.sh notebook.mlsql.engine-url`"
+check_api="${Byzer_engine_url}/health/liveness"
+
+
+http_code=000
+status="false"
+for i in {1..3} ; do
+    sleep 1
+    echo "Try to connect Byzer-lang, address : ${Byzer_engine_url}"
+
+    http_code=`curl -I -m 10 -o /dev/null -s -w %{http_code} ${check_api}`
+    if [[ "${http_code}" -eq 200 ]]; then
+      status="true"
+      echo "Byzer engine connected."
+      break;
     fi
+done
+
+if [[ "${status}" == "false" ]]; then
+  quit "Error: Unable to connect to Byzer engine, please make sure ${byzer-engine-address} is available."
 fi
-
-if [ -z $NOTEBOOK_HOME ];then
-    export NOTEBOOK_HOME=$(cd -P -- "$(dirname -- "$0")"/../ && pwd -P)
-fi
-
-if [[ -f ${NOTEBOOK_HOME}/conf/notebook-tools-log4j.xml ]]; then
-    notebook_tools_log4j="file:${NOTEBOOK_HOME}/conf/notebook-tools-log4j.xml"
-    else
-    notebook_tools_log4j="file:${NOTEBOOK_HOME}/tool/conf/notebook-tools-log4j.xml"
-fi
-
-mkdir -p ${NOTEBOOK_HOME}/logs
-result=`java -DNOTEBOOK_HOME=${NOTEBOOK_HOME} -cp "${NOTEBOOK_HOME}/lib/notebook-console.jar" -Dloader.main=io.kyligence.notebook.console.util.NotebookConfigCLI -Dloader.args="$@" org.springframework.boot.loader.PropertiesLauncher 2>>${NOTEBOOK_HOME}/logs/shell.stderr`
-
-echo "$result"
