@@ -370,7 +370,7 @@ public final class OrderedProperties implements Serializable {
         }
 
         @Override
-        public Object get(Object key) {
+        public synchronized Object get(Object key) {
             return targetProperties.get(key);
         }
 
@@ -385,7 +385,7 @@ public final class OrderedProperties implements Serializable {
         }
 
         @Override
-        public Enumeration<Object> keys() {
+        public synchronized Enumeration<Object> keys() {
             return new Vector<Object>(targetProperties.keySet()).elements();
         }
 
