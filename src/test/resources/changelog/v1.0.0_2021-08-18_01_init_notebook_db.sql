@@ -5,8 +5,9 @@
 --labels: init
 --tag: 1.0.0
 
-SET NAMES utf8mb4;
+SET NAMES utf8;
 SET FOREIGN_KEY_CHECKS = 0;
+
 -- ----------------------------
 --  Table structure for `cell_info`
 -- ----------------------------
@@ -19,7 +20,7 @@ CREATE TABLE IF NOT EXISTS `cell_info` (
                              `update_time` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
                              PRIMARY KEY (`id`),
                              KEY `idx_noteboo_id` (`notebook_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=114 DEFAULT CHARSET=utf8mb4 COLLATE = utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=114 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 --  Table structure for `job_info`
@@ -40,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `job_info` (
                             `finish_time` timestamp(3) NULL DEFAULT NULL,
                             PRIMARY KEY (`id`),
                             UNIQUE KEY `uniq_job_id` (`job_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=237 DEFAULT CHARSET=utf8mb4 COLLATE = utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=237 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 --  Table structure for `notebook_folder`
@@ -54,7 +55,7 @@ CREATE TABLE IF NOT EXISTS `notebook_folder` (
                                    `update_time` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
                                    PRIMARY KEY (`id`),
                                    KEY `idx_user` (`user`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE = utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 --  Table structure for `notebook_info`
@@ -69,8 +70,8 @@ CREATE TABLE IF NOT EXISTS `notebook_info` (
                                  `create_time` timestamp(3) NULL DEFAULT NULL,
                                  `update_time` timestamp(3) NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP(3),
                                  PRIMARY KEY (`id`),
-                                 KEY `notebook_info_idx_name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE = utf8mb4_unicode_ci;
+                                 KEY `idx_name` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 --  Table structure for `system_config`
@@ -80,7 +81,7 @@ CREATE TABLE IF NOT EXISTS `system_config` (
                                  `timeout` int(11) DEFAULT NULL,
                                  `engine` varchar(255) DEFAULT NULL,
                                  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE = utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 --  Table structure for `user_action`
@@ -91,7 +92,7 @@ CREATE TABLE IF NOT EXISTS `user_action` (
                                `opened_notebooks` text,
                                PRIMARY KEY (`id`),
                                UNIQUE KEY `uniq_user` (`user`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE = utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 --  Table structure for `user_info`
@@ -103,7 +104,7 @@ CREATE TABLE IF NOT EXISTS `user_info` (
                              `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
                              PRIMARY KEY (`id`),
                              UNIQUE KEY `uniq_name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE = utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 --  Table structure for `workflow_node`
@@ -121,7 +122,7 @@ CREATE TABLE IF NOT EXISTS `workflow_node` (
                              `update_time` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
                              PRIMARY KEY (`id`),
                              KEY `idx_workflow_id` (`workflow_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE = utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 --  Table structure for `workflow_info`
@@ -135,7 +136,7 @@ CREATE TABLE IF NOT EXISTS `workflow_info` (
                              `update_time` timestamp(3) NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP(3),
                              PRIMARY KEY (`id`),
                              KEY `idx_name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb4 COLLATE = utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 --  Table structure for `connection_info`
@@ -153,11 +154,11 @@ CREATE TABLE IF NOT EXISTS `connection_info` (
                              `create_time` timestamp(3) NULL DEFAULT NULL,
                              `update_time` timestamp(3) NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP(3),
                              PRIMARY KEY (`id`),
-                             KEY `connection_info_idx_user` (`user`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE = utf8mb4_unicode_ci;
+                             KEY `idx_user` (`user`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
 
 INSERT IGNORE INTO `user_info` VALUES ('1', 'admin', 'a0a6ddc07f9be6a8332b004970e6ad74', '2021-03-30 13:43:48');
-INSERT IGNORE INTO `system_config` VALUES ('0', '2880', 'default');
+# INSERT IGNORE INTO `system_config` VALUES ('0', '2880', 'default');
 
 SET FOREIGN_KEY_CHECKS = 1;
 

@@ -12,6 +12,7 @@ import io.kyligence.notebook.console.scheduler.RemoteSchedulerInterface;
 import io.kyligence.notebook.console.scheduler.SchedulerConfig;
 import io.kyligence.notebook.console.scheduler.SchedulerFactory;
 import io.kyligence.notebook.console.scheduler.dolphin.dto.EntityModification;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class SchedulerService {
 
@@ -61,8 +63,9 @@ public class SchedulerService {
     public void callback(String token, String scheduleOwner, String entityType,
                          String entityId, String commitId, Integer timeout) {
         if (!config.getScheduleCallbackToken().equals(token)) {
-            throw new ByzerException();
+            throw new ByzerException("Scheduler callback token auth failed!");
         }
+        log.info("Receive scheduler callback for {} execute Entity[{}, {}, {}]", scheduleOwner, entityType, entityId, commitId);
         String user = config.getScheduleCallbackUser();
         timeout = Objects.isNull(timeout) || timeout > CALLBACK_TIMEOUT_SECONDS ? CALLBACK_TIMEOUT_SECONDS : timeout;
         EngineService.RunScriptParams runScriptParams = new EngineService.RunScriptParams()
@@ -93,9 +96,13 @@ public class SchedulerService {
         // 发送查询
         try {
             engineService.runScript(runScriptParams);
+            log.info("Scheduler callback for {} execute Entity[{}, {}, {}] succeed!",
+                    scheduleOwner, entityType, entityId, commitId);
         } catch (Exception ex) {
             // update job status to FAILED if exception happened
             status = JobInfo.JobStatus.FAILED;
+            log.error("Scheduler callback for {} execute Entity[{}, {}, {}] failed!",
+                    scheduleOwner, entityType, entityId, commitId);
             throw ex;
         } finally {
             jobInfo.setFinishTime(new Timestamp(System.currentTimeMillis()));
