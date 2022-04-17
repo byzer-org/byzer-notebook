@@ -37,7 +37,8 @@ public class SchedulerController {
                 scheduleCallbackReq.getUser(),
                 scheduleCallbackReq.getEntityType(),
                 scheduleCallbackReq.getEntityId(),
-                scheduleCallbackReq.getCommitId()
+                scheduleCallbackReq.getCommitId(),
+                scheduleCallbackReq.getTimeout()
         );
         return new Response<String>().msg("success");
     }
@@ -97,6 +98,7 @@ public class SchedulerController {
                 createScheduleReq.getCommitId(),
                 createScheduleReq.getTaskName(),
                 createScheduleReq.getTaskDesc(),
+                createScheduleReq.getTaskTimeout(),
                 createScheduleReq.getSchedule(),
                 createScheduleReq.getExtra()
         );

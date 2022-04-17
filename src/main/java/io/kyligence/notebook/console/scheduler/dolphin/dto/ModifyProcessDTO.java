@@ -22,7 +22,7 @@ public class ModifyProcessDTO {
 
     public static ModifyProcessDTO create(String processName, String description, String entityName,
                                           String entityType, Integer entityId, String commitId,
-                                          String taskName, String taskDesc,
+                                          String taskName, String taskDesc, Integer taskTimeout,
                                           String owner, String token, String callbackUrl,
                                           Integer maxRetryTimes, Integer retryInterval,
                                           Integer timeout, Integer tenantId) {
@@ -30,7 +30,7 @@ public class ModifyProcessDTO {
                 processName, description, entityName, entityType,
                 entityId, commitId, taskName, taskDesc,
                 owner, token, callbackUrl, maxRetryTimes, retryInterval,
-                timeout, tenantId
+                timeout, tenantId, taskTimeout
         );
         ModifyProcessDTO dto = new ModifyProcessDTO();
 
@@ -58,8 +58,10 @@ public class ModifyProcessDTO {
                                           String entityType, Integer entityId, String commitId,
                                           String owner, String token, String callbackUrl,
                                           Integer maxRetryTimes, Integer retryInterval,
-                                          List<EntityMap> attachTo, String taskName, String taskDesc) {
-        processInfo.modify(entityName, entityType, entityId, commitId, taskName, taskDesc, owner, token, callbackUrl, maxRetryTimes, retryInterval, attachTo);
+                                          List<EntityMap> attachTo, String taskName,
+                                          String taskDesc, Integer taskTimeout) {
+        processInfo.modify(entityName, entityType, entityId, commitId, taskName, taskDesc,
+                owner, token, callbackUrl, maxRetryTimes, retryInterval, taskTimeout, attachTo);
         ModifyProcessDTO dto = new ModifyProcessDTO();
 
         dto.setName((Objects.nonNull(name))  ? name : processInfo.getName() );

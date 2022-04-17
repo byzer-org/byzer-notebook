@@ -72,7 +72,7 @@ public class SchedulerServiceTest extends NotebookLauncherBaseTest {
         thrown.expectMessage("SchedulerService not enabled");
         schedulerService.createSchedule(1, "task-not-exist", null, mockUser,
                 "notebook", 10, null, null, null,
-                null, null);
+                null, null, null);
     }
 
     @Test
@@ -249,7 +249,11 @@ public class SchedulerServiceTest extends NotebookLauncherBaseTest {
     @Test
     public void testCallback() {
         schedulerService.callback(config.getScheduleCallbackToken(),
-                "admin", "notebook", defaultMockNotebookId, null);
+                "admin", "notebook", defaultMockNotebookId, null, null);
+
+        schedulerService.callback(config.getScheduleCallbackToken(),
+                "admin", "notebook", defaultMockNotebookId, null, 180);
+
         List<JobInfo> jobs = jobService.getJobList(null, null, null, null,
                 String.valueOf(JobInfo.JobStatus.SUCCESS), config.getScheduleCallbackUser(), null).getSecond();
         Assert.assertNotEquals(0, jobs.size());
