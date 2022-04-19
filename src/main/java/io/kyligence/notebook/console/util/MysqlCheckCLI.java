@@ -53,25 +53,14 @@ public class MysqlCheckCLI {
                 while (resultset.next()) {
                     System.out.println(resultset.getString("version()"));
                 }
-            } catch (SQLException ex) {
-                // handle any errors
-                ex.printStackTrace();
             } finally {
                 // release resources
                 if (resultset != null) {
-                    try {
-                        resultset.close();
-                    } catch (SQLException sqlEx) {
-                    }
-                    resultset = null;
+                    resultset.close();
                 }
 
                 if (stmt != null) {
-                    try {
-                        stmt.close();
-                    } catch (SQLException sqlEx) {
-                    }
-                    stmt = null;
+                    stmt.close();
                 }
 
                 if (connection != null) {
