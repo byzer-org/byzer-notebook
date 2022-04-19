@@ -17,6 +17,10 @@
 # limitations under the License.
 #
 
+set -u
+set -e
+set -o pipefail
+
 function clearCrontab() {
     if ! isCrontabUseable;then
         return 1
