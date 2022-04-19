@@ -42,37 +42,49 @@ public class Unsafe {
     private Unsafe() {
     }
 
-    /** Calls {@link System#exit}. */
+    /**
+     * Calls {@link System#exit}.
+     */
     public static void systemExit(int status) {
         System.exit(status);
     }
 
-    /** Calls {@link Object#notifyAll()}. */
-    public static void notifyAll(Object o) {
+    /**
+     * Calls {@link Object#notifyAll()}.
+     */
+    public synchronized static void notifyAll(Object o) {
         o.notifyAll();
     }
 
-    /** Calls {@link Object#notify()}. */
-    public static void notify(Object o) {
+    /**
+     * Calls {@link Object#notify()}.
+     */
+    public synchronized static void notify(Object o) {
         o.notify();
     }
 
-    /** Calls {@link Object#wait()}. */
-    public static void wait(Object o) throws InterruptedException {
+    /**
+     * Calls {@link Object#wait()}.
+     */
+    public synchronized static void wait(Object o) throws InterruptedException {
         o.wait();
     }
 
-    public static void wait(Object o, long ms) throws InterruptedException {
+    public synchronized static void wait(Object o, long ms) throws InterruptedException {
         o.wait(ms);
     }
 
-    /** Clears the contents of a {@link StringWriter}. */
+    /**
+     * Clears the contents of a {@link StringWriter}.
+     */
     public static void clear(StringWriter sw) {
         // Included in this class because StringBuffer is banned.
         sw.getBuffer().setLength(0);
     }
 
-    /** For {@link MessageFormat#format(String, Object...)} cannot set locale*/
+    /**
+     * For {@link MessageFormat#format(String, Object...)} cannot set locale
+     */
     public static String format(Locale locale, String pattern, Object... arguments) {
         MessageFormat temp = new MessageFormat(pattern, locale);
         return temp.format(arguments);
@@ -82,13 +94,17 @@ public class Unsafe {
         return request.getRequestURL().toString();
     }
 
-    /** Reflection usage to work around access flags fails with SecurityManagers 
-     * and likely will not work anymore on runtime classes in Java 9 */
+    /**
+     * Reflection usage to work around access flags fails with SecurityManagers
+     * and likely will not work anymore on runtime classes in Java 9
+     */
     public static void changeAccessibleObject(AccessibleObject accessibleObject, boolean value) {
         accessibleObject.setAccessible(value);
     }
 
-    /** Overwrite system property in test */
+    /**
+     * Overwrite system property in test
+     */
     public static void overwriteSystemProp(Map<String, String> systemProp, String key, String value) {
         if (systemProp != null) {
             systemProp.put(key, System.getProperty(key));
@@ -101,7 +117,9 @@ public class Unsafe {
         }
     }
 
-    /** Restore all system properties in test */
+    /**
+     * Restore all system properties in test
+     */
     public static void restoreAllSystemProp(Map<String, String> systemProp) {
         if (systemProp != null) {
             systemProp.forEach((prop, value) -> System.clearProperty(prop));
@@ -109,12 +127,16 @@ public class Unsafe {
         }
     }
 
-    /** Set system property */
+    /**
+     * Set system property
+     */
     public static String setProperty(String property, String value) {
         return System.setProperty(property, value);
     }
 
-    /** Clear system property */
+    /**
+     * Clear system property
+     */
     public static void clearProperty(String property) {
         System.clearProperty(property);
     }
