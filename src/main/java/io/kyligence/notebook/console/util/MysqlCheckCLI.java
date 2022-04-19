@@ -39,12 +39,8 @@ public class MysqlCheckCLI {
         String url = "jdbc:mysql://" + ip + ":" + port + "?useSSL=false";
 
         try (Connection connection = DriverManager.getConnection(url, username, password)) {
-            Statement stmt = null;
             ResultSet resultset = null;
-
-            try {
-                stmt = connection.createStatement();
-
+            try (Statement stmt = connection.createStatement()){
                 if (stmt.execute("select version();")) {
                     resultset = stmt.getResultSet();
                 } else {
@@ -57,14 +53,6 @@ public class MysqlCheckCLI {
                 // release resources
                 if (resultset != null) {
                     resultset.close();
-                }
-
-                if (stmt != null) {
-                    stmt.close();
-                }
-
-                if (connection != null) {
-                    connection.close();
                 }
             }
         } catch (SQLException e) {

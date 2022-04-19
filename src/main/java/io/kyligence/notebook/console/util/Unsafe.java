@@ -57,13 +57,6 @@ public class Unsafe {
     }
 
     /**
-     * Calls {@link Object#notify()}.
-     */
-    public synchronized static void notify(Object o) {
-        o.notify();
-    }
-
-    /**
      * Calls {@link Object#wait()}.
      */
     public synchronized static void wait(Object o) throws InterruptedException {
