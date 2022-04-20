@@ -55,12 +55,7 @@ public class JobService {
 
     private final NotebookConfig config = NotebookConfig.getInstance();
 
-    @Transactional
     public JobLog getJobLog(String user, String jobId, Long offset) {
-        Integer jobStatus = getJobStatus(jobId);
-        if (!isRunning(jobStatus)) {
-            return null;
-        }
         String groupId = getGroupOrJobId(jobId);
         String response = null;
         try {
@@ -84,7 +79,7 @@ public class JobService {
             jobLog.setValue(
                     jobLog.getValue().stream().filter(
                             s -> s.contains(String.format("[owner] [%s] [groupId] [%s]", user, groupId))
-                                    && !s.contains("DefaultConsoleClient")
+                                    || s.contains(String.format("DriverLogServer: [owner] [%s]", user))
                     ).collect(Collectors.toList())
             );
         } else {
