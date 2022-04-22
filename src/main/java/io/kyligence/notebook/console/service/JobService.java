@@ -55,7 +55,6 @@ public class JobService {
 
     private final NotebookConfig config = NotebookConfig.getInstance();
 
-    @Transactional
     public JobLog getJobLog(String user, String jobId, Long offset) {
         Integer jobStatus = getJobStatus(jobId);
         if (!isRunning(jobStatus)) {

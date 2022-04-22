@@ -2,10 +2,7 @@ package io.kyligence.notebook.console.bean.entity;
 
 import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "system_config")
@@ -13,12 +10,15 @@ import javax.persistence.Table;
 public class SystemConfig {
 
     @Id
-    @Column(name = "id", nullable = false)
-    private Integer id = 0;  // only 1 rows
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-    @Column(name = "timeout", nullable = true)
+    @Column(name = "timeout")
     private Integer timeout;
 
-    @Column(name = "engine", nullable = true)
+    @Column(name = "`user`")
+    private String user;
+
+    @Column(name = "engine")
     private String engine;
 }

@@ -195,8 +195,8 @@ public class FileController {
         List<IdNameTypeDTO> result = new ArrayList<>();
         if (files != null) {
             for (MultipartFile file : files) {
-                IdNameTypeDTO DTO = importExecFile(file, folderId);
-                result.add(DTO);
+                IdNameTypeDTO dto = importExecFile(file, folderId);
+                result.add(dto);
             }
         }
         return new Response<List<IdNameTypeDTO>>().data(result);
@@ -226,7 +226,7 @@ public class FileController {
 
             fileNameWithTypeList.add(IdNameTypeDTO.valueOf(null, insideFilename, fileType));
         }
-        fileNumMap.forEach((fileType, num) ->{
+        fileNumMap.forEach((fileType, num) -> {
             execFileService = getService(fileType);
             execFileService.checkResourceLimit(user, num);
         });

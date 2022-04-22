@@ -88,14 +88,14 @@ public class SchedulerService {
         jobInfo.setUser(user);
         jobInfo.setNotebook(getEntityName(entityType, Integer.parseInt(entityId)));
 
-        String engine = config.getExecutionEngine();
+        String engine = engineService.getExecutionEngine();
         jobInfo.setEngine(engine);
 
         jobService.insert(jobInfo);
         int status = JobInfo.JobStatus.SUCCESS;
         // 发送查询
         try {
-            engineService.runScript(runScriptParams);
+            engineService.runScript(runScriptParams, engine);
             log.info("Scheduler callback for {} execute Entity[{}, {}, {}] succeed!",
                     scheduleOwner, entityType, entityId, commitId);
         } catch (Exception ex) {

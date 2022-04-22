@@ -59,7 +59,7 @@ public class ConnectionDTO {
         connectionDTO.setName(connectionInfo.getName());
         connectionDTO.setUrl(connectionInfo.getUrl());
         connectionDTO.setUserName(connectionInfo.getUserName());
-        connectionDTO.setPassword(EncryptUtils.decrypt(connectionInfo.getPassword()));
+        connectionDTO.setPassword(connectionInfo.getPassword());
         connectionDTO.setParameter(JacksonUtils.readJsonArray(connectionInfo.getParameter(), ParameterMap.class));
         return connectionDTO;
     }

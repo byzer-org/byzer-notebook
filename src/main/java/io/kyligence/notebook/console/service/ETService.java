@@ -50,44 +50,12 @@ public class ETService {
 
     @PostConstruct
     public void registerET() {
-        RequestContextHolder.resetRequestAttributes();
-        String sql = "!show et;";
-        String responseBody = engineService.runScript(
-                new EngineService.RunScriptParams()
-                        .withSql(sql)
-                        .withAsync("false"));
-        log.info("Get ET info from Engine");
-        List<RegisterETDTO> registerETDTOS = JacksonUtils.readJsonArray(responseBody, RegisterETDTO.class);
-
-        Map<String, RegisterETDTO> registerMap;
-        registerMap = registerETDTOS.stream().collect(Collectors.toMap(RegisterETDTO::getName, RegisterETDTO -> RegisterETDTO));
-
-        log.info("Getting Register ET Info from Metadata...");
-        List<RegisterET> ETs = etRepository.findAll();
-        // TODO define et covering behavior
-        for (RegisterET et : ETs) {
-            if (registerMap.containsKey(et.getName()) && et.getEnable()){
-                log.info("Loading ET:[" + et.getName() + "] ...");
-                RegisterETDTO registerETDTO = registerMap.get(et.getName());
-
-                ETNodeDTO etNodeDTO = ETNodeDTO.valueOf(et);
-                if (Objects.isNull(etNodeDTO.getDescription()) || etNodeDTO.getDescription().isEmpty()){
-                    etNodeDTO.setDescription(registerETDTO.getDoc());
-                }
-                UsageTemplate usageTemplate = usageTemplateRepository.findByUsage(etNodeDTO.getEtUsage());
-                if (usageTemplate != null) {
-                    String template = usageTemplate.getTemplate();
-                    String realUsage = StringUtils.replace(template, "$ET_NAME", etNodeDTO.getName());
-                    etNodeDTO.setUsageTemplate(realUsage);
-                } else {
-                    log.error("can not find usage template:{}", etNodeDTO.getEtUsage());
-                }
-                etCache.put(et.getId(), etNodeDTO);
-            }
-        }
+        initializeETCache();
     }
 
     public List<ETNodeDTO> getAllET() {
+        if (etCache.isEmpty()) initializeETCache();
+
         List<ETNodeDTO> etList = new ArrayList<>(etCache.values());
         etList.sort(Comparator.comparingInt(ETNodeDTO::getId));
         return etList;
@@ -230,6 +198,48 @@ public class ETService {
         }
 
         return engineParam;
+    }
+
+    private void initializeETCache() {
+        if (!engineService.isReady(engineService.getExecutionEngine())) {
+            log.error("Unable to reach Byzer-lang engine, skip initializing ET information.");
+            return;
+        }
+
+        String sql = "!show et;";
+        String responseBody = engineService.runScript(
+                new EngineService.RunScriptParams()
+                        .withSql(sql)
+                        .withAsync("false"));
+        log.info("Get ET info from Engine");
+        List<RegisterETDTO> registerETDTOS = JacksonUtils.readJsonArray(responseBody, RegisterETDTO.class);
+
+        Map<String, RegisterETDTO> registerMap;
+        registerMap = registerETDTOS.stream().collect(Collectors.toMap(RegisterETDTO::getName, RegisterETDTO -> RegisterETDTO));
+
+        log.info("Getting Register ET Info from Metadata...");
+        List<RegisterET> ETs = etRepository.findAll();
+        // TODO define et covering behavior
+        for (RegisterET et : ETs) {
+            if (registerMap.containsKey(et.getName()) && et.getEnable()){
+                log.info("Loading ET:[" + et.getName() + "] ...");
+                RegisterETDTO registerETDTO = registerMap.get(et.getName());
+
+                ETNodeDTO etNodeDTO = ETNodeDTO.valueOf(et);
+                if (Objects.isNull(etNodeDTO.getDescription()) || etNodeDTO.getDescription().isEmpty()){
+                    etNodeDTO.setDescription(registerETDTO.getDoc());
+                }
+                UsageTemplate usageTemplate = usageTemplateRepository.findByUsage(etNodeDTO.getEtUsage());
+                if (usageTemplate != null) {
+                    String template = usageTemplate.getTemplate();
+                    String realUsage = StringUtils.replace(template, "$ET_NAME", etNodeDTO.getName());
+                    etNodeDTO.setUsageTemplate(realUsage);
+                } else {
+                    log.error("can not find usage template:{}", etNodeDTO.getEtUsage());
+                }
+                etCache.put(et.getId(), etNodeDTO);
+            }
+        }
     }
 
     private List<ParamValueMap> dynamicQuery(String valueString, String script){

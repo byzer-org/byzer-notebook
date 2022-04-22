@@ -1,14 +1,11 @@
 package io.kyligence.notebook.console.scheduler;
 
 import io.kyligence.notebook.console.exception.ByzerException;
-import io.kyligence.notebook.console.exception.EngineAccessException;
-import io.kyligence.notebook.console.exception.ErrorCodeEnum;
 import org.springframework.http.*;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.text.MessageFormat;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 
@@ -64,7 +61,7 @@ public class RemoteScheduler {
             }
             return response.getBody();
         } catch (Exception e) {
-            throw new ByzerException(ErrorCodeEnum.ENGINE_ACCESS_EXCEPTION, e);
+            throw new ByzerException(String.format("Can not connect to target schedule service: %s", e.getMessage()));
         }
     }
 
@@ -83,7 +80,7 @@ public class RemoteScheduler {
             }
             return response.getBody();
         } catch (Exception e) {
-            throw new ByzerException(ErrorCodeEnum.ENGINE_ACCESS_EXCEPTION, e);
+            throw new ByzerException(String.format("Can not connect to target schedule service: %s", e.getMessage()));
         }
 
     }
