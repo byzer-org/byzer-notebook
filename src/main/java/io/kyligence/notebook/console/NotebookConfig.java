@@ -256,4 +256,40 @@ public class  NotebookConfig {
         return r;
     }
 
+    public String getDatabaseUser() {
+        return getOptional("notebook.database.username", "root");
+    }
+
+    public String getDatabaseName() {
+        return getOptional("notebook.database.name", "notebook");
+    }
+
+    public String getDatabasePassword() {
+        return getOptional("notebook.database.password", "root");
+    }
+
+    public String getDatabasePort() {
+        return getOptional("notebook.database.port", "3306");
+    }
+
+    public String getDatabaseIp() {
+        return getOptional("notebook.database.ip", "localhost");
+    }
+
+    public String getRedisHost() {
+        return getOptional("notebook.redis.host", "localhost");
+    }
+
+    public String getRedisPort() {
+        return getOptional("notebook.redis.port", "6379");
+    }
+
+    public String getRedisPassword() {
+        return getOptional("notebook.redis.password", "redis_pwd");
+    }
+
+    public String getRedisDatabase() {
+        return getOptional("notebook.redis.database", "0");
+    }
+
 }

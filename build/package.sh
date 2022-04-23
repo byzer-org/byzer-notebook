@@ -1,5 +1,22 @@
 #!/usr/bin/env bash
 
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 set -e
 is_skip_tar="${1:-}"
 # Notebook absolute path
@@ -12,14 +29,14 @@ echo "frontend branch set to [${FRONTEND_BRANCH:-"main"}]"
 
 cd ${root_dir} && echo ${root_dir}
 
-if [[ ! -d byzer-notebook-vue/.git ]]; then
-    echo "cloning byzer-notebook-vue repo..."
-    # build front
-    git clone -b "${FRONTEND_BRANCH:-"main"}" https://github.com/byzer-org/byzer-notebook-vue.git
-else
-    echo "update byzer-notebook-vue to latest..."
-    ( cd byzer-notebook-vue && git reset --hard && git checkout main && git pull -r origin main )
-fi
+#if [[ ! -d byzer-notebook-vue/.git ]]; then
+#    echo "cloning byzer-notebook-vue repo..."
+#    # build front
+#    git clone -b "${FRONTEND_BRANCH:-"main"}" https://github.com/byzer-org/byzer-notebook-vue.git
+#else
+#    echo "update byzer-notebook-vue to latest..."
+#    ( cd byzer-notebook-vue && git reset --hard && git checkout main && git pull -r origin main )
+#fi
 
 cd ${root_dir}/byzer-notebook-vue && bash ./build/build.sh
 
@@ -70,15 +87,16 @@ echo "${version}" > VERSION
 
 
 ## 4. copy console jar file
-cp ${root_dir}/target/notebook-console.jar .
+mkdir lib
+cp ${root_dir}/target/notebook-console.jar lib
 
 ## 5. copy config
 mkdir conf
 cp ${root_dir}/conf/notebook.properties.example conf/notebook.properties
 
 ## 6. copy scripts
-cp ${root_dir}/build/startup.sh .
-cp ${root_dir}/build/shutdown.sh .
+mkdir bin
+cp ${root_dir}/build/* bin
 
 ## 7. others
 mkdir logs
