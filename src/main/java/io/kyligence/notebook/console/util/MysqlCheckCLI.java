@@ -36,7 +36,7 @@ public class MysqlCheckCLI {
         String port = config.getDatabasePort();
         String username = config.getDatabaseUser();
         String password = config.getDatabasePassword();
-        String url = "jdbc:mysql://" + ip + ":" + port + "?useSSL=false";
+        String url = "jdbc:mysql://" + ip + ":" + port + "?useSSL=false&createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF8&autoReconnect=true&failOverReadOnly=false&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull&useTimezone=true&serverTimezone=UTC";
 
         try (Connection connection = DriverManager.getConnection(url, username, password)) {
             ResultSet resultset = null;
