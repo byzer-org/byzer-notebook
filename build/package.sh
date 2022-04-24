@@ -31,7 +31,7 @@ cd ${root_dir} && echo ${root_dir}
 
 if [[ ! -d byzer-notebook-vue/.git ]]; then
     echo "cloning byzer-notebook-vue repo..."
-    if [[ -f byzer-notebook-vue ]]; then
+    if [[ -d byzer-notebook-vue ]]; then
       rm -rf ./byzer-notebook-vue
     fi
     # build front
