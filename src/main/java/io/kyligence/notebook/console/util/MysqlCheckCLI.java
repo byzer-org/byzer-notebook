@@ -57,7 +57,7 @@ public class MysqlCheckCLI {
             }
         } catch (SQLException e) {
             System.out.printf("ERROR: cannot connect to server, url = %s, username = %s%n", url, username);
-            ExceptionUtils.getRootCause(e);
+            System.out.println(ExceptionUtils.getRootCause(e));
             Unsafe.systemExit(1);
         }
     }
