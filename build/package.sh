@@ -29,14 +29,17 @@ echo "frontend branch set to [${FRONTEND_BRANCH:-"main"}]"
 
 cd ${root_dir} && echo ${root_dir}
 
-#if [[ ! -d byzer-notebook-vue/.git ]]; then
-#    echo "cloning byzer-notebook-vue repo..."
-#    # build front
-#    git clone -b "${FRONTEND_BRANCH:-"main"}" https://github.com/byzer-org/byzer-notebook-vue.git
-#else
-#    echo "update byzer-notebook-vue to latest..."
-#    ( cd byzer-notebook-vue && git reset --hard && git checkout main && git pull -r origin main )
-#fi
+if [[ ! -d byzer-notebook-vue/.git ]]; then
+    echo "cloning byzer-notebook-vue repo..."
+    if [[ -f byzer-notebook-vue ]]; then
+      rm -rf ./byzer-notebook-vue
+    fi
+    # build front
+    git clone -b "${FRONTEND_BRANCH:-"main"}" https://github.com/byzer-org/byzer-notebook-vue.git
+else
+    echo "update byzer-notebook-vue to latest..."
+    ( cd byzer-notebook-vue && git reset --hard && git checkout main && git pull -r origin main )
+fi
 
 cd ${root_dir}/byzer-notebook-vue && bash ./build/build.sh
 
