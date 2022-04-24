@@ -67,18 +67,27 @@ function prepareEnv {
     echo "NOTEBOOK_CONFIG_FILE is:${NOTEBOOK_CONFIG_FILE}"
 
     mkdir -p ${NOTEBOOK_HOME}/logs
+    echo "Create the log directory for the notebook：${NOTEBOOK_HOME}/logs ."
 }
 
 function checkRestPort() {
-    if [[ $MACHINE_OS == "Linux" ]]; then
-        used=`netstat -tpln | grep "\<$port\>" | awk '{print $7}' | sed "s/\// /g"`
+    echo "Start to check the port of rest..."
+    used=false
+    if [[ "$MACHINE_OS" == "Linux" ]]; then
+      if [[ -n $(netstat -tpln | grep "\<$port\>" | awk '{print $7}' | sed "s/\// /g") ]]; then
+        used=true
+      fi
     fi
-    if [[ $MACHINE_OS == "Mac" ]]; then
-        used=`lsof -nP -iTCP:$port -sTCP:LISTEN | grep $port | awk '{print $2}'`
+
+    if [[ "$MACHINE_OS" == "Mac" ]]; then
+      if [[ -n $(lsof -nP -iTCP:$port -sTCP:LISTEN | grep $port | awk '{print $2}') ]]; then
+         used=true
+      fi
     fi
-    if [ ! -z "$used" ]; then
+
+    if [[ "$used" == true ]]; then
         echo "<$used> already listen on $port"
-        exit -1
+        exit 1
     fi
 }
 
@@ -131,7 +140,7 @@ function start(){
     if [ -f "${NOTEBOOK_HOME}/pid" ]; then
         PID=`cat ${NOTEBOOK_HOME}/pid`
         if ps -p $PID > /dev/null; then
-          quit "Notebook is running, stop it first, PID is $PID"
+          quit "Notebook is already running, stop it first, PID is $PID"
         fi
     fi
 
@@ -147,7 +156,7 @@ function start(){
     if [[ -f ${NOTEBOOK_HOME}/bin/check-env-bypass ]]; then
         checkRestPort
     fi
-
+    echo " Start the byzer notebook..."
     nohup java -DNOTEBOOK_HOME=${NOTEBOOK_HOME} -Dspring.config.name=application,notebook -Dspring.config.location=classpath:/,file:${NOTEBOOK_HOME}/conf/ -jar ${NOTEBOOK_HOME}/lib/notebook-console.jar >> ${NOTEBOOK_HOME}/logs/notebook.out 2>&1 < /dev/null & echo $! >> ${NOTEBOOK_HOME}/pid &
     sleep 3
     clearRedundantProcess
