@@ -14,18 +14,23 @@ import io.kyligence.notebook.console.service.*;
 import io.kyligence.notebook.console.support.DisableInTrial;
 import io.kyligence.notebook.console.support.Permission;
 import io.kyligence.notebook.console.util.EngineStatus;
+import io.kyligence.notebook.console.util.JacksonUtils;
 import io.kyligence.notebook.console.util.WebUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @Validated
@@ -55,6 +60,44 @@ public class SettingsController {
     @GetMapping("/version")
     public Response<VersionInfo> getVersion() {
         return new Response<VersionInfo>().data(systemService.getVersionInfo());
+    }
+
+    @ApiOperation("Readiness Check")
+    @GetMapping("/system/readiness")
+    public void readinessCheck(HttpServletResponse response) throws IOException {
+
+        SystemStatus systemStatus = systemStatusCheck();
+        response.setContentType("application/json");
+
+        if (systemStatus.getStatus().equalsIgnoreCase("DOWN")) {
+            response.setStatus(HttpStatus.SC_BAD_REQUEST);
+        }
+        systemStatus.setEngineStatus(EngineListDTO.valueOf(engineService.getEngineStatusMap()).getList());
+        response.getWriter().write(Objects.requireNonNull(JacksonUtils.writeJson(systemStatus)));
+    }
+
+    @ApiOperation("Liveliness Check")
+    @GetMapping("/system/liveliness")
+    public void livelinessCheck(HttpServletResponse response) throws IOException {
+        SystemStatus systemStatus = systemStatusCheck();
+        response.setContentType("application/json");
+
+        if (systemStatus.getStatus().equalsIgnoreCase("DOWN")) {
+            response.setStatus(HttpStatus.SC_BAD_REQUEST);
+        }
+
+        response.getWriter().write(Objects.requireNonNull(JacksonUtils.writeJson(systemStatus)));
+
+    }
+
+    private SystemStatus systemStatusCheck() {
+        SystemStatus systemStatus = new SystemStatus();
+        systemStatus.setStatus("UP");
+        if (!systemService.isMetaDBReachable()) {
+            systemStatus.setStatus("DOWN");
+            systemStatus.setMsg("meta database unreachable");
+        }
+        return systemStatus;
     }
 
     @ApiOperation("Engine List")
