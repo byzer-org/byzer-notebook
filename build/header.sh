@@ -100,6 +100,20 @@ then
         verbose "java is ${JAVA}" 
     fi
 
+    # set BYZER NOTEBOOK IP
+    if [ -z $BYZER_NOTEBOOK_IP ];then
+    export BYZER_NOTEBOOK_IP=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1)
+    fi
+
+
+
+    # set BYZER NOTEBOOK PORT
+    export NOTEBOOK_PORT=$($NOTEBOOK_HOME/bin/get-properties.sh notebook.port)
+
+    if [[ -z ${NOTEBOOK_PORT} ]]; then
+        export NOTEBOOK_PORT=9002
+    fi
+
     # check Machine
     unameOut="$(uname -s)"
     case "${unameOut}" in

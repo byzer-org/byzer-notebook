@@ -21,15 +21,21 @@
 
 source $(cd -P -- "$(dirname -- "$0")" && pwd -P)/header.sh
 
-notebook_port=`$NOTEBOOK_HOME/bin/get-properties.sh notebook.port`
-if [[ -z ${notebook_port} ]]; then
-    notebook_port=9002
-fi
-if [[ $MACHINE_OS == "Linux" ]]; then
-    notebook_port_in_use=`netstat -anvp tcp | grep "\b${notebook_port}\b"`
-fi
-if [[ $MACHINE_OS == "Mac" ]]; then
-    notebook_port_in_use=`lsof -nP -iTCP:${notebook_port} -sTCP:LISTEN`
-fi
+function checkRestPort() {
+    echo "Checking rest port on ${MACHINE_OS}"
+    if [[ $MACHINE_OS == "Linux" ]]; then
+        used=$(netstat -tpln | grep "$NOTEBOOK_PORT" | awk '{print $7}' | sed "s/\// /g")
+    elif [[ $MACHINE_OS == "Mac" ]]; then
+        used=$(lsof -nP -iTCP:$NOTEBOOK_PORT -sTCP:LISTEN | grep $NOTEBOOK_PORT | awk '{print $2}')
+    fi
+    if [ ! -z "$used" ]; then
+        quit "ERROR: Port ${NOTEBOOK_PORT} is in use, another Byzer Notebook is running?"
+    fi
+    echo "${NOTEBOOK_PORT} is available"
+}
 
-[[ -z ${notebook_port_in_use} ]] || quit "ERROR: Port ${notebook_port} is in use, another Byzer Notebook is running?"
+
+
+echo "Byzer Notebook port has been set as ${NOTEBOOK_PORT}"
+
+checkRestPort ${NOTEBOOK_PORT}
