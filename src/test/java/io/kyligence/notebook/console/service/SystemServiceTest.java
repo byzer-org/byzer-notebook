@@ -12,30 +12,30 @@ import javax.annotation.PostConstruct;
 
 public class SystemServiceTest extends NotebookLauncherBaseTest {
 
-    private final NotebookConfig notebookConfig = NotebookConfig.getInstance();
-
-    private SystemConfig systemConfig = new SystemConfig();
+    private SystemConfig systemConfig;
 
     @Autowired
     private SystemService systemService;
 
-    @Autowired
-    private SystemConfigRepository scRepository;
-
     @Override
     @PostConstruct
     public void mock() {
-        systemConfig.setTimeout(666);
+        systemConfig = systemService.getConfig(DEFAULT_ADMIN_USER);
     }
 
     @Test
     public void testGetConfig() {
-        Assert.assertEquals(scRepository.findAll().get(0), systemService.getConfig());
+        Assert.assertEquals(systemConfig.getEngine(), systemService.getConfig("mockConfigUser1").getEngine());
+        Assert.assertEquals(systemConfig.getTimeout(), systemService.getConfig("mockConfigUser1").getTimeout());
+        Assert.assertEquals(systemConfig.getId(), systemService.getConfig(DEFAULT_ADMIN_USER).getId());
     }
 
     @Test
     public void testUpdateConfig() {
-        systemService.updateConfig(systemConfig);
-        Assert.assertEquals(systemConfig, systemService.getConfig());
+        SystemConfig config = systemService.getConfig("mockConfigUser2");
+        config.setEngine("backup");
+        systemService.updateByUser(config);
+        config = systemService.getConfig("mockConfigUser2");
+        Assert.assertEquals("backup", config.getEngine());
     }
 }

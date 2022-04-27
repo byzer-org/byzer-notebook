@@ -39,4 +39,7 @@ public class EntityModification {
 
     @JsonProperty("task_desc")
     private String taskDesc;
+
+    @JsonProperty("task_timeout")
+    private Integer taskTimeout;
 }

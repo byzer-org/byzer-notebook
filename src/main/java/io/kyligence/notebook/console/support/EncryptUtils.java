@@ -6,6 +6,7 @@ import io.kyligence.notebook.console.exception.ErrorCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
@@ -24,6 +25,11 @@ public class EncryptUtils {
 
     private static final String KEY_ALGORITHM = "AES";
 
+    public static final String DEC_FLAG = "DEC";
+
+    public static final String ENC_PREFIX = "ENC('";
+    public static final String ENC_SUBFIX = "')";
+
     private static final String DEFAULT_CIPHER_ALGORITHM = "AES/ECB/PKCS5Padding";
 
     private static Key key;
@@ -36,6 +42,10 @@ public class EncryptUtils {
             log.error("Load AES key error", e);
             System.exit(1);
         }
+    }
+
+    public static boolean isEncrypted(String value) {
+        return StringUtils.isNotEmpty(value) && value.startsWith(ENC_PREFIX) && value.endsWith(ENC_SUBFIX);
     }
 
     public static byte[] initSecretKey() {
@@ -96,6 +106,10 @@ public class EncryptUtils {
         } catch (Exception ex) {
             throw new ByzerException(ErrorCodeEnum.PWD_DECRYPTION_ERROR);
         }
+    }
+
+    public static String decryptPassInNotebook(String value) {
+        return decrypt(value.substring(ENC_PREFIX.length(), value.length() - ENC_SUBFIX.length()));
     }
 }
 

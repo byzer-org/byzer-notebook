@@ -35,7 +35,7 @@ import java.util.UUID;
 @Api("The documentation about operations on script")
 public class ScriptController {
 
-    private NotebookConfig config = NotebookConfig.getInstance();
+    private final NotebookConfig config = NotebookConfig.getInstance();
 
     @Autowired
     private JobService jobService;
@@ -68,7 +68,7 @@ public class ScriptController {
         notebook = StringUtils.isEmpty(notebook) ? "untitled" : notebook;
         jobInfo.setNotebook(notebook);
 
-        String engine = config.getExecutionEngine();
+        String engine = engineService.getExecutionEngine();
         jobInfo.setEngine(engine);
 
         jobService.insert(jobInfo);

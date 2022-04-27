@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.kyligence.notebook.console.bean.entity.JobInfo;
 import io.kyligence.notebook.console.bean.entity.JobInfoArchive;
 import io.kyligence.notebook.console.bean.model.CurrentJobInfo;
+import io.kyligence.notebook.console.util.EngineExceptionUtils;
 import io.kyligence.notebook.console.util.EntityUtils;
-import io.kyligence.notebook.console.util.ExceptionUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -88,7 +88,7 @@ public class JobInfoDTO {
         resp.endTime = EntityUtils.toStr(jobInfo.getFinishTime());
         resp.result = jobInfo.getResult();
         resp.msg = jobInfo.getMsg();
-        resp.rootCause = ExceptionUtils.getRootCause(jobInfo.getMsg());
+        resp.rootCause = EngineExceptionUtils.getRootCause(jobInfo.getMsg());
         resp.notebook = StringUtils.isBlank(jobInfo.getNotebook()) ? "untitled" : jobInfo.getNotebook();
         resp.engine = StringUtils.isBlank(jobInfo.getEngine()) ? "default" : jobInfo.getEngine();
         if (Objects.nonNull(jobProgress)) {

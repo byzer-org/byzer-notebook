@@ -83,7 +83,6 @@ public class NotebookServiceTest extends NotebookLauncherBaseTest {
         Assert.assertNotNull(savedCellInfo);
         Assert.assertEquals(Integer.valueOf(defaultMockNotebookId), savedCellInfo.getNotebookId());
         Assert.assertEquals(content, savedCellInfo.getContent());
-        Assert.assertEquals(currentTimeStamp, savedCellInfo.getUpdateTime().getTime());
     }
 
     @Test

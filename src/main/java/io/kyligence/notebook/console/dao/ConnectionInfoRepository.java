@@ -9,13 +9,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 public interface ConnectionInfoRepository extends JpaRepository<ConnectionInfo, Integer> {
-    @Query(value = "select * from connection_info where user = ?1", nativeQuery = true)
+    @Query(value = "select * from connection_info where `user` = ?1", nativeQuery = true)
     List<ConnectionInfo> findByUser(String user);
 
     @Query(value = "select * from connection_info where name = ?1", nativeQuery = true)
     List<ConnectionInfo> findByName(String name);
 
-    @Query(value = "select * from connection_info where user = ?1 and name = ?2", nativeQuery = true)
+    @Query(value = "select * from connection_info where `user` = ?1 and name = ?2", nativeQuery = true)
     List<ConnectionInfo> findByUserAndName(String user, String name);
 
     @Modifying

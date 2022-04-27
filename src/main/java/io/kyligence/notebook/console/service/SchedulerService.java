@@ -12,6 +12,7 @@ import io.kyligence.notebook.console.scheduler.RemoteSchedulerInterface;
 import io.kyligence.notebook.console.scheduler.SchedulerConfig;
 import io.kyligence.notebook.console.scheduler.SchedulerFactory;
 import io.kyligence.notebook.console.scheduler.dolphin.dto.EntityModification;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class SchedulerService {
 
@@ -39,6 +41,9 @@ public class SchedulerService {
 
     private final NotebookConfig config = NotebookConfig.getInstance();
 
+    // default callback script execution timout is 4 hours
+    private static final  Integer CALLBACK_TIMEOUT_SECONDS = 14400;
+
     private boolean enabled = config.getIsSchedulerEnabled();
 
     private final Map<Integer, RemoteSchedulerInterface> schedulerMap = new LinkedHashMap<>();
@@ -55,15 +60,19 @@ public class SchedulerService {
     }
 
 
-    public void callback(String token, String scheduleOwner, String entityType, String entityId, String commitId) {
+    public void callback(String token, String scheduleOwner, String entityType,
+                         String entityId, String commitId, Integer timeout) {
         if (!config.getScheduleCallbackToken().equals(token)) {
-            throw new ByzerException();
+            throw new ByzerException("Scheduler callback token auth failed!");
         }
+        log.info("Receive scheduler callback for {} execute Entity[{}, {}, {}]", scheduleOwner, entityType, entityId, commitId);
         String user = config.getScheduleCallbackUser();
+        timeout = Objects.isNull(timeout) || timeout > CALLBACK_TIMEOUT_SECONDS ? CALLBACK_TIMEOUT_SECONDS : timeout;
         EngineService.RunScriptParams runScriptParams = new EngineService.RunScriptParams()
                 .withAsync("false")
                 .withOwner(scheduleOwner)
                 .withOwnerPathPrefix(scheduleOwner)
+                .with("timeout", String.valueOf(timeout * 1000))
                 .with("sessionPerRequest", "true");
 
         String scripts = getScript(entityType, entityId, commitId, runScriptParams.getAll());
@@ -79,17 +88,21 @@ public class SchedulerService {
         jobInfo.setUser(user);
         jobInfo.setNotebook(getEntityName(entityType, Integer.parseInt(entityId)));
 
-        String engine = config.getExecutionEngine();
+        String engine = engineService.getExecutionEngine();
         jobInfo.setEngine(engine);
 
         jobService.insert(jobInfo);
         int status = JobInfo.JobStatus.SUCCESS;
         // 发送查询
         try {
-            engineService.runScript(runScriptParams);
+            engineService.runScript(runScriptParams, engine);
+            log.info("Scheduler callback for {} execute Entity[{}, {}, {}] succeed!",
+                    scheduleOwner, entityType, entityId, commitId);
         } catch (Exception ex) {
             // update job status to FAILED if exception happened
             status = JobInfo.JobStatus.FAILED;
+            log.error("Scheduler callback for {} execute Entity[{}, {}, {}] failed!",
+                    scheduleOwner, entityType, entityId, commitId);
             throw ex;
         } finally {
             jobInfo.setFinishTime(new Timestamp(System.currentTimeMillis()));
@@ -113,18 +126,19 @@ public class SchedulerService {
 
     public void createSchedule(Integer schedulerId, String name, String desc, String user, String entityType,
                                Integer entityId, String commitId, String taskName, String taskDesc,
-                               ScheduleSetting scheduleSetting,
+                               Integer taskTimeout, ScheduleSetting scheduleSetting,
                                Map<String, String> extraSettings) {
         if (!enabled) throw new ByzerException("SchedulerService not enabled");
         RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
         commitId = Objects.isNull(commitId) ? autoCommit(user, entityType, entityId) : commitId;
         scheduler.createTask(
                 user, name, desc, entityType, entityId, commitId, taskName, taskDesc,
-                getEntityName(entityType, entityId), scheduleSetting, extraSettings
+                getEntityName(entityType, entityId), taskTimeout, scheduleSetting, extraSettings
         );
     }
 
-    public void updateSchedule(Integer schedulerId, Integer id, String name, String desc, String user, EntityModification modification, ScheduleSetting scheduleSetting,
+    public void updateSchedule(Integer schedulerId, Integer id, String name, String desc, String user,
+                               EntityModification modification, ScheduleSetting scheduleSetting,
                                Map<String, String> extraSettings) {
         if (!enabled) throw new ByzerException("SchedulerService not enabled");
         RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);

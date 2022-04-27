@@ -26,6 +26,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.containers.MockServerContainer;
+import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.utility.DockerImageName;
 
@@ -61,11 +62,16 @@ public class NotebookLauncherBaseTest extends BaseResourceLoader {
 
     public static final DockerImageName MOCKSERVER_IMAGE = DockerImageName.parse("jamesdbloom/mockserver:mockserver-5.5.4");
 
-    public static MockServerContainer mockServer = new MockServerContainer(MOCKSERVER_IMAGE)
+    public static final MockServerContainer mockServer = new MockServerContainer(MOCKSERVER_IMAGE)
             .withEnv("testcontainers.reuse.enable", "true")
             .withNetworkAliases("notebook-network")
             .withStartupAttempts(3)
             .withReuse(true);
+
+    public static final MySQLContainer mockDatabase = (MySQLContainer) new MySQLContainer("mysql:5.7")
+            .withDatabaseName("notebook")
+            .withUsername("root")
+            .withPassword("root");
 
     /*
       -DNOTEBOOK_HOME=/opt/projects/kyligence/byzer-notebook
@@ -95,14 +101,23 @@ public class NotebookLauncherBaseTest extends BaseResourceLoader {
         System.setProperty("PROPERTIES_PATH", testClassPath);
 
         mockServer.start();
-
+        mockDatabase.start();
         client = new MockServerClient(mockServer.getHost(), mockServer.getServerPort());
         assertTrue("Mockserver running", client.isRunning());
 
         // used by !show et;
+        client.when(request().withPath("/health/liveness").withMethod("GET"))
+                .respond(response().withStatusCode(200));
+        client.when(request().withPath("/health/readiness").withMethod("GET"))
+                .respond(response().withStatusCode(200));
         client.when(request().withPath("/run/script").withMethod("POST")
         ).respond(response().withBody(etResponse));
-
+        System.setProperty("spring.datasource.url", mockDatabase.getJdbcUrl());
+        System.setProperty("spring.datasource.driver-class-name", mockDatabase.getDriverClassName());
+        System.setProperty("spring.datasource.username", mockDatabase.getUsername());
+        System.setProperty("spring.datasource.password", mockDatabase.getPassword());
+        System.setProperty("notebook.database.ip", mockDatabase.getHost());
+        System.setProperty("notebook.database.port", mockDatabase.getFirstMappedPort().toString());
         System.setProperty("notebook.mlsql.engine-url", String.format("http://%s:%s", mockServer.getHost(), mockServer.getServerPort()));
     }
 

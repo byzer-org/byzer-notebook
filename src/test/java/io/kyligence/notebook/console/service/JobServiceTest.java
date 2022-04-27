@@ -20,6 +20,7 @@ import org.springframework.data.util.Pair;
 import javax.annotation.PostConstruct;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -226,18 +227,71 @@ public class JobServiceTest extends NotebookLauncherBaseTest {
         Assert.assertTrue(resp);
 
         Assert.assertEquals(JobInfo.JobStatus.SUCCESS, (long) jobService.findByJobId(testJobId3).getStatus());
+        String mockPythonCode = "#%python\n" +
+                "#%env=source activate ray1.8.0\n" +
+                "#%schema=st(field(info,string))\n" +
+                "#%input=data\n" +
+                "#%output=contentsTb\n" +
+                "#%dataMode=model\n" +
+                "\n" +
+                "from pyjava.api.mlsql import RayContext, PythonContext\n" +
+                "import pandas as pd\n" +
+                "\n" +
+                "context:PythonContext = context\n" +
+                "ray_context = RayContext.connect(globals(),None)\n" +
+                "data = ray_context.to_pandas()\n" +
+                "\n" +
+                "def test(d):\n" +
+                "    context.log_client.log_to_driver(d)\n" +
+                "    raise RuntimeError()\n" +
+                "for d in data.iterrows():\n" +
+                "    test(d)\n" +
+                "context.build_result([{\"info\":\"data\"}])";
+
+        insertJobInfo("testPythonError-jobId", JobInfo.JobStatus.RUNNING,
+                "testPythonError-user", mockPythonCode);
+        String mockMsg = "Job aborted due to stage failure: Task 0 in stage 34446.0 failed 1 times, most recent failure:" +
+                " Lost task 0.0 in stage 34446.0 (TID 181638) (b77ec5268d1a executor driver): " +
+                "org.apache.spark.SparkException: Traceback (most recent call last):\n" +
+                "File \"/opt/conda/envs/ray1.8.0/lib/python3.6/site-packages/pyjava/worker.py\", line 155, in main\n" +
+                "process()\n" +
+                "File \"/opt/conda/envs/ray1.8.0/lib/python3.6/site-packages/pyjava/worker.py\", line 132, in process\n" +
+                "exec(code, n_local, n_local)\n" +
+                "File \"<string>\", line 14, in <module>\n" +
+                "File \"<string>\", line 12, in test\n" +
+                "RuntimeError\n" +
+                "at tech.mlsql.arrow.python.runner.BasePythonRunner$ReaderIterator.handlePythonException(PythonRunner.scala:324)";
+        jobService.jobDone("testPythonError-jobId", JobInfo.JobStatus.FAILED, "",
+                mockMsg, new Timestamp(System.currentTimeMillis()));
+
+        Assert.assertTrue(jobService.findByJobId("testPythonError-jobId").getMsg().startsWith("File"));
+
+        String mockScript = "select * from ab as output;";
+        insertJobInfo("testByzerError-jobId", JobInfo.JobStatus.RUNNING, "testPythonError-user",
+                mockScript);
+        mockMsg = "Table or view not found: ab; line 1 pos 14;";
+        jobService.jobDone("testByzerError-jobId", JobInfo.JobStatus.FAILED, "",
+                mockMsg, new Timestamp(System.currentTimeMillis()));
+
+        Assert.assertEquals(jobService.findByJobId("testByzerError-jobId").getMsg(), mockMsg);
+
     }
 
     @Test
     public void testGetJobContent() {
-        when(mockJobInfoRepository.getContentByJobId(eq(testJobId))).thenReturn(testJobContent);
-        Assert.assertEquals(testJobContent, mockJobService.getJobContent(testJobId));
+        Assert.assertEquals(testJobContent, jobService.getJobContent(testJobId));
+        Assert.assertNull(jobService.getJobContent("not-exist-job"));
 
-        when(mockJobInfoRepository.getContentByJobId(eq(testJobId2))).thenReturn(null);
-        Assert.assertNull(mockJobService.getJobContent(testJobId2));
+        String archivedContent = "!show resource;";
+        String archivedId = "test-archived";
+        JobInfoArchive archived = new JobInfoArchive(archivedId, JobInfo.JobStatus.SUCCESS);
+        archived.setContent(archivedContent);
+        archived.setUser("testGetContent-user");
+        archived.setName("mock-test-archive");
+        jobInfoArchiveRepository.save(archived);
 
-        when(mockJobInfoArchiveRepository.getContentByJobId(eq(testJobId2))).thenReturn(testJobContent);
-        Assert.assertEquals(testJobContent, mockJobService.getJobContent(testJobId2));
+        Assert.assertEquals(archivedContent, jobService.getJobContent(archivedId));
+
     }
 
     @Test

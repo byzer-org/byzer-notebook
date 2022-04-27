@@ -28,4 +28,7 @@ public class ScheduleCallbackReq {
 
     @JsonProperty("commit_id")
     private String commitId;
+
+    @JsonProperty("timeout")
+    private Integer timeout;
 }

@@ -121,19 +121,19 @@ public class  NotebookConfig {
         return Integer.parseInt(getOptional("insight.semantic.log.http.debug", "10000"));
     }
 
-    public String getMlsqlClusterUrl() {
+    public String getByzerClusterUrl() {
         return getOptional("notebook.mlsql.cluster-url",  "");
     }
 
-    public String getMlsqlEngineUrl() {
+    public String getByzerEngineUrl() {
         return getOptional("notebook.mlsql.engine-url",  "http://" + intranetIp + ":9003");
     }
 
-    public String getMlsqlEngineBackupUrl() {
+    public String getByzerEngineBackupUrl() {
         return getOptional("notebook.mlsql.engine-backup-url",  "http://" + intranetIp + ":9004");
     }
 
-    public String getMlsqlCloudUrl() {
+    public String getByzerCloudUrl() {
         return getOptional("notebook.mlsql.cloud-url",  "http://" + intranetIp + ":8090");
     }
 
@@ -147,6 +147,10 @@ public class  NotebookConfig {
 
     public String getUserHome() {
         return getOptional("notebook.user.home", "/mlsql");
+    }
+
+    public Integer getExecutionTimeout() {
+        return Integer.parseInt(getOptional("notebook.execution.timeout", "2880"));
     }
 
     public String getExecutionTimeoutMillonSeconds() {
@@ -163,9 +167,9 @@ public class  NotebookConfig {
 
     public String getExecutionEngineUrl() {
         if ("default".equals(getExecutionEngine())) {
-            return getMlsqlEngineUrl();
+            return getByzerEngineUrl();
         }
-        return getMlsqlEngineBackupUrl();
+        return getByzerEngineBackupUrl();
     }
 
     public Integer getExecutionEngineCallbackRetries() {
@@ -250,6 +254,42 @@ public class  NotebookConfig {
         List<SchedulerConfig> r = Lists.newArrayList();
         r.add(config);
         return r;
+    }
+
+    public String getDatabaseUser() {
+        return getOptional("notebook.database.username", "root");
+    }
+
+    public String getDatabaseName() {
+        return getOptional("notebook.database.name", "notebook");
+    }
+
+    public String getDatabasePassword() {
+        return getOptional("notebook.database.password", "root");
+    }
+
+    public String getDatabasePort() {
+        return getOptional("notebook.database.port", "3306");
+    }
+
+    public String getDatabaseIp() {
+        return getOptional("notebook.database.ip", "localhost");
+    }
+
+    public String getRedisHost() {
+        return getOptional("notebook.redis.host", "localhost");
+    }
+
+    public String getRedisPort() {
+        return getOptional("notebook.redis.port", "6379");
+    }
+
+    public String getRedisPassword() {
+        return getOptional("notebook.redis.password", "redis_pwd");
+    }
+
+    public String getRedisDatabase() {
+        return getOptional("notebook.redis.database", "0");
     }
 
 }

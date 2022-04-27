@@ -6,10 +6,10 @@
 --labels: add table
 --tag: 1.0.0
 
---Discretize
-INSERT IGNORE INTO et_params_def VALUES(1508, 9, 'relativeError', '', false, 'Normal', 'FLOAT', '', '', true, '', '', '{min:0,max:1}');
---JsonExpandExt
-INSERT IGNORE INTO et_params_def VALUES(1701, 14, 'samplingRatio', '', true, 'Normal', 'FLOAT', '1.0', '', false, '', '', '{min:0,max:1}');
+# Discretize
+INSERT IGNORE INTO et_params_def VALUES(1508, 9, 'relativeError', '', false, 'Normal', 'FLOAT', '', '', true, '', '', "{min:0,max:1}");
+# JsonExpandExt
+INSERT IGNORE INTO et_params_def VALUES(1701, 14, 'samplingRatio', '', true, 'Normal', 'FLOAT', '1.0', '', false, '', '', "{min:0,max:1}");
 
 --comment: add et param coverage
 

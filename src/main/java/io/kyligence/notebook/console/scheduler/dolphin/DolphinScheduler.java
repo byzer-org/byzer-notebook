@@ -13,6 +13,7 @@ import io.kyligence.notebook.console.scheduler.SchedulerConfig;
 import io.kyligence.notebook.console.scheduler.dolphin.dto.*;
 import io.kyligence.notebook.console.util.JacksonUtils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.Lists;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -25,8 +26,12 @@ import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
+@Slf4j
 public class DolphinScheduler extends RemoteScheduler implements RemoteSchedulerInterface {
+
+    // DolphinScheduler's http task socket timeout limit is 9999 seconds,
+    // set callback timeout limit to 9600 seconds
+    private static final Integer TASK_TIMEOUT_LIMIT = 9600;
 
     interface APIMapping {
         String getUserInfo = "/users/get-user-info";
@@ -86,14 +91,14 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
     @Override
     public void createTask(String user, String name, String description, String entityType, Integer entityId,
                            String commitId, String taskName, String taskDesc, String entityName,
-                           ScheduleSetting scheduleSetting, Map<String, String> extraSettings) {
+                           Integer taskTimeout, ScheduleSetting scheduleSetting, Map<String, String> extraSettings) {
         String project = Objects.isNull(extraSettings) ? null : extraSettings.get("project_name");
         project = Objects.isNull(project) ? defaultProject : project;
         ensureProject(project);
-
+        taskTimeout = Objects.isNull(taskTimeout) || taskTimeout > TASK_TIMEOUT_LIMIT ? TASK_TIMEOUT_LIMIT : taskTimeout;
         Integer taskId = createProcess(
                 project, user, name, description, entityName, entityType, entityId, commitId,
-                taskName, taskDesc, extraSettings);
+                taskName, taskDesc, taskTimeout, extraSettings);
         onlineProcess(project, taskId);
         if (!ScheduleSetting.isNull(scheduleSetting)) {
             createSchedule(project, taskId, scheduleSetting, extraSettings);
@@ -108,9 +113,9 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         if (processInfo.getReleaseState().equalsIgnoreCase("ONLINE")) {
             throw new ByzerException(
                     MessageFormat.format(
-                    "Task: {0} is currently online.",
-                    processInfo.getName().replace(genTaskNamePrefix(user), "")
-            ));
+                            "Task: {0} is currently online.",
+                            processInfo.getName().replace(genTaskNamePrefix(user), "")
+                    ));
         }
         deleteProcess(projectName, taskId);
     }
@@ -136,7 +141,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
             }
         }
 
-        if (Objects.nonNull(name)){
+        if (Objects.nonNull(name)) {
             Integer exist = searchProcessByName(project, genTaskNamePrefix(user) + name);
             if (Objects.nonNull(exist) && exist != processInfo.getId()) {
                 throw new ByzerException(
@@ -228,6 +233,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
     @Override
     public List<TaskInfoDTO> getTasks(String projectName, String user) {
         String project = Objects.isNull(projectName) ? defaultProject : projectName;
+        ensureProject(project);
 
         List<Integer> ids = searchProcessByUser(project, user);
         return ids.stream().map(id -> getProcessDetail(project, id))
@@ -279,7 +285,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
 
         onlineProcess(project, taskId);
         ScheduleInfo scheduleInfo = findSchedule(project, taskId);
-        if (Objects.nonNull(scheduleInfo) && !scheduleInfo.getReleaseState().equalsIgnoreCase("ONLINE")){
+        if (Objects.nonNull(scheduleInfo) && !scheduleInfo.getReleaseState().equalsIgnoreCase("ONLINE")) {
             onlineSchedule(project, scheduleInfo.getId());
         }
     }
@@ -360,8 +366,16 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
     }
 
     private void setup() {
-        ensureProject(defaultProject);
-        defaultTenantId = Integer.parseInt(getUserInfo().get("tenantId").toString());
+        try {
+            ensureProject(defaultProject);
+            log.info("Successfully connect to DolphinScheduler: {}", config.getSchedulerUrl());
+            defaultTenantId = Integer.parseInt(getUserInfo().get("tenantId").toString());
+        } catch (Exception ex) {
+            log.error(String.format("Unable to communicate with DolphinScheduler: %s with Exception: %s; " +
+                    "Skip initialize DolphinScheduler!", config.getSchedulerUrl(), ex.getMessage()), ex);
+
+            throw ex;
+        }
     }
 
     private void ensureProject(String projectName) {
@@ -400,7 +414,8 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
             ProjectInfoDTO ack = request(uri, HttpMethod.GET, prepareHeader(), null, ProjectInfoDTO.class);
             totalPage = ack.getData().getTotalPage();
             for (ProjectInfo info : ack.getData().getTotalList()) {
-                if (info.getName().equals(projectName)) return true;
+                // DolphinScheduler project name is case-insensitive
+                if (info.getName().equalsIgnoreCase(projectName)) return true;
             }
             page++;
         }
@@ -501,7 +516,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
     private Integer createProcess(String projectName, String user, String name,
                                   String description, String entityName, String entityType,
                                   Integer entityId, String commitId, String taskName, String taskDesc,
-                                  Map<String, String> extraSettings) {
+                                  Integer taskTimeout, Map<String, String> extraSettings) {
         ProcessInfo exist = searchProcessByEntity(projectName, user, entityType, entityId);
         if (Objects.nonNull(exist)) {
             throw new ByzerException(
@@ -517,7 +532,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
             processName = genTaskNamePrefix(user) + name;
         }
 
-        if (Objects.nonNull(searchProcessByName(projectName, processName))){
+        if (Objects.nonNull(searchProcessByName(projectName, processName))) {
             throw new ByzerException(
                     MessageFormat.format("Schedule name: [{0}] already exist.", name)
             );
@@ -529,7 +544,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         TaskTimeoutDTO timeouts = TaskTimeoutDTO.parseFrom(extraSettings);
         ModifyProcessDTO dto = ModifyProcessDTO.create(processName, description, entityName,
                 entityType, entityId, commitId,
-                taskName, taskDesc,
+                taskName, taskDesc, taskTimeout,
                 user, callbackToken, callbackUrl,
                 timeouts.getMaxRetryTimes(), timeouts.getRetryInterval(),
                 timeouts.getTimeout(), defaultTenantId
@@ -560,20 +575,23 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         if (Objects.isNull(modification)) {
             dto = ModifyProcessDTO.modify(processInfo,
                     Objects.nonNull(processName) ? genTaskNamePrefix(user) + processName : null, description);
-        }
-        else {
+        } else {
             switch (modification.getAction().toLowerCase()) {
                 case EntityModification.Actions.remove:
                     dto = ModifyProcessDTO.remove(processInfo, modification.getEntityType(),
                             modification.getEntityId());
                     break;
                 case EntityModification.Actions.update:
+                    Integer taskTimeout = modification.getTaskTimeout();
+                    taskTimeout = Objects.isNull(taskTimeout) || taskTimeout > TASK_TIMEOUT_LIMIT ?
+                            TASK_TIMEOUT_LIMIT : taskTimeout;
                     dto = ModifyProcessDTO.modify(processInfo,
                             Objects.nonNull(processName) ? genTaskNamePrefix(user) + processName : null, description,
                             modification.getEntityName(), modification.getEntityType(),
                             modification.getEntityId(), modification.getCommitId(), user, callbackToken, callbackUrl,
                             timeouts.getMaxRetryTimes(), timeouts.getRetryInterval(),
-                            modification.getAttachTo(), modification.getTaskName(), modification.getTaskDesc()
+                            modification.getAttachTo(), modification.getTaskName(),
+                            modification.getTaskDesc(), taskTimeout
                     );
                     break;
                 default:
@@ -774,7 +792,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         return ack.getData();
     }
 
-    private void runProcess(String projectName, Integer processId){
+    private void runProcess(String projectName, Integer processId) {
         String uri = APIMapping.runProcess
                 .replace("$projectName", projectName);
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();

@@ -10,8 +10,10 @@ import java.util.List;
 import java.util.Map;
 
 public interface RemoteSchedulerInterface {
-    void createTask(String user, String name, String description, String entityType, Integer entityId, String commitId,
-                    String taskName, String taskDesc, String entityName, ScheduleSetting scheduleSetting, Map<String, String> extraSettings);
+    void createTask(String user, String name, String description, String entityType, Integer entityId,
+                    String commitId, String taskName, String taskDesc, String entityName,
+                    Integer taskTimeout, ScheduleSetting scheduleSetting, Map<String, String> extraSettings);
+
     void deleteTask(String user, String projectName, Integer taskId);
     void updateTask(String user, Integer taskId, String name, String description, EntityModification modification, ScheduleSetting scheduleSetting, Map<String, String> extraSettings);
     void runTask(String projectName, String user, Integer taskId);

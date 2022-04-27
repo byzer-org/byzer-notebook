@@ -15,7 +15,7 @@ CREATE TABLE `model_info`  (
   `workflow_id` int(32) UNSIGNED NULL,
   `user_name` varchar(255) NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_node_id` (`node_id`)
+  UNIQUE KEY `unique_node_id` (`node_id`) USING HASH
 );
 
 
