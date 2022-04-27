@@ -16,6 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+source $(cd -P -- "$(dirname -- "$0")" && pwd -P)/header.sh
 
 function clearCrontab() {
     if ! isCrontabUseable;then
@@ -59,34 +60,15 @@ function recordStartOrStop() {
 
 function prepareEnv {
     export NOTEBOOK_CONFIG_FILE="${NOTEBOOK_HOME}/conf/notebook.properties"
+    mkdir -p ${NOTEBOOK_HOME}/logs
 
+    echo ""
     echo "NOTEBOOK_HOME is:${NOTEBOOK_HOME}"
     echo "NOTEBOOK_CONFIG_FILE is:${NOTEBOOK_CONFIG_FILE}"
-
-    mkdir -p ${NOTEBOOK_HOME}/logs
-    echo "Create the log directory for the notebook：${NOTEBOOK_HOME}/logs ."
+    echo "NOTEBOOK_LOG_FOLDER is：${NOTEBOOK_HOME}/logs ."
+    echo ""
 }
 
-function checkRestPort() {
-    echo "Start to check the port of rest..."
-    used=false
-    if [[ "$MACHINE_OS" == "Linux" ]]; then
-      if [[ -n $(netstat -tpln | grep "\<$port\>" | awk '{print $7}' | sed "s/\// /g") ]]; then
-        used=true
-      fi
-    fi
-
-    if [[ "$MACHINE_OS" == "Mac" ]]; then
-      if [[ -n $(lsof -nP -iTCP:$port -sTCP:LISTEN | grep $port | awk '{print $2}') ]]; then
-         used=true
-      fi
-    fi
-
-    if [[ "$used" == true ]]; then
-        echo "<$used> already listen on $port"
-        exit 1
-    fi
-}
 
 function checkIfStopUserSameAsStartUser() {
     startUser=`ps -p $1 -o user=`
@@ -134,10 +116,12 @@ function start(){
     setLogRotate
     clearRedundantProcess
 
+    # check $NOTEBOOK_HOME
+    [[ -z ${NOTEBOOK_HOME} ]] && quit "{NOTEBOOK_HOME} is not set, exit"
     if [ -f "${NOTEBOOK_HOME}/pid" ]; then
         PID=`cat ${NOTEBOOK_HOME}/pid`
         if ps -p $PID > /dev/null; then
-          quit "Notebook is already running, stop it first, PID is $PID"
+          quit "Byzer Notebook is already running, stop it first, PID is $PID"
         fi
     fi
 
@@ -149,12 +133,14 @@ function start(){
 
     prepareEnv
 
-    port=`$NOTEBOOK_HOME/bin/get-properties.sh notebook.port`
     if [[ -f ${NOTEBOOK_HOME}/bin/check-env-bypass ]]; then
-        checkRestPort
+        ${NOTEBOOK_HOME}/bin/check-1400-ports.sh >> ${NOTEBOOK_HOME}/logs/check-env.out 2>&1
+        [[ $? == 0 ]] || quit "ERROR: Port ${NOTEBOOK_PORT} is in use, another Byzer Notebook is running?"
     fi
+    
     echo "${START_TIME} Start Byzer Notebook..."
     nohup java -DNOTEBOOK_HOME=${NOTEBOOK_HOME} -Dspring.config.name=application,notebook -Dspring.config.location=classpath:/,file:${NOTEBOOK_HOME}/conf/ -jar ${NOTEBOOK_HOME}/lib/notebook-console.jar >> ${NOTEBOOK_HOME}/logs/notebook.out 2>&1 & echo $! >> ${NOTEBOOK_HOME}/pid &
+
     sleep 3
     clearRedundantProcess
 
@@ -164,7 +150,9 @@ function start(){
     CUR_DATE=$(date "+%Y-%m-%d %H:%M:%S")
     echo $CUR_DATE" new Byzer Notebook process pid is "$PID >> ${NOTEBOOK_HOME}/logs/notebook.log
 
-    echo "Byzer Notebook is starting. It may take a while. For status, please visit http://`hostname`:$port."
+    echo ""
+    echo $(setColor 33 "Byzer Notebook is starting. It may take a while. For status, please visit http://$BYZER_NOTEBOOK_IP:$NOTEBOOK_PORT.")
+    echo ""
     echo "You may also check status via: PID:`cat ${NOTEBOOK_HOME}/pid`, or Log: ${NOTEBOOK_HOME}/logs/notebook.log."
     recordStartOrStop "start success" "${START_TIME}"
 }
@@ -179,7 +167,6 @@ function stop(){
 
            checkIfStopUserSameAsStartUser $PID
 
-           echo `date '+%Y-%m-%d %H:%M:%S '`"Stopping Byzer Notebook: $PID"
            kill $PID
            for i in {1..10}; do
               sleep 3
@@ -196,6 +183,7 @@ function stop(){
            rm ${NOTEBOOK_HOME}/pid
 
            recordStartOrStop "stop" "${STOP_TIME}"
+           echo `date '+%Y-%m-%d %H:%M:%S '`"Byzer Notebook: $PID has been Stopped"
            return 0
         else
            return 1

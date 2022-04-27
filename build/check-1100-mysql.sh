@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-#title=Checking Mysql Availability & Version
+#title=Checking MySQL Availability & Version
 
 source $(cd -P -- "$(dirname -- "$0")" && pwd -P)/header.sh
 
