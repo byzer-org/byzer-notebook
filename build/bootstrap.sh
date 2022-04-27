@@ -17,10 +17,6 @@
 # limitations under the License.
 #
 
-set -u
-set -e
-set -o pipefail
-
 function clearCrontab() {
     if ! isCrontabUseable;then
         return 1
@@ -47,7 +43,8 @@ function isCrontabUseable() {
 function setLogRotate() {
     auto_log_rotate_enabled=`$NOTEBOOK_HOME/bin/get-properties.sh notebook.env.log-rotate-enabled`
     # linux
-    if [ -d "/etc/logrotate.d" -a ${auto_log_rotate_enabled} == "true" ] && isCrontabUseable; then
+    if [[ -d "/etc/logrotate.d" && ${auto_log_rotate_enabled} == "true" && isCrontabUseable ]]
+    then
         $NOTEBOOK_HOME/bin/log-rotate-cron.sh
     else
         $NOTEBOOK_HOME/bin/rotate-logs.sh
@@ -156,12 +153,14 @@ function start(){
     if [[ -f ${NOTEBOOK_HOME}/bin/check-env-bypass ]]; then
         checkRestPort
     fi
-    echo " Start the byzer notebook..."
-    nohup java -DNOTEBOOK_HOME=${NOTEBOOK_HOME} -Dspring.config.name=application,notebook -Dspring.config.location=classpath:/,file:${NOTEBOOK_HOME}/conf/ -jar ${NOTEBOOK_HOME}/lib/notebook-console.jar >> ${NOTEBOOK_HOME}/logs/notebook.out 2>&1 < /dev/null & echo $! >> ${NOTEBOOK_HOME}/pid &
+    echo "${START_TIME} Start Byzer Notebook..."
+    nohup java -DNOTEBOOK_HOME=${NOTEBOOK_HOME} -Dspring.config.name=application,notebook -Dspring.config.location=classpath:/,file:${NOTEBOOK_HOME}/conf/ -jar ${NOTEBOOK_HOME}/lib/notebook-console.jar >> ${NOTEBOOK_HOME}/logs/notebook.out 2>&1 & echo $! >> ${NOTEBOOK_HOME}/pid &
     sleep 3
     clearRedundantProcess
 
     PID=`cat ${NOTEBOOK_HOME}/pid`
+    [[ -z $PID ]] && quit "Starting Byzer-notebook failed, please check error in ${NOTEBOOK_HOME}/logs/shell.stderr"
+    
     CUR_DATE=$(date "+%Y-%m-%d %H:%M:%S")
     echo $CUR_DATE" new Byzer Notebook process pid is "$PID >> ${NOTEBOOK_HOME}/logs/notebook.log
 
