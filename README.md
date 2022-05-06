@@ -7,8 +7,9 @@
 1. jdk8
 2. maven
 3. scala (recommend 2.11.8)
-4. npm (recommend 14.x.x)
-5. Byzer-lang (startup first)
+4. node (recommend 14.x.x)
+5. npm (recommend 6.x.x)
+6. Byzer-lang (startup first)
 
 ## Build with Byzer-Notebook-Vue
 * Execute the script
