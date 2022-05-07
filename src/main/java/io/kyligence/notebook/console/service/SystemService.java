@@ -7,6 +7,7 @@ import io.kyligence.notebook.console.bean.entity.SystemConfig;
 import io.kyligence.notebook.console.dao.SystemConfigRepository;
 import io.kyligence.notebook.console.support.CriteriaQueryBuilder;
 import io.kyligence.notebook.console.support.EncryptUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 
 
+@Slf4j
 @Service
 public class SystemService {
 
@@ -30,6 +32,17 @@ public class SystemService {
 
     @Resource
     private CriteriaQueryBuilder queryBuilder;
+
+    public boolean isMetaDBReachable() {
+        // test meta database reachable
+        try {
+            repository.findAll();
+            return true;
+        } catch (Exception ex) {
+            log.error("Can not access meta database table, please check database status!");
+            return false;
+        }
+    }
 
     @Transactional
     public void updateByUser(SystemConfig systemConfig) {

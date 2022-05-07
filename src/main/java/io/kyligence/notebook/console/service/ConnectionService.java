@@ -64,11 +64,14 @@ public class ConnectionService {
     public boolean testConnection(ConnectionDTO content) {
         if (content.getName() == null) content.setName("UserConnectionTmp");
         String sql = ConnectionUtils.renderSQL(content);
-        return checkConnection(sql, content.getName(), engineService.getExecutionEngine());
+        String probeSQL = ConnectionUtils.parseProbeSql(content.getParameter());
+        return checkConnection(sql, probeSQL, content.getName(), engineService.getExecutionEngine());
     }
 
     public boolean testConnection(ConnectionInfo info, String engine) {
-        return checkConnection(renderConnectionSQL(info), info.getName(), engine);
+        String probeSQL = ConnectionUtils.parseProbeSql(
+                JacksonUtils.readJsonArray(info.getParameter(), ConnectionDTO.ParameterMap.class));
+        return checkConnection(renderConnectionSQL(info), probeSQL, info.getName(), engine);
     }
 
     public String renderConnectionSQL(ConnectionInfo info) {
@@ -112,7 +115,7 @@ public class ConnectionService {
         return tables;
     }
 
-    private boolean checkConnection(String renderedSQL, String connectionName, String engine) {
+    private boolean checkConnection(String renderedSQL, String probeSQL, String connectionName, String engine) {
         EngineService.RunScriptParams runScriptParams = new EngineService.RunScriptParams();
 
         try {
@@ -124,10 +127,11 @@ public class ConnectionService {
             );
             String testSQL = String.format(
                     "run command as JDBC.`%1$s._` where" +
-                            "`driver-statement-query`=\"select 1\"" +
+                            "`driver-statement-query`=\"%2$s\"" +
                             "and sqlMode=\"query\"" +
-                            "as %1$s_show_tables;",
-                    connectionName
+                            "as %1$s_probe_test;",
+                    connectionName,
+                    probeSQL
             );
             String result = engineService.runScript(
                     runScriptParams.withSql(testSQL)

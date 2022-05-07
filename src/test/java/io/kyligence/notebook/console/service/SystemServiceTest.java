@@ -4,11 +4,16 @@ import io.kyligence.notebook.console.NotebookConfig;
 import io.kyligence.notebook.console.NotebookLauncherBaseTest;
 import io.kyligence.notebook.console.bean.entity.SystemConfig;
 import io.kyligence.notebook.console.dao.SystemConfigRepository;
+import io.kyligence.notebook.console.exception.ByzerException;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
+
+import static org.mockito.Mockito.when;
 
 public class SystemServiceTest extends NotebookLauncherBaseTest {
 
@@ -16,6 +21,12 @@ public class SystemServiceTest extends NotebookLauncherBaseTest {
 
     @Autowired
     private SystemService systemService;
+
+    @InjectMocks
+    private SystemService mockService;
+
+    @Mock
+    private SystemConfigRepository mockRepo;
 
     @Override
     @PostConstruct
@@ -37,5 +48,14 @@ public class SystemServiceTest extends NotebookLauncherBaseTest {
         systemService.updateByUser(config);
         config = systemService.getConfig("mockConfigUser2");
         Assert.assertEquals("backup", config.getEngine());
+    }
+
+    @Test
+    public void testMetaDBReachable () {
+        Assert.assertTrue(systemService.isMetaDBReachable());
+
+        when(mockRepo.findAll()).thenThrow(ByzerException.class);
+
+        Assert.assertFalse(mockService.isMetaDBReachable());
     }
 }

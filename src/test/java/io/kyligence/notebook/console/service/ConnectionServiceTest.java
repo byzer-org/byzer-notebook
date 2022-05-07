@@ -57,7 +57,11 @@ public class ConnectionServiceTest extends NotebookLauncherBaseTest {
         ).respond(response().withBody(MOCK_CONNECTION_CONTENT));
         Assert.assertTrue(connectionService.testConnection(MOCK_CONNECTION, "default"));
         Assert.assertFalse(connectionService.testConnection(MOCK_CONNECTION, "backup"));
+        Assert.assertTrue(connectionService.testConnection(ConnectionDTO.valueOf(MOCK_CONNECTION)));
 
+        MOCK_CONNECTION.setParameter("[{\"name\":\"probeSQL\",\"value\": \"select 1 from testTB\"}]");
+        Assert.assertTrue(connectionService.testConnection(MOCK_CONNECTION, "default"));
+        Assert.assertFalse(connectionService.testConnection(MOCK_CONNECTION, "backup"));
         Assert.assertTrue(connectionService.testConnection(ConnectionDTO.valueOf(MOCK_CONNECTION)));
     }
 
@@ -70,10 +74,5 @@ public class ConnectionServiceTest extends NotebookLauncherBaseTest {
                 "and password=\"root\"\n" +
                 "as admin-mockConnectionForAdmin;";
         Assert.assertEquals(expectSQL, connectionService.renderConnectionSQL(MOCK_CONNECTION));
-    }
-
-    @Test
-    public void testCreateConnection() {
-
     }
 }

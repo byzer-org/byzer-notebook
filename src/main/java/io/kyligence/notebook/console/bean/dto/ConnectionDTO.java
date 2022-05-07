@@ -2,7 +2,6 @@ package io.kyligence.notebook.console.bean.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.kyligence.notebook.console.bean.entity.ConnectionInfo;
-import io.kyligence.notebook.console.support.EncryptUtils;
 import io.kyligence.notebook.console.util.JacksonUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
