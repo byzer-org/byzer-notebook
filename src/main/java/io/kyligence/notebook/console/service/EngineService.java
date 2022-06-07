@@ -11,9 +11,9 @@ import io.kyligence.notebook.console.scalalib.hint.HintManager;
 import io.kyligence.notebook.console.util.EngineStatus;
 import io.kyligence.notebook.console.util.JacksonUtils;
 import io.kyligence.notebook.console.util.WebUtils;
-import org.springframework.data.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -245,10 +245,26 @@ public class EngineService {
             params.put("tags", "");
             params.put("access_token", "mlsql");
             params.put("skipGrammarValidate", "false");
-            params.put("timeout", config.getExecutionTimeoutMillonSeconds());
+            params.put("context.__auth_secret__", "mlsql");
+            params.put("skipAuth", "false");
+            params.put("async", "true");
+            params.put("sessionPerUser", "true");
+            params.put("defaultPathPrefix", "/mlsql");
             params.put("engine-name", "mlsql-engine");
             params.put("show_stack", "true");
             params.put("sql", "!hdfs -ls /;");
+
+
+            for (Map.Entry<Object, Object> entry : config.getProperties().entrySet()) {
+                String key = entry.getKey().toString();
+                if (key.startsWith("notebook.mlsql")) {
+                    String newKey = key.substring("notebook.mlsql.".length());
+                    params.put(newKey, entry.getValue().toString());
+                }
+            }
+
+
+            params.put("timeout", config.getExecutionTimeoutMillonSeconds());
             params.put("schemaInferUrl", config.getExecutionEngineUrl() + EngineAPI.RUN_SCRIPT);
             params.put("context.__default__include_fetch_url__", config.getNotebookUrl() + "/api/script/include");
             params.put("context.__default__console_url__", config.getNotebookUrl());
@@ -256,12 +272,8 @@ public class EngineService {
             params.put("context.__default__fileserver_upload_url__", config.getNotebookUrl() + "/api/upload_file");
             params.put("context.__auth_client__", config.getAuthClient());
             params.put("context.__auth_server_url__", config.getNotebookUrl() + "/table/auth");
-            params.put("context.__auth_secret__", "mlsql");
-            params.put("skipAuth", "false");
+
             params.put("callback", config.getNotebookUrl() + "/api/job/callback");
-            params.put("async", "true");
-            params.put("sessionPerUser", "true");
-            params.put("defaultPathPrefix", "/mlsql");
             params.put("home", config.getUserHome());
             params.put("maxRetries", String.valueOf(config.getExecutionEngineCallbackRetries() - 1));
 
