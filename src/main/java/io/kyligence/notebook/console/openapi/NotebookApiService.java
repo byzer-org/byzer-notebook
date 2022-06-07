@@ -2,6 +2,7 @@ package io.kyligence.notebook.console.openapi;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.kyligence.notebook.console.NotebookConfig;
 import io.kyligence.notebook.console.bean.dto.NotebookDTO;
 import io.kyligence.notebook.console.bean.dto.Response;
 import io.kyligence.notebook.console.exception.ByzerException;
@@ -26,6 +27,8 @@ import javax.validation.constraints.NotNull;
 @Api("The documentation about notebook open api.")
 public class NotebookApiService {
 
+    private static final NotebookConfig config = NotebookConfig.getInstance();
+
     @Autowired
     private NotebookService notebookService;
 
@@ -37,8 +40,9 @@ public class NotebookApiService {
         log.info("【NotebookApiService】 /api/service/getNotebook/{} authentication={}", id, authorization);
         Claims claims = null;
         try {
+            String secretKey = config.getSecretKey();
             claims = Jwts.parser()
-                    .setSigningKey("37140dc5-63af-45ee-8e07-bf6b438767f8")
+                    .setSigningKey(secretKey)
                     .parseClaimsJws(token)
                     .getBody();
 
