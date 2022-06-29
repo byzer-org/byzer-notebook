@@ -226,7 +226,7 @@ public class  NotebookConfig {
 
     public String getSecretKey(){return getOptional("notebook.security.key", "6173646661736466e4bda0e8bf983161");}
 
-    public String getServiceSecretKey(){return getOptional("notebook.service.security.key", getSecretKey());}
+    public String getServiceSecretKey(){return getOptional("notebook.services.communication.token", getSecretKey());}
 
     public String getOutputSize(){return getOptional("notebook.job.output-size", "1000");}
 
