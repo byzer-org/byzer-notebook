@@ -40,7 +40,7 @@ public class NotebookApiService {
         log.info("【NotebookApiService】 /api/service/getNotebook/{} authentication={}", id, authorization);
         Claims claims = null;
         try {
-            String secretKey = config.getSecretKey();
+            String secretKey = config.getServiceSecretKey();
             claims = Jwts.parser()
                     .setSigningKey(secretKey)
                     .parseClaimsJws(token)
