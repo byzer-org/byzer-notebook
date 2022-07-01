@@ -51,7 +51,7 @@ public class NotificationService {
             String time = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Calendar.getInstance().getTime());
             String body = String.format("- Schedule Name: %s\n" +
                     "- Schedule Time: %s\n" +
-                    "- Duration: %s ms\n" +
+                    "- Duration: %s \n" +
                     "- Execute User: %s\n" +
                     "- Status: %s", scheduleName, time, durString, user, jobStatusStr);
             String msg = header + "\n" + body;
@@ -59,7 +59,6 @@ public class NotificationService {
             String responseBody = engineService.runScript(new EngineService.RunScriptParams()
                     .withSql(sql));
         } catch (Exception ex) {
-            // 失败的话抛出异常么？？
             throw new ByzerException(ErrorCodeEnum.SENDING_IM_ERROR);
         }
     }
