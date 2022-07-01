@@ -5,6 +5,7 @@ import io.kyligence.notebook.console.bean.entity.JobInfo;
 import io.kyligence.notebook.console.exception.ByzerException;
 import io.kyligence.notebook.console.exception.ErrorCodeEnum;
 import io.kyligence.notebook.console.service.EngineService;
+import liquibase.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,10 @@ public class NotificationService {
     public void notification(String scheduleName, long duration, String user, int status) {
         String webHook = config.getNitificationWebhook();
         String header = config.getNitificationMsgHeader();
+
+        if (StringUtil.isEmpty(webHook)) {
+            return;
+        }
 
         try {
 

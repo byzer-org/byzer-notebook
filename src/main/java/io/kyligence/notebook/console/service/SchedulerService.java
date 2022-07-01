@@ -95,7 +95,6 @@ public class SchedulerService {
         jobInfo.setNotebook(getEntityName(entityType, Integer.parseInt(entityId)));
 
         String engine = engineService.getExecutionEngine();
-        engine = "http://localhost:9003";
         jobInfo.setEngine(engine);
 
         jobService.insert(jobInfo);
