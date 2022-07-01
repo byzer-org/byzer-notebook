@@ -33,6 +33,7 @@ public class NotificationService {
         String header = config.getNitificationMsgHeader();
 
         if (StringUtil.isEmpty(webHook)) {
+            log.warn("[NotificationService] The webhook info is not set. Skip sending IM notifications !");
             return;
         }
 
@@ -64,6 +65,7 @@ public class NotificationService {
             String responseBody = engineService.runScript(new EngineService.RunScriptParams()
                     .withSql(sql));
         } catch (Exception ex) {
+            log.warn("[NotificationService] Exceptions occurred when sending IM notifications." + ex.getStackTrace());
             throw new ByzerException(ErrorCodeEnum.SENDING_IM_ERROR);
         }
     }
