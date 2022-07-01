@@ -17,7 +17,7 @@ import java.util.Objects;
 import java.util.Properties;
 
 @Slf4j
-public class  NotebookConfig {
+public class NotebookConfig {
 
     public final static NotebookConfig INSTANCE = new NotebookConfig();
 
@@ -122,27 +122,27 @@ public class  NotebookConfig {
     }
 
     public String getByzerClusterUrl() {
-        return getOptional("notebook.mlsql.cluster-url",  "");
+        return getOptional("notebook.mlsql.cluster-url", "");
     }
 
     public String getByzerEngineUrl() {
-        return getOptional("notebook.mlsql.engine-url",  "http://" + intranetIp + ":9003");
+        return getOptional("notebook.mlsql.engine-url", "http://" + intranetIp + ":9003");
     }
 
     public String getByzerEngineBackupUrl() {
-        return getOptional("notebook.mlsql.engine-backup-url",  "http://" + intranetIp + ":9004");
+        return getOptional("notebook.mlsql.engine-backup-url", "http://" + intranetIp + ":9004");
     }
 
     public String getByzerCloudUrl() {
-        return getOptional("notebook.mlsql.cloud-url",  "http://" + intranetIp + ":8090");
+        return getOptional("notebook.mlsql.cloud-url", "http://" + intranetIp + ":8090");
     }
 
     public String getNotebookUrl() {
-        return getOptional("notebook.url",  "http://" + intranetIp + ":9002");
+        return getOptional("notebook.url", "http://" + intranetIp + ":9002");
     }
 
     public String getAuthClient() {
-        return getOptional("notebook.mlsql.auth-client",  "streaming.dsl.auth.client.DefaultConsoleClient");
+        return getOptional("notebook.mlsql.auth-client", "streaming.dsl.auth.client.DefaultConsoleClient");
     }
 
     public String getUserHome() {
@@ -154,7 +154,7 @@ public class  NotebookConfig {
     }
 
     public String getExecutionTimeoutMillonSeconds() {
-        int timeoutMinute =  Integer.parseInt(getOptional("notebook.execution.timeout", "2880"));
+        int timeoutMinute = Integer.parseInt(getOptional("notebook.execution.timeout", "2880"));
         if (timeoutMinute == -1) {
             return "-1";
         }
@@ -172,19 +172,31 @@ public class  NotebookConfig {
         return getByzerEngineBackupUrl();
     }
 
+    public String getNitificationWebhook() {
+        return getOptional("notebook.scheduler.notification.webhook-url", "");
+    }
+
+    public String getNitificationMsgHeader() {
+        return getOptional("notebook.scheduler.notification.message-header", "Byzer Notebook Schedule Task Notification:");
+    }
+
+    public String getNotificationLevel() {
+        return getOptional("notebook.scheduler.notification.level", "failed");
+    }
+
     public Integer getExecutionEngineCallbackRetries() {
         return Integer.valueOf(getOptional("notebook.execution.engine.max-retries", "2"));
     }
 
-    public String getJobHistorySize(){
+    public String getJobHistorySize() {
         return getOptional("notebook.job.history.max-size", "2000000");
     }
 
-    public String getJobHistoryTime(){
+    public String getJobHistoryTime() {
         return getOptional("notebook.job.history.max-time", "30");
     }
 
-    public String getJobArchiveTime(){
+    public String getJobArchiveTime() {
         return getOptional("notebook.job.history.archive-time", "7");
     }
 
@@ -200,43 +212,51 @@ public class  NotebookConfig {
         return Double.parseDouble(getOptional("notebook.user.resource.file-size-limit-kb", "0"));
     }
 
-    public Integer getUserNoteBookNumLimit(){
+    public Integer getUserNoteBookNumLimit() {
         return Integer.parseInt(getOptional("notebook.user.resource.notebook-num-limit", "0"));
     }
 
-    public Integer getUserWorkflowNumLimit(){
+    public Integer getUserWorkflowNumLimit() {
         return Integer.parseInt(getOptional("notebook.user.resource.workflow-num-limit", "0"));
     }
 
-    public String getVersionPath(){
+    public String getVersionPath() {
         return getNotebookHome() + File.separator + "VERSION";
     }
 
-    public String getCommitSHAPath(){
+    public String getCommitSHAPath() {
         return getNotebookHome() + File.separator + "commit_SHA1";
     }
 
-    public String getFrontendCommitSHAPath(){
+    public String getFrontendCommitSHAPath() {
         return getNotebookHome() + File.separator + "commit_SHA1.frontend";
     }
 
-    public Boolean getIsTrial(){
+    public Boolean getIsTrial() {
         return Objects.equals(getOptional("notebook.env.is-trial", ""), "true");
     }
 
-    public String getSecretKey(){return getOptional("notebook.security.key", "6173646661736466e4bda0e8bf983161");}
+    public String getSecretKey() {
+        return getOptional("notebook.security.key", "6173646661736466e4bda0e8bf983161");
+    }
+
 
     public String getServiceSecretKey(){return getOptional("notebook.services.communication.token", getSecretKey());}
 
     public String getOutputSize(){return getOptional("notebook.job.output-size", "1000");}
 
-    public String getScheduleCallbackUser(){return getOptional("notebook.scheduler.callback-user", "ByzerRobot");}
 
-    public String getScheduleCallbackToken(){return getOptional("notebook.scheduler.callback-token", "6173646661736466e4bda0e8bf983161");}
+    public String getScheduleCallbackUser() {
+        return getOptional("notebook.scheduler.callback-user", "ByzerRobot");
+    }
+
+    public String getScheduleCallbackToken() {
+        return getOptional("notebook.scheduler.callback-token", "6173646661736466e4bda0e8bf983161");
+    }
 
 
-    public boolean getIsSchedulerEnabled(){
-       return Objects.equals(getOptional("notebook.scheduler.enable", "").trim(), "true");
+    public boolean getIsSchedulerEnabled() {
+        return Objects.equals(getOptional("notebook.scheduler.enable", "").trim(), "true");
     }
 
     public List<SchedulerConfig> getSchedulerConfig() {

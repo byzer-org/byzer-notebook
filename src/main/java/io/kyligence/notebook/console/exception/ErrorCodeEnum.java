@@ -148,6 +148,8 @@ public enum ErrorCodeEnum {
 
     Forbidden("403", "Authorization failed", "{}"),
 
+    SENDING_IM_ERROR("KN-1019001", "Sending IM Notification Error.", ""),
+
     ;
 
     private final String code;

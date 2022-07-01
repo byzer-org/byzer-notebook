@@ -6,8 +6,10 @@ import io.kyligence.notebook.console.bean.dto.TaskInfoDTO;
 import io.kyligence.notebook.console.bean.dto.TaskInstanceDTO;
 import io.kyligence.notebook.console.bean.dto.TaskNodeInfoDTO;
 import io.kyligence.notebook.console.bean.entity.JobInfo;
+import io.kyligence.notebook.console.bean.entity.NotificationLevel;
 import io.kyligence.notebook.console.bean.model.ScheduleSetting;
 import io.kyligence.notebook.console.exception.ByzerException;
+import io.kyligence.notebook.console.notification.NotificationService;
 import io.kyligence.notebook.console.scheduler.RemoteSchedulerInterface;
 import io.kyligence.notebook.console.scheduler.SchedulerConfig;
 import io.kyligence.notebook.console.scheduler.SchedulerFactory;
@@ -39,10 +41,14 @@ public class SchedulerService {
     @Autowired
     private JobService jobService;
 
+
+    @Autowired
+    NotificationService notificationService;
+
     private final NotebookConfig config = NotebookConfig.getInstance();
 
     // default callback script execution timout is 4 hours
-    private static final  Integer CALLBACK_TIMEOUT_SECONDS = 14400;
+    private static final Integer CALLBACK_TIMEOUT_SECONDS = 14400;
 
     private boolean enabled = config.getIsSchedulerEnabled();
 
@@ -108,12 +114,22 @@ public class SchedulerService {
             jobInfo.setFinishTime(new Timestamp(System.currentTimeMillis()));
             jobInfo.setStatus(status);
             jobService.updateByJobId(jobInfo);
+            long duration = jobInfo.getFinishTime().getTime() - jobInfo.getCreateTime().getTime();
+            if (NotificationLevel.valueByLevel(
+                    config.getNotificationLevel()).getCode() == NotificationLevel.FAILED.getCode()
+                    && status == JobInfo.JobStatus.FAILED) {
+                // send IM when failed
+                notificationService.notification(jobInfo.getName(), duration, user, status);
+            } else if (NotificationLevel.valueByLevel(config.getNotificationLevel()).getCode() == NotificationLevel.ALL.getCode()) {
+                // send IM whenerver job is failed or successed
+                notificationService.notification(jobInfo.getName(), duration, user, status);
+            }
         }
 
 
     }
 
-    public boolean isEnabled(){
+    public boolean isEnabled() {
         return enabled;
     }
 
@@ -144,20 +160,20 @@ public class SchedulerService {
         RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
         if (Objects.nonNull(modification)) {
             modification.setEntityName(getEntityName(modification.getEntityType(), modification.getEntityId()));
-            if (Objects.equals(modification.getAction(), EntityModification.Actions.update) && Objects.isNull(modification.getCommitId())){
+            if (Objects.equals(modification.getAction(), EntityModification.Actions.update) && Objects.isNull(modification.getCommitId())) {
                 modification.setCommitId(autoCommit(user, modification.getEntityType(), modification.getEntityId()));
             }
         }
         scheduler.updateTask(user, id, name, desc, modification, scheduleSetting, extraSettings);
     }
 
-    public void runTask(String user, Integer schedulerId, String projectName, Integer taskId){
+    public void runTask(String user, Integer schedulerId, String projectName, Integer taskId) {
         if (!enabled) throw new ByzerException("SchedulerService not enabled");
         RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
         scheduler.runTask(projectName, user, taskId);
     }
 
-    public void setStatus(String user, Integer schedulerId, String projectName, Long taskInstanceId, Integer setStatus){
+    public void setStatus(String user, Integer schedulerId, String projectName, Long taskInstanceId, Integer setStatus) {
         if (!enabled) throw new ByzerException("SchedulerService not enabled");
         RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
         scheduler.sendCommand(projectName, user, taskInstanceId, setStatus);
@@ -169,30 +185,30 @@ public class SchedulerService {
         scheduler.deleteTask(user, projectName, taskId);
     }
 
-    public TaskInfoDTO getScheduleById(String user, Integer schedulerId, String projectName, Integer taskId){
+    public TaskInfoDTO getScheduleById(String user, Integer schedulerId, String projectName, Integer taskId) {
         if (!enabled) throw new ByzerException("SchedulerService not enabled");
         RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
         return scheduler.getTask(projectName, user, taskId);
     }
 
-    public TaskInfoDTO getScheduleByEntity(String user, Integer schedulerId, String projectName, String entityType, Integer entityId){
+    public TaskInfoDTO getScheduleByEntity(String user, Integer schedulerId, String projectName, String entityType, Integer entityId) {
         if (!enabled) throw new ByzerException("SchedulerService not enabled");
         RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
         return scheduler.getTask(projectName, user, entityType, entityId);
     }
 
-    public List<TaskInfoDTO> getScheduleList(String user, Integer schedulerId, String projectName){
+    public List<TaskInfoDTO> getScheduleList(String user, Integer schedulerId, String projectName) {
         if (!enabled) throw new ByzerException("SchedulerService not enabled");
         RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
         return scheduler.getTasks(projectName, user);
     }
 
-    public List<TaskInstanceDTO> getInstanceList(String user, Integer schedulerId, String projectName, Integer taskId){
+    public List<TaskInstanceDTO> getInstanceList(String user, Integer schedulerId, String projectName, Integer taskId) {
         if (!enabled) throw new ByzerException("SchedulerService not enabled");
         RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
         List<TaskInstanceDTO> instances = scheduler.getTaskInstances(projectName, user);
         return Objects.isNull(taskId) ? instances : instances.stream().filter(
-                instance-> Objects.equals(instance.getTaskId(), taskId)).collect(Collectors.toList());
+                instance -> Objects.equals(instance.getTaskId(), taskId)).collect(Collectors.toList());
     }
 
 
@@ -203,26 +219,26 @@ public class SchedulerService {
     }
 
 
-    public List<TaskNodeInfoDTO> getInstanceNodes(String user, Long taskInstanceId, Integer schedulerId, String projectName){
+    public List<TaskNodeInfoDTO> getInstanceNodes(String user, Long taskInstanceId, Integer schedulerId, String projectName) {
         if (!enabled) throw new ByzerException("SchedulerService not enabled");
         RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
         return scheduler.getTaskInstanceNodes(projectName, user, taskInstanceId);
     }
 
-    public void onlineTask(String user, Integer taskId, Integer schedulerId, String projectName){
+    public void onlineTask(String user, Integer taskId, Integer schedulerId, String projectName) {
         if (!enabled) throw new ByzerException("SchedulerService not enabled");
         RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
         scheduler.onlineTask(user, taskId, projectName);
     }
 
-    public void offlineTask(String user, Integer taskId, Integer schedulerId, String projectName){
+    public void offlineTask(String user, Integer taskId, Integer schedulerId, String projectName) {
         if (!enabled) throw new ByzerException("SchedulerService not enabled");
         RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
         scheduler.offlineTask(user, taskId, projectName);
     }
 
-    public boolean entityUsedInSchedule(String entityType, Integer entityId){
-        for (RemoteSchedulerInterface scheduler: schedulerMap.values()){
+    public boolean entityUsedInSchedule(String entityType, Integer entityId) {
+        for (RemoteSchedulerInterface scheduler : schedulerMap.values()) {
             TaskInfoDTO exist = scheduler.searchForEntity(getEntityName(entityType, entityId), entityType, entityId);
             if (Objects.nonNull(exist)) return true;
         }
@@ -251,7 +267,7 @@ public class SchedulerService {
         }
     }
 
-    private String autoCommit(String user, String entityType, Integer entityId){
+    private String autoCommit(String user, String entityType, Integer entityId) {
         switch (entityType.toLowerCase()) {
             case "notebook":
                 return notebookService.commit(user, entityId).getCommitId();
