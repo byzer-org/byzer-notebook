@@ -2,6 +2,7 @@ package io.kyligence.notebook.console.service;
 
 import io.kyligence.notebook.console.bean.model.FileInfo;
 import io.kyligence.notebook.console.util.JacksonUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -86,6 +87,7 @@ public class CatalogService {
             return null;
         }
         List<String> dbNames = dbWithTables.stream()
+                .filter(item -> !StringUtils.startsWithAny(item.get("database").toString(), ".","__"))
                 .map(item -> item.get("database").toString())
                 .distinct()
                 .collect(Collectors.toList());
