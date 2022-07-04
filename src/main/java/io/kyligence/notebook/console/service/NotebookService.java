@@ -376,7 +376,7 @@ public class NotebookService implements FileInterface {
                 .filter(sql -> Objects.nonNull(sql) && !sql.startsWith("--%markdown"))
                 .map(sql -> HintManager.applyAllHintRewrite(sql, options))
                 .collect(Collectors.toList());
-        return String.join("\n", scripts);
+        return String.join(System.lineSeparator(), scripts);
     }
 
     public NotebookCommit findCommit(Integer notebookId, String commitId) {

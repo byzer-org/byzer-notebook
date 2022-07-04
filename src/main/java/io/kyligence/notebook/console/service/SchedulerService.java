@@ -14,6 +14,7 @@ import io.kyligence.notebook.console.scheduler.RemoteSchedulerInterface;
 import io.kyligence.notebook.console.scheduler.SchedulerConfig;
 import io.kyligence.notebook.console.scheduler.SchedulerFactory;
 import io.kyligence.notebook.console.scheduler.dolphin.dto.EntityModification;
+import io.kyligence.notebook.console.util.LoadRestRewriter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,12 +83,12 @@ public class SchedulerService {
                 .with("sessionPerRequest", "true");
 
         String scripts = getScript(entityType, entityId, commitId, runScriptParams.getAll());
-
-        runScriptParams.withSql(scripts);
+        String rewrittenScripts = LoadRestRewriter.appendConf(scripts);
+        runScriptParams.withSql(rewrittenScripts);
 
         JobInfo jobInfo = new JobInfo();
         jobInfo.setJobId(UUID.randomUUID().toString());
-        jobInfo.setContent(scripts);
+        jobInfo.setContent(rewrittenScripts);
         jobInfo.setStatus(JobInfo.JobStatus.RUNNING);
         jobInfo.setCreateTime(new Timestamp(System.currentTimeMillis()));
         jobInfo.setName(MessageFormat.format("ByzerScheduleTask-{0}-{1}_{2}", scheduleOwner, entityType, entityId));
