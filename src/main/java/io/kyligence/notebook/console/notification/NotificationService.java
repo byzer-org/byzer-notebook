@@ -28,7 +28,7 @@ public class NotificationService {
     @Autowired
     EngineService engineService;
 
-    public void notification(String scheduleName, long duration, String user, int status) {
+    public void notification(String notebookName, String scheduleName, long duration, String user, int status) {
         String webHook = config.getNitificationWebhook();
         String header = config.getNitificationMsgHeader();
 
@@ -55,11 +55,12 @@ public class NotificationService {
             String durString = String.format("%02d:%02d:%02d", hours, minutes, seconds);
 
             String time = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Calendar.getInstance().getTime());
-            String body = String.format("- Schedule Name: %s\n" +
+            String body = String.format("- Notebook Name: %s\n" +
+                    "- Schedule Name: %s\n" +
                     "- Schedule Time: %s\n" +
                     "- Duration: %s \n" +
                     "- Execute User: %s\n" +
-                    "- Status: %s", scheduleName, time, durString, user, jobStatusStr);
+                    "- Status: %s", notebookName, scheduleName, time, durString, user, jobStatusStr);
             String msg = header + "\n" + body;
             String sql = String.format(NOTIFICATION_SQL, msg, webHook);
             String responseBody = engineService.runScript(new EngineService.RunScriptParams()
