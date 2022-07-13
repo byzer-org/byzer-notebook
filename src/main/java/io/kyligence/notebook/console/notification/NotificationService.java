@@ -21,7 +21,7 @@ import java.util.Calendar;
 @Slf4j
 public class NotificationService {
 
-    private final static String notificationSQL = "select 1 as col1 as a;RUN a as FeishuMessageExt.`` where text=\"%s\" AND webhook = \"%s\" as A2;";
+    private static final String NOTIFICATION_SQL = "select 1 as col1 as a;RUN a as FeishuMessageExt.`` where text=\"%s\" AND webhook = \"%s\" as A2;";
 
     private static final NotebookConfig config = NotebookConfig.getInstance();
 
@@ -62,7 +62,7 @@ public class NotificationService {
                     "- Execute User: %s\n" +
                     "- Status: %s", notebookName, scheduleName, time, durString, user, jobStatusStr);
             String msg = header + "\n" + body;
-            String sql = String.format(notificationSQL, msg, webHook);
+            String sql = String.format(NOTIFICATION_SQL, msg, webHook);
             engineService.runScript(new EngineService.RunScriptParams()
                     .withSql(sql));
         } catch (Exception ex) {
