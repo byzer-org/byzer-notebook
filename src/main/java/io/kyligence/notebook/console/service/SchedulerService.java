@@ -116,13 +116,11 @@ public class SchedulerService {
             jobInfo.setStatus(status);
             jobService.updateByJobId(jobInfo);
             long duration = jobInfo.getFinishTime().getTime() - jobInfo.getCreateTime().getTime();
-            if (NotificationLevel.valueByLevel(
+            if ((NotificationLevel.valueByLevel(
                     config.getNotificationLevel()).getCode() == NotificationLevel.FAILED.getCode()
-                    && status == JobInfo.JobStatus.FAILED) {
-                // send IM when failed
-                notificationService.notification(getEntityName(entityType, Integer.parseInt(entityId)), jobInfo.getName(), duration, scheduleOwner, status);
-            } else if (NotificationLevel.valueByLevel(config.getNotificationLevel()).getCode() == NotificationLevel.ALL.getCode()) {
-                // send IM whenerver job is failed or successed
+                    && status == JobInfo.JobStatus.FAILED) || (NotificationLevel.valueByLevel(config.getNotificationLevel()).getCode() == NotificationLevel.ALL.getCode())) {
+                // send IM when failed when the notification level is at failed
+                //or send IM whenever job is failed or successed if the notification level is set as all
                 notificationService.notification(getEntityName(entityType, Integer.parseInt(entityId)), jobInfo.getName(), duration, scheduleOwner, status);
             }
         }
