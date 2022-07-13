@@ -124,8 +124,6 @@ public class SchedulerService {
                 notificationService.notification(getEntityName(entityType, Integer.parseInt(entityId)), jobInfo.getName(), duration, scheduleOwner, status);
             }
         }
-
-
     }
 
     public boolean isEnabled() {
