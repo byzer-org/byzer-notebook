@@ -75,9 +75,7 @@ public class SchedulerService {
     }
 
     public boolean isNeededIMNotification(int status) {
-        if (isSentAtAllLevel() || (isSentAtFailedLevel() && status == JobInfo.JobStatus.FAILED))
-            return true;
-        return false;
+        return (isSentAtAllLevel() || (isSentAtFailedLevel() && status == JobInfo.JobStatus.FAILED));
     }
 
     public void callback(String token, String scheduleOwner, String entityType,
