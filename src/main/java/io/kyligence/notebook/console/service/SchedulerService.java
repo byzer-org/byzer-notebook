@@ -66,6 +66,17 @@ public class SchedulerService {
         }
     }
 
+    public boolean isSentAtFailedLevel() {
+        return NotificationLevel.valueByLevel(config.getNotificationLevel()).getCode() == NotificationLevel.FAILED.getCode();
+    }
+
+    public boolean isSentAtAllLevel() {
+        return NotificationLevel.valueByLevel(config.getNotificationLevel()).getCode() == NotificationLevel.ALL.getCode();
+    }
+
+    public boolean isNeededIMNotification(int status) {
+        return (isSentAtAllLevel() || (isSentAtFailedLevel() && status == JobInfo.JobStatus.FAILED));
+    }
 
     public void callback(String token, String scheduleOwner, String entityType,
                          String entityId, String commitId, Integer timeout) {
@@ -116,18 +127,12 @@ public class SchedulerService {
             jobInfo.setStatus(status);
             jobService.updateByJobId(jobInfo);
             long duration = jobInfo.getFinishTime().getTime() - jobInfo.getCreateTime().getTime();
-            if (NotificationLevel.valueByLevel(
-                    config.getNotificationLevel()).getCode() == NotificationLevel.FAILED.getCode()
-                    && status == JobInfo.JobStatus.FAILED) {
-                // send IM when failed
-                notificationService.notification(jobInfo.getName(), duration, user, status);
-            } else if (NotificationLevel.valueByLevel(config.getNotificationLevel()).getCode() == NotificationLevel.ALL.getCode()) {
-                // send IM whenerver job is failed or successed
-                notificationService.notification(jobInfo.getName(), duration, user, status);
+            if (isNeededIMNotification(status)) {
+                // send IM when failed when the notification level is at failed
+                //or send IM whenever job is failed or successed if the notification level is set as all
+                notificationService.notification(getEntityName(entityType, Integer.parseInt(entityId)), jobInfo.getName(), duration, scheduleOwner, status);
             }
         }
-
-
     }
 
     public boolean isEnabled() {

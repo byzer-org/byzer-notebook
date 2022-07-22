@@ -21,14 +21,14 @@ import java.util.Calendar;
 @Slf4j
 public class NotificationService {
 
-    private final String NOTIFICATION_SQL = "select 1 as col1 as a;RUN a as FeishuMessageExt.`` where text=\"%s\" AND webhook = \"%s\" as A2;";
+    private static final String NOTIFICATION_SQL = "select 1 as col1 as a;RUN a as FeishuMessageExt.`` where text=\"%s\" AND webhook = \"%s\" as A2;";
 
     private static final NotebookConfig config = NotebookConfig.getInstance();
 
     @Autowired
     EngineService engineService;
 
-    public void notification(String scheduleName, long duration, String user, int status) {
+    public void notification(String notebookName, String scheduleName, long duration, String user, int status) {
         String webHook = config.getNitificationWebhook();
         String header = config.getNitificationMsgHeader();
 
@@ -55,14 +55,15 @@ public class NotificationService {
             String durString = String.format("%02d:%02d:%02d", hours, minutes, seconds);
 
             String time = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Calendar.getInstance().getTime());
-            String body = String.format("- Schedule Name: %s\n" +
+            String body = String.format("- Notebook Name: %s\n" +
+                    "- Schedule Name: %s\n" +
                     "- Schedule Time: %s\n" +
                     "- Duration: %s \n" +
                     "- Execute User: %s\n" +
-                    "- Status: %s", scheduleName, time, durString, user, jobStatusStr);
+                    "- Status: %s", notebookName, scheduleName, time, durString, user, jobStatusStr);
             String msg = header + "\n" + body;
             String sql = String.format(NOTIFICATION_SQL, msg, webHook);
-            String responseBody = engineService.runScript(new EngineService.RunScriptParams()
+            engineService.runScript(new EngineService.RunScriptParams()
                     .withSql(sql));
         } catch (Exception ex) {
             log.warn("[NotificationService] Exceptions occurred when sending IM notifications." + ex.getStackTrace());
