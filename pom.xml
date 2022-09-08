@@ -6,7 +6,7 @@
 
     <groupId>io.kyligence</groupId>
     <artifactId>notebook-console</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.3</version>
 
     <properties>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
