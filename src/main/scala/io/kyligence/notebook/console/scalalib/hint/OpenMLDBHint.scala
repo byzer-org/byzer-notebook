@@ -37,8 +37,7 @@ class OpenMLDBHint extends BaseHint {
        |'''
        |and db="${db}"
        |and action="ddl"
-       |as ${output}
-       |;
+       |as ${output};
        |""".stripMargin
   }
 }
