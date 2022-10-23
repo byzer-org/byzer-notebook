@@ -15,7 +15,7 @@ class VisualizationHint extends BaseHint {
     require(header.input.isDefined, "--%input is required")
 
     s"""
-       |!visualize ${header.input} '''
+       |!visualize ${header.input.get} '''
        |${header.body}
        |''';
        |""".stripMargin
