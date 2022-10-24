@@ -1,14 +1,14 @@
 package io.kyligence.notebook.console.scalalib.hint
 
-import collection.JavaConverters._
+import scala.collection.JavaConverters._
 
 object HintManager {
 
   private val noEffectHintList: List[BaseHint] =
-    List(new KylinHint, new PythonHint, new JDBCHint,new OpenMLDBHint)
+    List(new KylinHint, new PythonHint, new JDBCHint, new OpenMLDBHint, new VisualizationHint)
 
   private val effectHintList: List[BaseHint] =
-    List(new DeployScriptHint, new DeployModelHint,new DeployPythonModelHint)
+    List(new DeployScriptHint, new DeployModelHint, new DeployPythonModelHint)
 
   def applyAllHintRewrite(sql: String, options: java.util.Map[String, String]): String = {
     var tempSQL = applyNoEffectRewrite(sql, options)
