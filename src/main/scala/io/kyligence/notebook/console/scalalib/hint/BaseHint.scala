@@ -15,9 +15,11 @@ trait BaseHint {
       item.stripMargin.stripPrefix("--%").stripPrefix("#%")
     }
 
-    val body = query.split("\n").
-      filterNot(_.stripMargin.startsWith("--%")).
-      filterNot(_.stripMargin.startsWith("#%")).mkString("\n")
+    val body = query.split("\n").map { item =>
+      if (item.stripMargin.startsWith("--%") || item.stripMargin.startsWith("#%")) {
+        ""
+      } else item
+    }.mkString("\n")
 
 
     var t: String = "mlsql"

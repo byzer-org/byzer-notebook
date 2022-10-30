@@ -55,7 +55,7 @@ public class EngineExceptionUtils {
 
             if (line.trim().startsWith("File")) {
                 start = true;
-                result.add(pythonLinenoAlign(line.trim(), codeOffset));
+                result.add(line.trim());
 
             } else if (start) {
                 result.add(line);

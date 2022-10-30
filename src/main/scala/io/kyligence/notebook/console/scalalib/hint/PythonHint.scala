@@ -28,10 +28,10 @@ class PythonHint extends BaseHint {
 
     val confTableOpt = header.params.get("confTable").map(item => s""" confTable="${item}" and """).getOrElse("")
     val model = header.params.get("model").map(item => s""" model="${item}" and """).getOrElse("")
-    val schema = header.params.get("schema").map(item => s""" !python conf "schema=${item}"; """).getOrElse("")
-    val env = header.params.get("env").map(item => s""" !python env "PYTHON_ENV=${item}"; """).getOrElse("")
-    val dataMode = header.params.get("dataMode").map(item => s""" !python conf "dataMode=${item}"; """).getOrElse("")
-    val runIn = header.params.get("runIn").map(item => s""" !python conf "runIn=${item}"; """).getOrElse("")
+    val schema = header.params.get("schema").map(item => s""" !python conf '''schema=${item}'''; """).getOrElse("")
+    val env = header.params.get("env").map(item => s""" !python env '''PYTHON_ENV=${item}'''; """).getOrElse("")
+    val dataMode = header.params.get("dataMode").map(item => s""" !python conf '''dataMode=${item}'''; """).getOrElse("")
+    val runIn = header.params.get("runIn").map(item => s""" !python conf '''runIn=${item}'''; """).getOrElse("")
 
     s"""
        |${schema}
@@ -43,9 +43,7 @@ class PythonHint extends BaseHint {
        |outputTable="${output}_0" and
        |${confTableOpt}
        |${model}
-       |code='''
-       |${header.body}
-       |''';
+       |code='''${header.body}''';
        |${cacheStr}
        |""".stripMargin
 
