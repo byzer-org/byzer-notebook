@@ -79,7 +79,7 @@ public class JobService {
             jobLog.setValue(
                     jobLog.getValue().stream().filter(
                             s -> s.contains(String.format("[owner] [%s] [groupId]", user))
-                    ).map(s -> {
+                    ).filter(s-> !s.contains("run command as ShowCommand.`jobs/v2")).map(s -> {
                         String[] arr = s.split("__MMMMMM__", 2);
                         if (arr.length == 2) {
                             return arr[1];
