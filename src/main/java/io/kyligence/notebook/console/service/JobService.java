@@ -78,9 +78,15 @@ public class JobService {
         if (jobLog.getValue() != null) {
             jobLog.setValue(
                     jobLog.getValue().stream().filter(
-                            s -> s.contains(String.format("[owner] [%s] [groupId] [%s]", user, groupId))
-                                    || s.contains(String.format("DriverLogServer: [owner] [%s]", user))
-                    ).collect(Collectors.toList())
+                            s -> s.contains(String.format("[owner] [%s] [groupId]", user))
+                    ).filter(s-> !s.contains("run command as ShowCommand.`jobs/v2")).map(s -> {
+                        String[] arr = s.split("__MMMMMM__", 2);
+                        if (arr.length == 2) {
+                            return arr[1];
+                        } else {
+                            return s;
+                        }
+                    }).collect(Collectors.toList())
             );
         } else {
             jobLog.setValue(Lists.newArrayList());
@@ -246,7 +252,7 @@ public class JobService {
         return Objects.nonNull(status) && (status == JobInfo.JobStatus.RUNNING || status >= JobInfo.JobStatus.RETRYING);
     }
 
-    public boolean needRetry(Integer status){
+    public boolean needRetry(Integer status) {
         return config.getExecutionEngineCallbackRetries() > 0 && Objects.nonNull(status)
                 && (status == JobInfo.JobStatus.RUNNING || status > JobInfo.JobStatus.RETRYING);
     }
