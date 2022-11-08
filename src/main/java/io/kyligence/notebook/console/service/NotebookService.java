@@ -17,6 +17,7 @@ import io.kyligence.notebook.console.scalalib.hint.HintManager;
 import io.kyligence.notebook.console.support.CriteriaQueryBuilder;
 import io.kyligence.notebook.console.util.EntityUtils;
 import io.kyligence.notebook.console.util.JacksonUtils;
+import io.kyligence.notebook.console.util.WebUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -125,7 +126,7 @@ public class NotebookService implements FileInterface {
         return notebookCommit;
     }
 
-    public List<NotebookCommit> listCommits(String user, Integer notebookId){
+    public List<NotebookCommit> listCommits(String user, Integer notebookId) {
         NotebookInfo notebookInfo = this.findById(notebookId);
         checkExecFileAvailable(user, notebookInfo, null);
         return notebookCommitRepository.listCommit(notebookId);
@@ -140,7 +141,7 @@ public class NotebookService implements FileInterface {
         return defaultNotebooks.isEmpty() ? null : defaultNotebooks.get(0);
     }
 
-    public NotebookCommit getDefaultDemo(){
+    public NotebookCommit getDefaultDemo() {
         List<SharedFileInfo> demos = sharedFileRepository.findByOwner("admin").stream().filter(
                 sharedFileInfo -> sharedFileInfo.getEntityType().equalsIgnoreCase("notebook")
         ).collect(Collectors.toList());
@@ -353,9 +354,11 @@ public class NotebookService implements FileInterface {
     public List<CodeSuggestDTO> getCodeSuggestion(CodeSuggestionReq params) {
         String result;
         try {
+            String user = WebUtils.getCurrentLoginUser();
             result = engineService.runAutoSuggest(
                     new EngineService.RunScriptParams()
                             .withSql(params.getSql())
+                            .withOwner(user)
                             .with("lineNum", params.getLineNum().toString())
                             .with("columnNum", params.getColumnNum().toString())
                             .with("isDebug", params.getIsDebug().toString())
