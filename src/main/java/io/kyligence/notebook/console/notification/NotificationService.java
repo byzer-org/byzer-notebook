@@ -28,9 +28,18 @@ public class NotificationService {
     @Autowired
     EngineService engineService;
 
-    public void notification(String notebookName, String scheduleName, long duration, String user, int status) {
+    public void notification(String notebookName, JobInfo jobInfo, long duration, String user) {
         String webHook = config.getNitificationWebhook();
         String header = config.getNitificationMsgHeader();
+
+        boolean notificationMessageEnabled = false;
+        try {
+            notificationMessageEnabled = Boolean.parseBoolean(config.notificationMessageEnabled());
+        }
+        catch(Exception e){
+            log.warn("Invalid value - {} of notebook.scheduler.notification.message.enabled, should be true or false",
+                    config.notificationMessageEnabled());
+        }
 
         if (StringUtil.isEmpty(webHook)) {
             log.warn("[NotificationService] The webhook info is not set. Skip sending IM notifications !");
@@ -40,10 +49,10 @@ public class NotificationService {
         try {
 
             String jobStatusStr = "finished";
-            if (status == JobInfo.JobStatus.FAILED) {
+            if (jobInfo.getStatus() == JobInfo.JobStatus.FAILED) {
                 jobStatusStr = "failed";
-            } else if (status == JobInfo.JobStatus.SUCCESS) {
-                jobStatusStr = "successed";
+            } else if (jobInfo.getStatus() == JobInfo.JobStatus.SUCCESS) {
+                jobStatusStr = "succeed";
             }
 
             long totalSecs = duration / 1000;
@@ -60,13 +69,18 @@ public class NotificationService {
                     "- Schedule Time: %s\n" +
                     "- Duration: %s \n" +
                     "- Execute User: %s\n" +
-                    "- Status: %s", notebookName, scheduleName, time, durString, user, jobStatusStr);
+                    "- Status: %s",
+                    notebookName, jobInfo.getName(), time, durString, user, jobStatusStr);
+            if( notificationMessageEnabled ) {
+                body = String.format(body + System.lineSeparator() + "- Message: %s", jobInfo.getMsg());
+            }
+
             String msg = header + "\n" + body;
             String sql = String.format(NOTIFICATION_SQL, msg, webHook);
             engineService.runScript(new EngineService.RunScriptParams()
                     .withSql(sql));
         } catch (Exception ex) {
-            log.warn("[NotificationService] Exceptions occurred when sending IM notifications." + ex.getStackTrace());
+            log.warn("[NotificationService] Exceptions occurred when sending IM notifications." + ex.getMessage());
             throw new ByzerException(ErrorCodeEnum.SENDING_IM_ERROR);
         }
     }

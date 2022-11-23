@@ -96,6 +96,17 @@ public class SchedulerService {
         String scripts = getScript(entityType, entityId, commitId, runScriptParams.getAll());
         String rewrittenScripts = LoadRestRewriter.appendConf(scripts);
         runScriptParams.withSql(rewrittenScripts);
+        String entityName = null;
+        int messageLength = NotebookConfig.NOTIFICATION_MESSAGE_DEFAULT_LENGTH;
+        try {
+            entityName = getEntityName(entityType, Integer.parseInt(entityId));
+            messageLength = Integer.parseInt(config.getNotificationMessageLength());
+        }
+        catch(Exception ex) {
+            // Ignore the exception.  entityName being null does not affect scheduling function; it leaves null value in
+            // name colum of jobInfo table
+            log.warn("Failed to get entityName: entityId: {} entityType: {} commitId: {}", entityId, entityType, commitId);
+        }
 
         JobInfo jobInfo = new JobInfo();
         jobInfo.setJobId(UUID.randomUUID().toString());
@@ -104,13 +115,14 @@ public class SchedulerService {
         jobInfo.setCreateTime(new Timestamp(System.currentTimeMillis()));
         jobInfo.setName(MessageFormat.format("ByzerScheduleTask-{0}-{1}_{2}", scheduleOwner, entityType, entityId));
         jobInfo.setUser(user);
-        jobInfo.setNotebook(getEntityName(entityType, Integer.parseInt(entityId)));
+        jobInfo.setNotebook(entityName);
 
         String engine = engineService.getExecutionEngine();
         jobInfo.setEngine(engine);
 
         jobService.insert(jobInfo);
         int status = JobInfo.JobStatus.SUCCESS;
+        String msg = "succeed";
         // 发送查询
         try {
             engineService.runScript(runScriptParams, engine);
@@ -119,18 +131,21 @@ public class SchedulerService {
         } catch (Exception ex) {
             // update job status to FAILED if exception happened
             status = JobInfo.JobStatus.FAILED;
+            String message = ex.getMessage();
+            msg = message.substring(0, Math.min( message.length(), messageLength));
             log.error("Scheduler callback for {} execute Entity[{}, {}, {}] failed!",
                     scheduleOwner, entityType, entityId, commitId);
             throw ex;
         } finally {
             jobInfo.setFinishTime(new Timestamp(System.currentTimeMillis()));
             jobInfo.setStatus(status);
+            jobInfo.setMsg(msg);
             jobService.updateByJobId(jobInfo);
             long duration = jobInfo.getFinishTime().getTime() - jobInfo.getCreateTime().getTime();
             if (isNeededIMNotification(status)) {
                 // send IM when failed when the notification level is at failed
-                //or send IM whenever job is failed or successed if the notification level is set as all
-                notificationService.notification(getEntityName(entityType, Integer.parseInt(entityId)), jobInfo.getName(), duration, scheduleOwner, status);
+                //or send IM whenever job is failed or succeed if the notification level is set as all
+                notificationService.notification( entityName , jobInfo, duration, scheduleOwner);
             }
         }
     }
