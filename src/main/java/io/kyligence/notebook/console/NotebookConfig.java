@@ -18,6 +18,7 @@ import java.util.Properties;
 
 @Slf4j
 public class NotebookConfig {
+    public static final int NOTIFICATION_MESSAGE_DEFAULT_LENGTH = 256;
 
     public final static NotebookConfig INSTANCE = new NotebookConfig();
 
@@ -314,4 +315,11 @@ public class NotebookConfig {
         return getOptional("notebook.redis.database", "0");
     }
 
+    public String getNotificationMessageLength() {
+        return getOptional("notebook.scheduler.notification.message.length", String.valueOf(NOTIFICATION_MESSAGE_DEFAULT_LENGTH));
+    }
+
+    public String notificationMessageEnabled() {
+        return getOptional("notebook.scheduler.notification.message.enabled", "false");
+    }
 }
