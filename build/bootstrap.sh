@@ -139,7 +139,9 @@ function start(){
     fi
     
     echo "${START_TIME} Start Byzer Notebook..."
-    nohup java -DNOTEBOOK_HOME=${NOTEBOOK_HOME} -Dspring.config.name=application,notebook -Dspring.config.location=classpath:/,file:${NOTEBOOK_HOME}/conf/ -jar ${NOTEBOOK_HOME}/lib/notebook-console.jar >> ${NOTEBOOK_HOME}/logs/notebook.out 2>&1 & echo $! >> ${NOTEBOOK_HOME}/pid &
+
+    export NOTEBOOK_MEMORY=${NOTEBOOK_MEMORY:-"1024m"}
+    nohup java -Xmx${NOTEBOOK_MEMORY} -DNOTEBOOK_HOME=${NOTEBOOK_HOME} -Dspring.config.name=application,notebook -Dspring.config.location=classpath:/,file:${NOTEBOOK_HOME}/conf/ -jar ${NOTEBOOK_HOME}/lib/notebook-console.jar >> ${NOTEBOOK_HOME}/logs/notebook.out 2>&1 & echo $! >> ${NOTEBOOK_HOME}/pid &
 
     sleep 3
     clearRedundantProcess

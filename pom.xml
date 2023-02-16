@@ -41,8 +41,8 @@
         <commons-io.version>2.7</commons-io.version>
         <commons-compress.version>1.21</commons-compress.version>
 
-        <scala.version>2.11.8</scala.version>
-        <scala.binary.version>2.11</scala.binary.version>
+        <scala.version>2.12.12</scala.version>
+        <scala.binary.version>2.12</scala.binary.version>
         <mockito.version>3.8.0</mockito.version>
         <scalatest.version>3.0.8</scalatest.version>
         <liquibase.version>4.8.0</liquibase.version>
