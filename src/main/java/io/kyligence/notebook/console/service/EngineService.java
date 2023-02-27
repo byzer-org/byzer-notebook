@@ -48,6 +48,7 @@ public class EngineService {
         String RUN_SCRIPT = "/run/script";
         String RUN_ANALYZE = "/run/script?executeMode=analyze";
         String RUN_SUGGEST = "/run/script?executeMode=autoSuggest";
+        String EXPAND_INCLUDE = "/run/script?executeMode=expandInclude";
     }
 
     @Autowired
@@ -144,6 +145,15 @@ public class EngineService {
     public String runAutoSuggest(RunScriptParams params) {
         Pair<String, RunScriptParams> rewritten = rewriteWithUserConfig(params);
         String url = rewritten.getFirst() + EngineAPI.RUN_SUGGEST;
+        return execute(rewritten.getSecond(), url, () -> {
+            String newSql = HintManager.applyNoEffectRewrite(params.params.get("sql"), params.params);
+            params.withSql(newSql);
+        });
+    }
+
+    public String expandInclude(RunScriptParams params) {
+        Pair<String, RunScriptParams> rewritten = rewriteWithUserConfig(params);
+        String url = rewritten.getFirst() + EngineAPI.EXPAND_INCLUDE;
         return execute(rewritten.getSecond(), url, () -> {
             String newSql = HintManager.applyNoEffectRewrite(params.params.get("sql"), params.params);
             params.withSql(newSql);
