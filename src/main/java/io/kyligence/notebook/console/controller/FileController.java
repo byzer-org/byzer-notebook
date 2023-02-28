@@ -53,6 +53,9 @@ public class FileController {
     @Autowired
     private FolderService folderService;
 
+    @Autowired
+    private EngineService engineService;
+
     private FileInterface execFileService;
 
     @ApiOperation("Create file")
@@ -247,6 +250,7 @@ public class FileController {
     public void exportNotebook(@PathVariable("id") Integer execFileId, @RequestParam("type") String type,
                                @RequestParam(value = "commit_id", required = false) String commitId,
                                @RequestParam(value = "output", required = false, defaultValue = "json") String outputType,
+                               @RequestParam(value = "expand_include", required = false, defaultValue = "false") String expandInclude,
                                HttpServletResponse response) {
         String user = WebUtils.getCurrentLoginUser();
 
@@ -270,6 +274,18 @@ public class FileController {
         }
         assert content != null;
 
+        if (expandInclude.equalsIgnoreCase("true")) {
+            String resp = engineService.expandInclude(
+                    new EngineService.RunScriptParams()
+                            .withSql(content)
+                            .withOwner(user)
+                            .withAsync("false")
+            );
+            ExpandIncludeDTO expandIncludeDTO = JacksonUtils.readJson(resp, ExpandIncludeDTO.class);
+            if (Optional.ofNullable(expandIncludeDTO.getSuccess()).orElse(false)) {
+                content = expandIncludeDTO.getSql();
+            }
+        }
         response.getWriter().write(content);
         response.getWriter().flush();
         response.getWriter().close();
