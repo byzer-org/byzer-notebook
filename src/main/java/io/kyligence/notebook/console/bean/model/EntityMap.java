@@ -1,8 +1,11 @@
 package io.kyligence.notebook.console.bean.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.kyligence.notebook.console.bean.dto.UserParamsDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 
 @Data
@@ -25,4 +28,7 @@ public class EntityMap {
 
     @JsonProperty("description")
     private String description;
+
+    @JsonProperty("user_params")
+    private List<UserParamsDTO> userParams;
 }

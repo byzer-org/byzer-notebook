@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import io.kyligence.notebook.console.bean.dto.TaskInfoDTO;
 import io.kyligence.notebook.console.bean.dto.TaskInstanceDTO;
 import io.kyligence.notebook.console.bean.dto.TaskNodeInfoDTO;
+import io.kyligence.notebook.console.bean.dto.UserParamsDTO;
 import io.kyligence.notebook.console.bean.model.ScheduleSetting;
 import io.kyligence.notebook.console.exception.ByzerException;
 import io.kyligence.notebook.console.scheduler.RemoteScheduler;
@@ -91,14 +92,15 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
     @Override
     public void createTask(String user, String name, String description, String entityType, Integer entityId,
                            String commitId, String taskName, String taskDesc, String entityName,
-                           Integer taskTimeout, ScheduleSetting scheduleSetting, Map<String, String> extraSettings) {
+                           Integer taskTimeout, ScheduleSetting scheduleSetting, Map<String, String> extraSettings,
+                           List<UserParamsDTO> userParams) {
         String project = Objects.isNull(extraSettings) ? null : extraSettings.get("project_name");
         project = Objects.isNull(project) ? defaultProject : project;
         ensureProject(project);
         taskTimeout = Objects.isNull(taskTimeout) || taskTimeout > TASK_TIMEOUT_LIMIT ? TASK_TIMEOUT_LIMIT : taskTimeout;
         Integer taskId = createProcess(
                 project, user, name, description, entityName, entityType, entityId, commitId,
-                taskName, taskDesc, taskTimeout, extraSettings);
+                taskName, taskDesc, taskTimeout, extraSettings, userParams);
         onlineProcess(project, taskId);
         if (!ScheduleSetting.isNull(scheduleSetting)) {
             createSchedule(project, taskId, scheduleSetting, extraSettings);
@@ -516,7 +518,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
     private Integer createProcess(String projectName, String user, String name,
                                   String description, String entityName, String entityType,
                                   Integer entityId, String commitId, String taskName, String taskDesc,
-                                  Integer taskTimeout, Map<String, String> extraSettings) {
+                                  Integer taskTimeout, Map<String, String> extraSettings, List<UserParamsDTO> userParams) {
         ProcessInfo exist = searchProcessByEntity(projectName, user, entityType, entityId);
         if (Objects.nonNull(exist)) {
             throw new ByzerException(
@@ -547,7 +549,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
                 taskName, taskDesc, taskTimeout,
                 user, callbackToken, callbackUrl,
                 timeouts.getMaxRetryTimes(), timeouts.getRetryInterval(),
-                timeouts.getTimeout(), defaultTenantId
+                timeouts.getTimeout(), defaultTenantId, userParams
         );
 
         String uri = APIMapping.createProcess
@@ -591,7 +593,7 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
                             modification.getEntityId(), modification.getCommitId(), user, callbackToken, callbackUrl,
                             timeouts.getMaxRetryTimes(), timeouts.getRetryInterval(),
                             modification.getAttachTo(), modification.getTaskName(),
-                            modification.getTaskDesc(), taskTimeout
+                            modification.getTaskDesc(), taskTimeout, modification.getUserParams()
                     );
                     break;
                 default:
@@ -798,8 +800,8 @@ public class DolphinScheduler extends RemoteScheduler implements RemoteScheduler
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
 
         body.add("processDefinitionId", processId.toString());
-        body.add("failureStrategy", "END");
-        body.add("warningType", "NONE");
+        body.add("failureStrategy", config.getDefaultFailureStrategy());
+        body.add("warningType", config.getDefaultWarningType());
         body.add("warningGroupId", config.getDefaultWarningGroupId().toString());
         body.add("taskDependType", "TASK_POST");
         body.add("runMode", "RUN_MODE_SERIAL");

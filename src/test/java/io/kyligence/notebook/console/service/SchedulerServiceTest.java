@@ -14,13 +14,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 public class SchedulerServiceTest extends NotebookLauncherBaseTest {
 
@@ -72,7 +72,7 @@ public class SchedulerServiceTest extends NotebookLauncherBaseTest {
         thrown.expectMessage("SchedulerService not enabled");
         schedulerService.createSchedule(1, "task-not-exist", null, mockUser,
                 "notebook", 10, null, null, null,
-                null, null, null);
+                null, null, null, null);
     }
 
     @Test
@@ -249,10 +249,10 @@ public class SchedulerServiceTest extends NotebookLauncherBaseTest {
     @Test
     public void testCallback() {
         schedulerService.callback(config.getScheduleCallbackToken(),
-                "admin", "notebook", defaultMockNotebookId, null, null);
+                "admin", "notebook", defaultMockNotebookId, null, null,null);
 
         schedulerService.callback(config.getScheduleCallbackToken(),
-                "admin", "notebook", defaultMockNotebookId, null, 180);
+                "admin", "notebook", defaultMockNotebookId, null, 180, null);
 
         List<JobInfo> jobs = jobService.getJobList(null, null, null, null,
                 String.valueOf(JobInfo.JobStatus.SUCCESS), config.getScheduleCallbackUser(), null).getSecond();
