@@ -2,12 +2,15 @@ package io.kyligence.notebook.console.scheduler.dolphin.dto;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import io.kyligence.notebook.console.bean.dto.UserParamsDTO;
 import io.kyligence.notebook.console.bean.model.EntityMap;
 import io.kyligence.notebook.console.exception.ByzerException;
+import io.kyligence.notebook.console.scheduler.dolphin.DolphinSystemScheduleTimeEnum;
 import io.kyligence.notebook.console.util.JacksonUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.compress.utils.Lists;
+import org.springframework.util.CollectionUtils;
 
 import java.text.MessageFormat;
 import java.util.*;
@@ -62,7 +65,7 @@ public class ProcessInfo {
                                                 String taskName, String taskDesc,
                                                 String owner, String token, String callbackUrl,
                                                 Integer maxRetryTimes, Integer retryInterval,
-                                                Integer timeout, Integer tenantId, Integer taskTimeout) {
+                                                Integer timeout, Integer tenantId, Integer taskTimeout, List<UserParamsDTO> userParams) {
             ProcessDefinition processDefinition = new ProcessDefinition();
             processDefinition.setTimeout(timeout);
             processDefinition.setTenantId(tenantId);
@@ -70,7 +73,7 @@ public class ProcessInfo {
             List<Task> tasks = Lists.newArrayList();
             tasks.add(Task.valueOf(
                     entityName, entityType, entityId, commitId, taskName, taskDesc,
-                    owner, token, callbackUrl, maxRetryTimes, retryInterval, taskTimeout
+                    owner, token, callbackUrl, maxRetryTimes, retryInterval, taskTimeout, userParams
             ));
             processDefinition.setTasks(tasks);
             return processDefinition;
@@ -138,7 +141,7 @@ public class ProcessInfo {
         public void update(String entityName, String entityType, Integer entityId, String commitId,
                            String taskName, String taskDesc,
                            String owner, String token, String callbackUrl,
-                           Integer maxRetryTimes, Integer retryInterval, Integer taskTimeout) {
+                           Integer maxRetryTimes, Integer retryInterval, Integer taskTimeout, List<UserParamsDTO> userParams) {
             this.setName(genUserDefinedTaskName(taskName, entityType, entityName));
             this.setDescription(Objects.nonNull(taskDesc) ? taskDesc :
                     MessageFormat.format(
@@ -148,7 +151,7 @@ public class ProcessInfo {
                             entityId,
                             entityName)
             );
-            this.setParams(Params.valueOf(entityType, entityId, commitId, owner, token, callbackUrl, taskTimeout));
+            this.setParams(Params.valueOf(entityType, entityId, commitId, owner, token, callbackUrl, taskTimeout, userParams));
             this.setMaxRetryTimes(Objects.nonNull(maxRetryTimes) ? maxRetryTimes : 3);
             this.setRetryInterval(Objects.nonNull(retryInterval) ? retryInterval.toString() : "1");
 
@@ -158,7 +161,7 @@ public class ProcessInfo {
                                    String entityType, Integer entityId, String commitId,
                                    String taskName, String taskDesc,
                                    String owner, String token, String callbackUrl,
-                                   Integer maxRetryTimes, Integer retryInterval, Integer taskTimeout) {
+                                   Integer maxRetryTimes, Integer retryInterval, Integer taskTimeout, List<UserParamsDTO> userParams) {
             Task task = new Task();
             task.setName(genUserDefinedTaskName(taskName, entityType, entityName));
             task.setId(genTaskId(entityType, entityId));
@@ -179,7 +182,7 @@ public class ProcessInfo {
             task.setRetryInterval(Objects.nonNull(retryInterval) ? retryInterval.toString() : "1");
             task.setWorkerGroup("default");
             task.setPreTasks(Lists.newArrayList());
-            task.setParams(Params.valueOf(entityType, entityId, commitId, owner, token, callbackUrl, taskTimeout));
+            task.setParams(Params.valueOf(entityType, entityId, commitId, owner, token, callbackUrl, taskTimeout, userParams));
             return task;
 
         }
@@ -189,7 +192,8 @@ public class ProcessInfo {
     @NoArgsConstructor
     public static class Params {
 
-        private List<String> localParams;
+        private List<Map<String, String>> localParams;
+        private List<UserParamsDTO> userParams;
         private List<HttpParam> httpParams;
         private String url;
         private String httpMethod;
@@ -199,10 +203,10 @@ public class ProcessInfo {
         private int socketTimeout;
 
         public static Params valueOf(String entityType, Integer entityId, String commitId,
-                                     String owner, String token, String callbackUrl, Integer taskTimeout) {
+                                     String owner, String token, String callbackUrl, Integer taskTimeout, List<UserParamsDTO> userParams) {
             Params params = new Params();
 
-            params.setLocalParams(Lists.newArrayList());
+            params.setLocalParams(Arrays.stream(DolphinSystemScheduleTimeEnum.values()).map(DolphinSystemScheduleTimeEnum::getProp).collect(Collectors.toList()));
 
             params.setUrl(callbackUrl);
             params.setHttpMethod("POST");
@@ -218,6 +222,12 @@ public class ProcessInfo {
             paramList.add(HttpParam.valueOf("token", token));
             paramList.add(HttpParam.valueOf("commit_id", commitId));
             paramList.add(HttpParam.valueOf("timeout", taskTimeout.toString()));
+            if (!CollectionUtils.isEmpty(userParams)) {
+                params.setUserParams(userParams);
+                userParams.forEach((dto) -> paramList.add(HttpParam.valueOf(dto.getProp(), dto.getValue())));
+            } else {
+                params.setUserParams(Lists.newArrayList());
+            }
             params.setHttpParams(paramList);
             return params;
 
@@ -429,7 +439,7 @@ public class ProcessInfo {
                                       String taskName, String taskDesc,
                                       String owner, String token, String callbackUrl,
                                       Integer maxRetryTimes, Integer retryInterval,
-                                      Integer timeout, Integer tenantId, Integer taskTimeout) {
+                                      Integer timeout, Integer tenantId, Integer taskTimeout, List<UserParamsDTO> userParams) {
         ProcessInfo processInfo = new ProcessInfo();
         processInfo.setName(processName);
         processInfo.setDescription(description);
@@ -438,7 +448,7 @@ public class ProcessInfo {
                 commitId, taskName, taskDesc,
                 owner, token,
                 callbackUrl, maxRetryTimes, retryInterval,
-                timeout, tenantId, taskTimeout
+                timeout, tenantId, taskTimeout, userParams
         ));
         processInfo.setConnections(Lists.newArrayList());
         Map<String, Location> locationMap = Maps.newHashMap();
@@ -451,7 +461,7 @@ public class ProcessInfo {
     public void modify(String entityName, String entityType, Integer entityId, String commitId,
                        String taskName, String taskDesc, String owner,
                        String token, String callbackUrl, Integer maxRetryTimes, Integer retryInterval,
-                       Integer taskTimeout, List<EntityMap> attachTo) {
+                       Integer taskTimeout, List<EntityMap> attachTo, List<UserParamsDTO> userParams) {
 
         if (Objects.isNull(connections)) connections = Lists.newArrayList();
         if (Objects.isNull(locationMap)) locationMap = Maps.newHashMap();
@@ -469,7 +479,7 @@ public class ProcessInfo {
                 throw new ByzerException("Node name:[" + taskName + "] already exist");
             }
             task = Task.valueOf(entityName, entityType, entityId, commitId, taskName, taskDesc,
-                    owner, token, callbackUrl, maxRetryTimes, retryInterval, taskTimeout);
+                    owner, token, callbackUrl, maxRetryTimes, retryInterval, taskTimeout, userParams);
             tasks.add(task);
             processDefinition.setTasks(tasks);
         } else {
@@ -480,7 +490,7 @@ public class ProcessInfo {
             }
             String prevName = task.getName();
             task.update(entityName, entityType, entityId, commitId, taskName, taskDesc,
-                    owner, token, callbackUrl, maxRetryTimes, retryInterval, taskTimeout);
+                    owner, token, callbackUrl, maxRetryTimes, retryInterval, taskTimeout, userParams);
             if (!prevName.equals(task.getName())) {
                 tasks.forEach(t -> {
                     if (t.getPreTasks().contains(prevName)) {
@@ -533,6 +543,7 @@ public class ProcessInfo {
         r.setEntityName(Task.fetchEntityName(task));
         r.setDescription(task.getDescription());
         r.setName(Task.fetchUserDefinedName(task));
+        r.setUserParams(task.getParams().getUserParams());
         return r;
     }
 

@@ -1,6 +1,7 @@
 package io.kyligence.notebook.console.scheduler.dolphin.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.kyligence.notebook.console.bean.dto.UserParamsDTO;
 import io.kyligence.notebook.console.bean.model.EntityMap;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -42,4 +43,7 @@ public class EntityModification {
 
     @JsonProperty("task_timeout")
     private Integer taskTimeout;
+
+    @JsonProperty("user_params")
+    private List<UserParamsDTO> userParams;
 }

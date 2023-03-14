@@ -1,6 +1,7 @@
 package io.kyligence.notebook.console.bean.dto.req;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.kyligence.notebook.console.bean.dto.UserParamsDTO;
 import io.kyligence.notebook.console.bean.model.ScheduleSetting;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.NoArgsConstructor;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -49,4 +51,6 @@ public class CreateScheduleReq {
     @JsonProperty("task_timeout")
     private Integer taskTimeout;
 
+    @JsonProperty("user_params")
+    private List<UserParamsDTO> userParams;
 }

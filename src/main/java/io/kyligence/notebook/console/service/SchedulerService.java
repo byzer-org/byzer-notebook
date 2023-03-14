@@ -1,10 +1,7 @@
 package io.kyligence.notebook.console.service;
 
 import io.kyligence.notebook.console.NotebookConfig;
-import io.kyligence.notebook.console.bean.dto.IdNameDTO;
-import io.kyligence.notebook.console.bean.dto.TaskInfoDTO;
-import io.kyligence.notebook.console.bean.dto.TaskInstanceDTO;
-import io.kyligence.notebook.console.bean.dto.TaskNodeInfoDTO;
+import io.kyligence.notebook.console.bean.dto.*;
 import io.kyligence.notebook.console.bean.entity.JobInfo;
 import io.kyligence.notebook.console.bean.entity.NotificationLevel;
 import io.kyligence.notebook.console.bean.model.ScheduleSetting;
@@ -19,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 import java.sql.Timestamp;
@@ -55,6 +53,8 @@ public class SchedulerService {
 
     private final Map<Integer, RemoteSchedulerInterface> schedulerMap = new LinkedHashMap<>();
 
+    private static final String USER_PARAMS_PREFIX = "scheduler_";
+
     @PostConstruct
     public void initSchedulers() {
         if (!enabled) return;
@@ -79,7 +79,7 @@ public class SchedulerService {
     }
 
     public void callback(String token, String scheduleOwner, String entityType,
-                         String entityId, String commitId, Integer timeout) {
+                         String entityId, String commitId, Integer timeout, Map<String, Object> userParams) {
         if (!config.getScheduleCallbackToken().equals(token)) {
             throw new ByzerException("Scheduler callback token auth failed!");
         }
@@ -93,7 +93,15 @@ public class SchedulerService {
                 .with("timeout", String.valueOf(timeout * 1000))
                 .with("sessionPerRequest", "true");
 
-        String scripts = getScript(entityType, entityId, commitId, runScriptParams.getAll());
+        String scripts = "";
+        // 生成临时变量脚本
+        if (!CollectionUtils.isEmpty(userParams)) {
+            scripts += userParams.entrySet().stream().filter(entry -> entry.getKey().startsWith(USER_PARAMS_PREFIX))
+                    .map((entry) -> String.format("set %s = '%s' where scope='session';", entry.getKey(),
+                    entry.getValue().toString())).collect(Collectors.joining(System.lineSeparator()));
+        }
+
+        scripts += getScript(entityType, entityId, commitId, runScriptParams.getAll());
         String rewrittenScripts = LoadRestRewriter.appendConf(scripts);
         runScriptParams.withSql(rewrittenScripts);
         String entityName = null;
@@ -101,8 +109,7 @@ public class SchedulerService {
         try {
             entityName = getEntityName(entityType, Integer.parseInt(entityId));
             messageLength = Integer.parseInt(config.getNotificationMessageLength());
-        }
-        catch(Exception ex) {
+        } catch (Exception ex) {
             // Ignore the exception.  entityName being null does not affect scheduling function; it leaves null value in
             // name colum of jobInfo table
             log.warn("Failed to get entityName: entityId: {} entityType: {} commitId: {}", entityId, entityType, commitId);
@@ -132,7 +139,7 @@ public class SchedulerService {
             // update job status to FAILED if exception happened
             status = JobInfo.JobStatus.FAILED;
             String message = ex.getMessage();
-            msg = message.substring(0, Math.min( message.length(), messageLength));
+            msg = message.substring(0, Math.min(message.length(), messageLength));
             log.error("Scheduler callback for {} execute Entity[{}, {}, {}] failed!",
                     scheduleOwner, entityType, entityId, commitId);
             throw ex;
@@ -145,7 +152,7 @@ public class SchedulerService {
             if (isNeededIMNotification(status)) {
                 // send IM when failed when the notification level is at failed
                 //or send IM whenever job is failed or succeed if the notification level is set as all
-                notificationService.notification( entityName , jobInfo, duration, scheduleOwner);
+                notificationService.notification(entityName, jobInfo, duration, scheduleOwner);
             }
         }
     }
@@ -164,13 +171,13 @@ public class SchedulerService {
     public void createSchedule(Integer schedulerId, String name, String desc, String user, String entityType,
                                Integer entityId, String commitId, String taskName, String taskDesc,
                                Integer taskTimeout, ScheduleSetting scheduleSetting,
-                               Map<String, String> extraSettings) {
+                               Map<String, String> extraSettings, List<UserParamsDTO> userParams) {
         if (!enabled) throw new ByzerException("SchedulerService not enabled");
         RemoteSchedulerInterface scheduler = schedulerMap.get(Objects.isNull(schedulerId) ? 1 : schedulerId);
         commitId = Objects.isNull(commitId) ? autoCommit(user, entityType, entityId) : commitId;
         scheduler.createTask(
                 user, name, desc, entityType, entityId, commitId, taskName, taskDesc,
-                getEntityName(entityType, entityId), taskTimeout, scheduleSetting, extraSettings
+                getEntityName(entityType, entityId), taskTimeout, scheduleSetting, extraSettings, userParams
         );
     }
 

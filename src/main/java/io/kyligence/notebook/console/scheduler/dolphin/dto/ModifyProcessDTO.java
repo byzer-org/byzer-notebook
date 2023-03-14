@@ -1,5 +1,6 @@
 package io.kyligence.notebook.console.scheduler.dolphin.dto;
 
+import io.kyligence.notebook.console.bean.dto.UserParamsDTO;
 import io.kyligence.notebook.console.bean.model.EntityMap;
 import io.kyligence.notebook.console.util.JacksonUtils;
 import lombok.Data;
@@ -25,12 +26,12 @@ public class ModifyProcessDTO {
                                           String taskName, String taskDesc, Integer taskTimeout,
                                           String owner, String token, String callbackUrl,
                                           Integer maxRetryTimes, Integer retryInterval,
-                                          Integer timeout, Integer tenantId) {
+                                          Integer timeout, Integer tenantId, List<UserParamsDTO> userParams) {
         ProcessInfo processInfo = ProcessInfo.valueOf(
                 processName, description, entityName, entityType,
                 entityId, commitId, taskName, taskDesc,
                 owner, token, callbackUrl, maxRetryTimes, retryInterval,
-                timeout, tenantId, taskTimeout
+                timeout, tenantId, taskTimeout, userParams
         );
         ModifyProcessDTO dto = new ModifyProcessDTO();
 
@@ -45,7 +46,7 @@ public class ModifyProcessDTO {
     public static ModifyProcessDTO modify(ProcessInfo processInfo, String name, String description) {
         ModifyProcessDTO dto = new ModifyProcessDTO();
 
-        dto.setName((Objects.nonNull(name))  ? name : processInfo.getName() );
+        dto.setName((Objects.nonNull(name)) ? name : processInfo.getName());
         dto.setDescription((Objects.nonNull(description)) ? description : processInfo.getDescription());
         dto.setId(String.valueOf(processInfo.getId()));
         dto.setProcessDefinitionJson(JacksonUtils.writeJson(processInfo.getProcessDefinition()));
@@ -59,12 +60,12 @@ public class ModifyProcessDTO {
                                           String owner, String token, String callbackUrl,
                                           Integer maxRetryTimes, Integer retryInterval,
                                           List<EntityMap> attachTo, String taskName,
-                                          String taskDesc, Integer taskTimeout) {
+                                          String taskDesc, Integer taskTimeout, List<UserParamsDTO> userParams) {
         processInfo.modify(entityName, entityType, entityId, commitId, taskName, taskDesc,
-                owner, token, callbackUrl, maxRetryTimes, retryInterval, taskTimeout, attachTo);
+                owner, token, callbackUrl, maxRetryTimes, retryInterval, taskTimeout, attachTo, userParams);
         ModifyProcessDTO dto = new ModifyProcessDTO();
 
-        dto.setName((Objects.nonNull(name))  ? name : processInfo.getName() );
+        dto.setName((Objects.nonNull(name)) ? name : processInfo.getName());
         dto.setDescription((Objects.nonNull(description)) ? description : processInfo.getDescription());
 
         dto.setId(String.valueOf(processInfo.getId()));
