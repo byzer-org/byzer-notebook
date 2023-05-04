@@ -24,7 +24,7 @@ source $(cd -P -- "$(dirname -- "$0")" && pwd -P)/header.sh
 function checkRestPort() {
     echo "Checking rest port on ${MACHINE_OS}"
     if [[ $MACHINE_OS == "Linux" ]]; then
-        used=$(netstat -tpln | grep "$NOTEBOOK_PORT" | awk '{print $7}' | sed "s/\// /g")
+        used=$(netstat -tpln | grep -w "$NOTEBOOK_PORT" | awk '{print $7}' | sed "s/\// /g")
     elif [[ $MACHINE_OS == "Mac" ]]; then
         used=$(lsof -nP -iTCP:$NOTEBOOK_PORT -sTCP:LISTEN | grep $NOTEBOOK_PORT | awk '{print $2}')
     fi
