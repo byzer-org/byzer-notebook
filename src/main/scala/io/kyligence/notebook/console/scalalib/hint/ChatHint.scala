@@ -25,13 +25,13 @@ class ChatHint extends BaseHint {
 
     if (inputOpt.isDefined) {
       s"""
-         |select ${model}(llm_param(map(
-         |    "system_msg",'${systemMsg}',
+         |select  chat(llm_stack(q,llm_param(map(
+         |
          |    "instruction",'${instruction}',
          |    "temperature","${temperature}",
          |    "user_role","${userRole}",
          |    "assistant_role","${assistantRole}"
-         |))) as q from ${inputOpt.get} as ${outputOpt.getOrElse("output")};
+         |)))) as q from ${inputOpt.get} as ${outputOpt.getOrElse("output")};
          |
          |""".stripMargin
     } else {
