@@ -79,6 +79,8 @@ celerybeat-schedule
 .env
 !client/.env
 
+build/install-dev.sh
+
 # virtualenv
 .venv
 venv/
