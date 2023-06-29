@@ -31,7 +31,7 @@ class ChatHint extends BaseHint {
       s"""
          |select  chat(llm_stack(q,llm_param(map(
          |
-         |    "instruction",'${instruction}',
+         |    "instruction","${instruction}",
          |    ${params}
          |)))) as q from ${inputOpt.get} as ${outputOpt.getOrElse("output")};
          |
@@ -39,7 +39,7 @@ class ChatHint extends BaseHint {
     } else {
       s"""
          |select ${model}(llm_param(map(
-         |    "instruction",'${instruction}',
+         |    "instruction","${instruction}",
          |    ${params}
          |))) as q as ${outputOpt.getOrElse("output")};
          |

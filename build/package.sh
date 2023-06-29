@@ -19,6 +19,7 @@
 
 set -e
 is_skip_tar="${1:-}"
+
 # Notebook absolute path
 root_dir=$(cd -P -- "$(dirname -- "$0")/.." && pwd -P)
 if [[ -n "${BYZER_NOTEBOOK_HOME}" ]]; then
@@ -35,7 +36,7 @@ if [[ ! -d byzer-notebook-vue/.git ]]; then
       rm -rf ./byzer-notebook-vue
     fi
     # build front
-    git clone -b "${FRONTEND_BRANCH:-"main"}" https://github.com/byzer-org/byzer-notebook-vue.git
+    git clone -b "${FRONTEND_BRANCH:-"main"}" https://gitee.com/allwefantasy/byzer-notebook-vue.git
 else
     echo "update byzer-notebook-vue to latest..."
     ( cd byzer-notebook-vue && git reset --hard && git checkout main && git pull -r origin main )
