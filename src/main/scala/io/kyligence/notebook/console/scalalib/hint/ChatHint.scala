@@ -24,6 +24,13 @@ class ChatHint extends BaseHint {
     val outputOpt = header.output
     val inputOpt = header.input
 
+    val format = header.params.getOrElse("format", "html")
+
+//    val tempTableName = UUID.randomUUID().toString .replaceAll("-", "")
+
+    val formatSQL = if (format == "html"){
+      s"select q as content, \"image\" as mime from ${outputOpt.getOrElse("output")} as byzerllm_format_table;"
+    } else ""
 
     val instruction = StringEscapeUtils.escapeJava(header.body.trim);
 
@@ -42,10 +49,9 @@ class ChatHint extends BaseHint {
          |    "instruction","${instruction}",
          |    ${params}
          |))) as q as ${outputOpt.getOrElse("output")};
-         |
+         |${formatSQL}
          |""".stripMargin
     }
-
 
   }
 }
