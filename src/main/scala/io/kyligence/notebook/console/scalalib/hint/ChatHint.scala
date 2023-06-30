@@ -41,7 +41,7 @@ class ChatHint extends BaseHint {
          |    "instruction","${instruction}",
          |    ${params}
          |)))) as q from ${inputOpt.get} as ${outputOpt.getOrElse("output")};
-         |
+         |${formatSQL}
          |""".stripMargin
     } else {
       s"""
