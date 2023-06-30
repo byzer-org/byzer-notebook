@@ -29,7 +29,7 @@ class ChatHint extends BaseHint {
 //    val tempTableName = UUID.randomUUID().toString .replaceAll("-", "")
 
     val formatSQL = if (format == "html"){
-      s"select q as content, \"${format}\" as mime from ${outputOpt.getOrElse("output")} as byzerllm_format_table;"
+      s"""select q as content, "${format}" as mime from ${outputOpt.getOrElse("output")} as byzerllm_format_table;"""
     } else ""
 
     val instruction = StringEscapeUtils.escapeJava(header.body.trim);
