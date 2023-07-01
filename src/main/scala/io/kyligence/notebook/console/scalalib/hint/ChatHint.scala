@@ -76,7 +76,7 @@ class ChatHint extends BaseHint {
 
     if (inputOpt.isDefined) {
       s"""
-         |select  chat(llm_stack(q,llm_param(map(
+         |select  ${model}(llm_stack(q,llm_param(map(
          |
          |    "instruction","${instruction}",
          |    ${params}
