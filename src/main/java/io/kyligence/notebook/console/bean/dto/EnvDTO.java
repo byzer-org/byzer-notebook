@@ -16,11 +16,15 @@ public class EnvDTO {
     @JsonProperty("is_scheduler_enabled")
     private Boolean isSchedulerEnabled;
 
-    public static EnvDTO valueOf(Boolean isTrial, Double userFileSizeLimit, Boolean isSchedulerEnabled) {
+    @JsonProperty("logo")
+    private String logo;
+
+    public static EnvDTO valueOf(Boolean isTrial, Double userFileSizeLimit, Boolean isSchedulerEnabled, String logo) {
         EnvDTO dto = new EnvDTO();
         dto.setIsTrial(isTrial);
         dto.setFileSizeLimitKB(userFileSizeLimit);
         dto.setIsSchedulerEnabled(isSchedulerEnabled);
+        dto.setLogo(logo);
         return dto;
     }
 }
