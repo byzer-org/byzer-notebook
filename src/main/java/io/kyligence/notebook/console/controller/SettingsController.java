@@ -111,7 +111,8 @@ public class SettingsController {
     @ApiOperation("Environment Info")
     @GetMapping("/settings/env")
     public Response<EnvDTO> getEnv() {
-        return new Response<EnvDTO>().data(EnvDTO.valueOf(config.getIsTrial(), config.getUserFileSizeLimit(), config.getIsSchedulerEnabled()));
+        return new Response<EnvDTO>().data(EnvDTO.valueOf(config.getIsTrial(), config.getUserFileSizeLimit(),
+                config.getIsSchedulerEnabled(), config.getLogo()));
     }
 
     @ApiOperation("Engine List")

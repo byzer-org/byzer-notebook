@@ -322,4 +322,8 @@ public class NotebookConfig {
     public String notificationMessageEnabled() {
         return getOptional("notebook.scheduler.notification.message.enabled", "false");
     }
+
+    public String getLogo() {
+        return getOptional("notebook.logo", "Byzer Notebook");
+    }
 }

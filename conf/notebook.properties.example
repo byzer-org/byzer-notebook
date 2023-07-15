@@ -1,3 +1,4 @@
+notebook.logo=Byzer Notebook
 notebook.port=9002
 notebook.session.timeout=12h
 notebook.security.key=6173646661736466e4bda0e8bf983161
