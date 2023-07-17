@@ -12,6 +12,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
@@ -50,13 +52,15 @@ public class NotebookConfig {
         FileInputStream ois = null;
         try {
             is = new FileInputStream(propFile);
-            conf.load(is);
+            InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+            conf.load(isr);
 
             File propOverrideFile = new File(propFile.getParentFile(), propFile.getName() + ".override");
             if (propOverrideFile.exists()) {
                 ois = new FileInputStream(propOverrideFile);
+                InputStreamReader oisr = new InputStreamReader(ois, StandardCharsets.UTF_8);
                 Properties propOverride = new Properties();
-                propOverride.load(ois);
+                propOverride.load(oisr);
                 conf.putAll(propOverride);
             }
         } catch (IOException e) {
