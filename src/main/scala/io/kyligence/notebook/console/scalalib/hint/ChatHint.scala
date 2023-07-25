@@ -29,7 +29,7 @@ class ChatHint extends BaseHint {
     val outputOpt = header.output
     val inputOpt = header.input
 
-    val format = header.params.getOrElse("format", "html")
+    val format = header.params.getOrElse("format", "markdown")
 
     if(header.params.contains("image")){
       val image = header.params("image")
@@ -66,11 +66,13 @@ class ChatHint extends BaseHint {
         |</html>
         |""".stripMargin )
 
-    val formatSQL = if (format == "html"){
-      s"""select concat("${preHTML}",llm_response_predict(q),"${endPreHTML}") as content, "${format}" as mime from ${outputOpt.getOrElse("output")} as byzerllm_format_table;"""
-    } else ""
-
-
+    val formatSQL = format match {
+      case "html" =>
+        s"""select concat("${preHTML}",llm_response_predict(q),"${endPreHTML}") as content, "${format}" as mime from ${outputOpt.getOrElse("output")} as byzerllm_format_table;"""
+      case "markdown" =>
+        s"""select llm_response_predict(q) as content, "${format}" as mime from ${outputOpt.getOrElse("output")} as byzerllm_format_table;"""
+      case _ => ""
+    }
 
     val instruction = StringEscapeUtils.escapeJava(header.body.trim);
 
