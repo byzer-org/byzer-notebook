@@ -24,9 +24,9 @@ source $(cd -P -- "$(dirname -- "$0")" && pwd -P)/header.sh
 function checkRestPort() {
     echo "Checking rest port on ${MACHINE_OS}"
     if [[ $MACHINE_OS == "Linux" ]]; then
-        used=$(netstat -tpln | grep "$NOTEBOOK_PORT" | awk '{print $7}' | sed "s/\// /g")
+        used=$(netstat -tpln | grep -w "$NOTEBOOK_PORT" | awk '{print $7}' | sed "s/\// /g")
     elif [[ $MACHINE_OS == "Mac" ]]; then
-        used=$(lsof -nP -iTCP:$NOTEBOOK_PORT -sTCP:LISTEN | grep $NOTEBOOK_PORT | awk '{print $2}')
+        used=$(lsof -nP -iTCP:$NOTEBOOK_PORT -sTCP:LISTEN | grep -w $NOTEBOOK_PORT | awk '{print $2}')
     fi
     if [ ! -z "$used" ]; then
         quit "ERROR: Port ${NOTEBOOK_PORT} is in use, another Byzer Notebook is running?"
