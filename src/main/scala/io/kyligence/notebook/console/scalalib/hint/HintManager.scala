@@ -5,7 +5,7 @@ import scala.collection.JavaConverters._
 object HintManager {
 
   private val noEffectHintList: List[BaseHint] =
-    List(new KylinHint, new PythonHint, new JDBCHint, new OpenMLDBHint, new VisualizationHint,new ChatHint)
+    List(new KylinHint, new PythonHint, new JDBCHint, new OpenMLDBHint, new VisualizationHint,new ChatHint,new StringHint)
 
   private val effectHintList: List[BaseHint] =
     List(new DeployScriptHint, new DeployModelHint, new DeployPythonModelHint)
