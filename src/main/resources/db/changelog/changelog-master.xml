@@ -22,4 +22,5 @@
     <include file="db/changelog/v1.1.1_2022-03-16_01_add_job_info_archive.sql"/>
     <include file="db/changelog/v1.2.0_2022-04-06_01_update_system_config.sql"/>
     <include file="db/changelog/v1.2.1_2023-01-13_01_alter_job_info_msg_to_longtext.sql"/>
+    <include file="db/changelog/v1.2.2_2023-09-07_01_alter_cell_info_content_to_longtext.sql"/>
 </databaseChangeLog>
