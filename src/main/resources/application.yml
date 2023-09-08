@@ -110,6 +110,9 @@ server:
   error:
     include-stacktrace: always
 
+swagger:
+  enable: true
+
 management:
   endpoint:
     shutdown:

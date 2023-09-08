@@ -353,24 +353,29 @@ public class NotebookService implements FileInterface {
 
     public List<CodeSuggestDTO> getCodeSuggestion(CodeSuggestionReq params) {
         String result;
-        try {
-            String user = WebUtils.getCurrentLoginUser();
-            result = engineService.runAutoSuggest(
-                    new EngineService.RunScriptParams()
-                            .withSql(params.getSql())
-                            .withOwner(user)
-                            .with("lineNum", params.getLineNum().toString())
-                            .with("columnNum", params.getColumnNum().toString())
-                            .with("isDebug", params.getIsDebug().toString())
-                            .withAsync("false")
-            );
-        } catch (ByzerException e) {
-            throw new ByzerIgnoreException(e);
-        } catch (EngineAccessException e) {
-            throw new EngineAccessException(ErrorCodeEnum.ENGINE_ACCESS_EXCEPTION, e);
+        boolean suggestEnable = config.getSuggestEnable();
+        if (suggestEnable) {
+            try {
+                String user = WebUtils.getCurrentLoginUser();
+                result = engineService.runAutoSuggest(
+                        new EngineService.RunScriptParams()
+                                .withSql(params.getSql())
+                                .withOwner(user)
+                                .with("lineNum", params.getLineNum().toString())
+                                .with("columnNum", params.getColumnNum().toString())
+                                .with("isDebug", params.getIsDebug().toString())
+                                .withAsync("false")
+                );
+            } catch (ByzerException e) {
+                throw new ByzerIgnoreException(e);
+            } catch (EngineAccessException e) {
+                throw new EngineAccessException(ErrorCodeEnum.ENGINE_ACCESS_EXCEPTION, e);
+            }
+            List<CodeSuggestDTO> codeSuggests = JacksonUtils.readJsonArray(result, CodeSuggestDTO.class);
+            return codeSuggests;
+        } else {
+            return null;
         }
-        List<CodeSuggestDTO> codeSuggests = JacksonUtils.readJsonArray(result, CodeSuggestDTO.class);
-        return codeSuggests;
     }
 
     public String getNotebookScripts(String user, Integer notebookId, String commitId, Map<String, String> options) {

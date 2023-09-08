@@ -330,4 +330,9 @@ public class NotebookConfig {
     public String getLogo() {
         return getOptional("notebook.logo", "Byzer Notebook");
     }
+
+    public Boolean getSuggestEnable() {
+        return Objects.equals(getOptional("notebook.suggest.enable", "true"), "true");
+    }
+
 }
