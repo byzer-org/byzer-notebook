@@ -1,5 +1,6 @@
 package io.kyligence.notebook.console.support;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,9 +17,13 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @ConditionalOnClass(Docket.class)
 public class SwaggerConfig {
 
+    @Value("${swagger.enable:true}")
+    private Boolean swaggerEnable;
+
     @Bean
     public Docket createRestApi() {
         return new Docket(DocumentationType.SWAGGER_2)
+                .enable(swaggerEnable)
                 .apiInfo(apiInfo())
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("io.kyligence.notebook.console.controller"))
