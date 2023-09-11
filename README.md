@@ -9,7 +9,8 @@
 3. scala (recommend 2.11.8)
 4. node (recommend 14.x.x)
 5. npm (recommend 6.x.x)
-6. Byzer-lang (startup first)
+6. python (recommend 3.10.x, must < 3.11)
+7. Byzer-lang (startup first)
 
 ## Build with Byzer-Notebook-Vue
 * Execute the script
